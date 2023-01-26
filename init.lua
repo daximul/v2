@@ -1,3 +1,5 @@
+local LoadingTick = tick()
+
 Admin = {
     Debug = false,
     Commands = {},
@@ -613,15 +615,9 @@ AddCommand = function(name, alias, reqs, perm, func)
 end
 
 RewriteCommand = function(cmd, func)
-    cmd = lower(tostring(cmd) or " ")
-	if cmd ~= " " then
-		if type(func) == "function" then
-			for i = #Admin.Commands, 1, -1 do
-				if Admin.Commands[i].Name == cmd or FindInTable(Admin.Commands[i].Alias, cmd) then
-					Admin.Commands[i].Func = func
-				end
-			end
-		end
+	local command = FindCommand(cmd)
+	if command then
+		command.Func = func
 	end
 end
 
@@ -671,6 +667,7 @@ local Config = {
 	LoweredText = false,
 	FlySpeed = 1
 }
+local MiscConfig = {Permissions = {}}
 do
 	if not isfolder("dark-admin") then
 		makefolder("dark-admin")
@@ -695,6 +692,23 @@ do
 		repeat wait(10)
 			if writefile then
 				writefile(save, HttpService:JSONEncode(Config))
+			end
+		until not cons.loaded
+	end)
+	local save2 = "dark-admin/misc.json"
+	local cachedconfigs2 = pcall(readfile, save2) and HttpService:JSONDecode(readfile(save2))
+	if cachedconfigs2 then
+		for setting, value in next, MiscConfig do
+			if cachedconfigs2[setting] == nil then
+				cachedconfigs2[setting] = value
+			end
+		end
+		MiscConfig = cachedconfigs2
+	end
+	spawn(function()
+		repeat wait(10)
+			if writefile then
+				writefile(save2, HttpService:JSONEncode(MiscConfig))
 			end
 		until not cons.loaded
 	end)
@@ -878,12 +892,26 @@ AddCommand("commandinfo", {}, {"Core", 1}, 2, function(args)
 end)
 
 AddCommand("changelogs", {}, {"Core"}, 2, function()
-	GuiFuncs.DisplayTable("Changelog", {
-		{
-			"Update 1.0.0",
-			"im a silly goober and rewrote the script"
-		}
-	})
+	local new = {}
+	local success, _ = pcall(function()
+		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/changelog.json")
+	end)
+	if success then
+		GuiFuncs.DisplayTable("Changelog", HttpService:JSONDecode(new))
+	end
+end)
+
+AddCommand("editpermissions", {"editperms"}, {"Core", 2}, 2, function(args)
+	local command = FindCommand(lower(tostring(args[1])))
+	if command and args[2] and isNumber(args[2]) then
+		local perm = tonumber(args[2])
+		if perm >= 2 then
+			perm = 2
+		end
+		command.PermissionIndex = perm
+		MiscConfig.Permissions[command.Name] = perm
+		Notify(format("set permission of %s to %d", command.Name, perm))
+	end
 end)
 
 AddCommand("viewtools", {}, {"Fun", 1}, 2, function(args, speaker)
@@ -990,3 +1018,12 @@ AddCommand("flyspeed", {}, {"Misc", 1}, 2, function(args)
 		Config.FlySpeed = args[1]
 	end
 end)
+
+Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
+
+for i, v in next, MiscConfig.Permissions do
+	local command = FindCommand(i)
+	if command then
+		command.PermissionIndex = v
+	end
+end
