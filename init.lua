@@ -1043,7 +1043,7 @@ AddCommand("rejoin", {"rj"}, {"Core"}, 2, function()
 	end
 end)
 
-AddCommand("clearerrors", {"clearerror"}, {"Misc"}, 2, function()
+AddCommand("clearerrors", {"clearerror"}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
