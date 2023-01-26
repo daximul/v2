@@ -1047,6 +1047,43 @@ AddCommand("clearerrors", {"clearerror"}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
+AddCommand("esp", {}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unesp")
+	local esp
+	local success, _ = pcall(function()
+		esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/esp.lua"))()
+	end)
+	if success then
+		local Container = GuiFuncs.New("Visuals", function()
+			esp:Kill()
+		end)
+		local Section = Container:AddSection("Section")
+		Section:AddItem("Toggle", {Text = "ESP", Default = true, Function = function(callback) esp:Toggle(callback) end})
+		Section:AddItem("Toggle", {Text = "Names", Default = true, Function = function(callback) esp.Names = callback end})
+		Section:AddItem("Toggle", {Text = "Boxes", Default = true, Function = function(callback) esp.Boxes = callback end})
+		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
+		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
+		esp:Toggle(true)
+		esp.Players = true
+		esp.Names = true
+		esp.Boxes = true
+		env[1] = function()
+			if Container and Container.Close then
+				Container.Close()
+			else
+				esp:Kill()
+			end
+		end
+	end
+end)
+
+AddCommand("unesp", {}, {"Utility"}, 2, function()
+	local env = GetEnvironment("esp")[1]
+	if env then
+		env()
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 for i, v in next, MiscConfig.Permissions do
