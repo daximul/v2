@@ -884,7 +884,7 @@ AddCommand("commandinfo", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 		GuiFuncs.DisplayTable(format("Info for %s", command.Name), {
 			format("Name: %s", command.Name),
 			format("Category: %s", command.Category),
-			format("Permission Index: %s", command.PermissionIndex),
+			format("Permission Index: %d", command.PermissionIndex),
 			format("This command requires %d argument(s)", command.ArgsNeeded),
 			#command.Alias > 0 and {"Aliases", unpack(command.Alias)} or "This command has no aliases",
 			{"Permission Index", "2 - Only you can run the command\n1 - Only you and whitelisted players can run the command\n0 - Everyone in the server can run the command"}
