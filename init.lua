@@ -35,6 +35,7 @@ CoreGui = Services.CoreGui
 UserInputService = Services.UserInputService
 RunService = Services.RunService
 TweenService = Services.TweenService
+TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
 split, format, upper, clamp = string.split, string.format, string.upper, math.clamp
@@ -877,7 +878,7 @@ AddCommand("commands", {"cmds"}, {"Core"}, 2, function()
 	GuiFuncs.DisplayTable("Commands", new)
 end)
 
-AddCommand("commandinfo", {}, {"Core", 1}, 2, function(args)
+AddCommand("commandinfo", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	local command = FindCommand(args[1])
 	if command then
 		GuiFuncs.DisplayTable(format("Info for %s", command.Name), {
@@ -985,6 +986,7 @@ AddCommand("fly", {}, {"Fun"}, 2, function(_, _, env)
 		if GetHumanoid() then
 			GetHumanoid().PlatformStand = false
 		end
+		env[1] = nil
 	end
 
 	coroutine.wrap(function()
@@ -1007,16 +1009,42 @@ AddCommand("fly", {}, {"Fun"}, 2, function(_, _, env)
 end)
 
 AddCommand("unfly", {}, {"Fun"}, 2, function()
-	if GetEnvironment("fly")[1] then
-		GetEnvironment("fly")[1]()
-		GetEnvironment("fly")[1] = nil
+	local env = GetEnvironment("fly")[1]
+	if env then
+		env()
 	end
 end)
 
-AddCommand("flyspeed", {}, {"Misc", 1}, 2, function(args)
+AddCommand("flyspeed", {}, {1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
 		Config.FlySpeed = args[1]
 	end
+end)
+
+AddCommand("walkspeed", {"speed", "ws"}, {"Core", 1}, 2, function(args)
+	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
+		GetHumanoid().WalkSpeed = args[1]
+	end
+end)
+
+AddCommand("jumppower", {"jp"}, {"Core", 1}, 2, function(args)
+	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
+		GetHumanoid().JumpPower = args[1]
+	end
+end)
+
+AddCommand("rejoin", {"rj"}, {"Core"}, 2, function()
+	if #Players:GetPlayers() <= 1 then
+		LocalPlayer:Kick("\nRejoining...")
+		wait()
+		TeleportService:Teleport(game.PlaceId, LocalPlayer)
+	else
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+	end
+end)
+
+AddCommand("clearerrors", {"clearerror"}, {"Misc"}, 2, function()
+	Services.GuiService:ClearError()
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
