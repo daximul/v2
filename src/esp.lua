@@ -507,7 +507,7 @@ function ESP:Chams(enabled)
                         hitbox.FillTransparency = 0.4
                     end
                 end
-            until not chamsEnabled
+            until not chamsEnabled or not ESP.Enabled
         end)
     else
         if chamfolder then
