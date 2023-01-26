@@ -35,7 +35,6 @@ local cam = workspace.CurrentCamera
 local plrs = cloneref(game:GetService("Players"))
 local runserv = cloneref(game:GetService("RunService"))
 local plr = plrs.LocalPlayer
-local mouse = plr:GetMouse()
 local WorldToViewportPoint = cam.WorldToViewportPoint
 
 local function Draw(obj, props)
