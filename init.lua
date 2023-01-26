@@ -1063,16 +1063,13 @@ AddCommand("esp", {}, {"Utility"}, 2, function(_, _, env)
 		Section:AddItem("Toggle", {Text = "Boxes", Default = true, Function = function(callback) esp.Boxes = callback end})
 		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
 		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
-		esp:Toggle(true)
-		esp.Players = true
-		esp.Names = true
-		esp.Boxes = true
 		env[1] = function()
 			if Container and Container.Close then
 				Container.Close()
 			else
 				esp:Kill()
 			end
+			env[1] = nil
 		end
 	end
 end)
