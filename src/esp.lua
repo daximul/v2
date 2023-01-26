@@ -424,62 +424,6 @@ function ESP:DefaultSetup(color)
     ESP.Color = ESP.Presets[tostring(color)] or color or ESP.Presets.White
 end
 
---[[
-local CoreGui = cloneref(game:GetService("CoreGui"))
-local chamjoin = nil
-local chamfolder = nil
-local chamchecker = nil
-function ESP:Chams(enabled)
-    if enabled then
-        if chamjoin then
-            chamjoin:Disconnect()
-            chamjoin = nil
-        end
-        if chamchecker then
-            chamchecker:Disconnect()
-            chamchecker = nil
-        end
-        if chamfolder then
-            chamfolder:Destroy()
-            chamfolder = nil
-        end
-        chamfolder = Instance.new("Folder")
-        chamfolder.Parent = CoreGui
-        local makecham = function(player)
-            local hitbox = Instance.new("Highlight")
-            hitbox.Parent = chamfolder
-            hitbox.Adornee = player
-            hitbox.OutlineColor = Color3.new(255, 0, 0)
-            hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-            hitbox.FillColor = Color3.fromRGB(172, 16, 16)
-            hitbox.FillTransparency = 0.4
-        end
-        chamjoin = plrs.PlayerAdded:Connect(function(player)
-            makecham(player)
-            player.CharacterAdded:Connect(function()
-                makecham(player)
-            end)
-        end)
-        chamchecker = runserv.RenderStepped:Connect(function()
-
-        end)
-    else
-        if chamjoin then
-            chamjoin:Disconnect()
-            chamjoin = nil
-        end
-        if chamchecker then
-            chamchecker:Disconnect()
-            chamchecker = nil
-        end
-        if chamfolder then
-            chamfolder:Destroy()
-            chamfolder = nil
-        end
-    end
-end
-]]
-
 local CoreGui = cloneref(game:GetService("CoreGui"))
 local chamfolder = nil
 local chamsEnabled = false
@@ -500,12 +444,11 @@ function ESP:Chams(enabled)
                         local hitbox = chamfolder:FindFirstChild(v.Name) or Instance.new("Highlight")
                         hitbox.Name = v.Name
                         hitbox.Parent = chamfolder
-                        hitbox.Adornee = v
+                        hitbox.Adornee = char
                         hitbox.OutlineColor = v.TeamColor.Color
                         hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                         hitbox.FillColor = v.TeamColor.Color
                         hitbox.FillTransparency = 0.4
-                        print(hitbox.Name)
                     end
                 end
             until not chamsEnabled or not ESP.Enabled
