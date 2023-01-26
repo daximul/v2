@@ -720,9 +720,9 @@ end
 Gui = Services.InsertService:LoadLocalAsset("rbxassetid://12252343699"):Clone()
 ParentObject(Gui)
 Gui.Enabled = true
-GuiFuncs = fakeRequire(Gui.UI)
-Notify = GuiFuncs.Message
-local CommandBarFrame = Gui.CommandBar
+Gui = fakeRequire(Gui.UI)
+Notify = Gui.Message
+local CommandBarFrame = Gui.BaseObject.CommandBar
 local CommandBar = CommandBarFrame.Input
 local Prediction = CommandBar.Predict
 
@@ -863,7 +863,7 @@ end)
 
 AddCommand("killscript", {}, {"Core"}, 2, function(args, speaker)
 	cons.wipe()
-	Gui:Destroy()
+	Gui.BaseObject:Destroy()
 end)
 
 AddCommand("commands", {"cmds"}, {"Core"}, 2, function()
@@ -875,13 +875,13 @@ AddCommand("commands", {"cmds"}, {"Core"}, 2, function()
 		end
 		new[category][command.Name] = Config.Prefix .. lower(command.Name)
 	end
-	GuiFuncs.DisplayTable("Commands", new)
+	Gui.DisplayTable("Commands", new)
 end)
 
 AddCommand("commandinfo", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	local command = FindCommand(args[1])
 	if command then
-		GuiFuncs.DisplayTable(format("Info for %s", command.Name), {
+		Gui.DisplayTable(format("Info for %s", command.Name), {
 			format("Name: %s", command.Name),
 			format("Category: %s", command.Category),
 			format("Permission Index: %d", command.PermissionIndex),
@@ -898,7 +898,7 @@ AddCommand("changelogs", {}, {"Core"}, 2, function()
 		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
 	end)
 	if success then
-		GuiFuncs.DisplayTable("Changelog", HttpService:JSONDecode(new))
+		Gui.DisplayTable("Changelog", HttpService:JSONDecode(new))
 	end
 end)
 
@@ -925,7 +925,7 @@ AddCommand("viewtools", {}, {"Fun", 1}, 2, function(args, speaker)
 					insert(tools, v.Name)
 				end
 			end
-			GuiFuncs.DisplayTable(format("Tools (%s)", GetUsername(target)), tools)
+			Gui.DisplayTable(format("Tools (%s)", GetUsername(target)), tools)
 		end
 	end
 end)
@@ -1054,7 +1054,7 @@ AddCommand("esp", {}, {"Utility"}, 2, function(_, _, env)
 		esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/esp.lua"))()
 	end)
 	if success then
-		local Container = GuiFuncs.New("Visuals", function()
+		local Container = Gui.New("Visuals", function()
 			esp:Kill()
 		end)
 		local Section = Container:AddSection("Section")
