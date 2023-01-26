@@ -892,7 +892,7 @@ AddCommand("commandinfo", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	end
 end)
 
-AddCommand("changelogs", {}, {"Core"}, 2, function()
+AddCommand("changelogs", {"changelog"}, {"Core"}, 2, function()
 	local new = {}
 	local success, _ = pcall(function()
 		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
@@ -1060,9 +1060,10 @@ AddCommand("esp", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 		local Section = Container:AddSection("Section")
 		Section:AddItem("Toggle", {Text = "ESP", Default = true, Function = function(callback) esp:Toggle(callback) end})
 		Section:AddItem("Toggle", {Text = "Names", Default = true, Function = function(callback) esp.Names = callback end})
-		Section:AddItem("Toggle", {Text = "Boxes", Default = true, Function = function(callback) esp.Boxes = callback end})
+		Section:AddItem("Toggle", {Text = "Boxes", Function = function(callback) esp.Boxes = callback end})
 		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
 		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
+		Section:AddItem("Toggle", {Text = "Chams", Function = function(callback) esp:Chams(callback) end})
 		env[1] = function()
 			if Container and Container.Close then
 				Container.Close()
