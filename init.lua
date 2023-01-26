@@ -1047,7 +1047,7 @@ AddCommand("clearerrors", {"clearerror"}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
-AddCommand("esp", {}, {"Utility"}, 2, function(_, _, env)
+AddCommand("esp", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
 	local esp
 	local success, _ = pcall(function()
@@ -1074,7 +1074,7 @@ AddCommand("esp", {}, {"Utility"}, 2, function(_, _, env)
 	end
 end)
 
-AddCommand("unesp", {}, {"Utility"}, 2, function()
+AddCommand("unesp", {"untracers", "unchams"}, {"Utility"}, 2, function()
 	local env = GetEnvironment("esp")[1]
 	if env then
 		env()
