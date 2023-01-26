@@ -439,7 +439,7 @@ function ESP:Chams(enabled)
             repeat wait()
                 for _, v in next, plrs:GetPlayers() do
                     local char = v.Character
-                    if char ~= nil then
+                    if chamfolder ~= nil and char ~= nil then
                         local hitbox = chamfolder:FindFirstChild(v.Name) or Instance.new("Highlight")
                         hitbox.Name = v.Name
                         hitbox.Parent = chamfolder
