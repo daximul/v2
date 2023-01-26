@@ -1,0 +1,18 @@
+[
+    "Month / Day / Year",
+    [
+        "Update 1/26/23",
+        "+ editpermissions [command] [number]",
+        "change the permission index of a command",
+        "more info on permission index in commandinfo of a command",
+        "had a war coding it bro im so bad at lua"
+    ],
+    [
+        "Update 1/24/23",
+        "+ fly, unfly, viewtools [player], commandinfo [command]"
+    ],
+    [
+        "Update 1/21/23",
+        "im a silly goober and rewrote the rewrite"
+    ]
+]
