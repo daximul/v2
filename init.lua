@@ -650,7 +650,7 @@ local fakeRequire = (function()
 		if cache[module] then
 			return cache[module]
 		end
-		local func = loadstring("warn(script.Name);\n" .. module.source)
+		local func = loadstring(module.source)
 		local env = setmetatable({}, {__index = getgenv()})
 		env.script = module
 		env.require = load
@@ -895,7 +895,7 @@ end)
 AddCommand("changelogs", {}, {"Core"}, 2, function()
 	local new = {}
 	local success, _ = pcall(function()
-		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/changelog.json")
+		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
 	end)
 	if success then
 		GuiFuncs.DisplayTable("Changelog", HttpService:JSONDecode(new))
