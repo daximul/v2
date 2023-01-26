@@ -505,6 +505,7 @@ function ESP:Chams(enabled)
                         hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                         hitbox.FillColor = v.TeamColor.Color
                         hitbox.FillTransparency = 0.4
+                        print(hitbox.Name)
                     end
                 end
             until not chamsEnabled or not ESP.Enabled
