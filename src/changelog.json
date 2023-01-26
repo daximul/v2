@@ -5,7 +5,8 @@
         "+ editpermissions [command] [number]",
         "change the permission index of a command",
         "more info on permission index in commandinfo of a command",
-        "had a war coding it bro im so bad at lua"
+        "had a war coding it bro im so bad at lua",
+        "+ esp, unesp"
     ],
     [
         "Update 1/24/23",
