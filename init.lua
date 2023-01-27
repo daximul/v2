@@ -39,8 +39,9 @@ TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
 split, format, upper, clamp = string.split, string.format, string.upper, math.clamp
+local creatingInstance = Instance.new
 NewInstance = function(class, props)
-	local inst = Instance.new(class)
+	local inst = creatingInstance(class)
 	for prop, value in pairs(props) do
 		inst[prop] = value
 	end
@@ -580,10 +581,12 @@ Admin.CommandRequirements.spawned = {
     warning = "you need to be spawned for this command"
 }
 
-AddCommand = function(name, alias, reqs, perm, func)
+AddCommand = function(name, usage, description, alias, reqs, perm, func)
     local Id = #Admin.Commands + 1
     Admin.Commands[Id] = {
         Name = name,
+        Usage = usage,
+        Description = description,
         Alias = alias or {},
         Requirements = reqs or {},
         PermissionIndex = perm or 2,
@@ -857,16 +860,30 @@ cons.add(Mouse.KeyDown, function(Key)
 end)
 
 -- Commands
-AddCommand("debug", {}, {"Core"}, 2, function(args, speaker)
+AddCommand("debug", "debug", "Enable the admin's debug mode.", {}, {"Core"}, 2, function(args, speaker)
 	Admin.Debug = not Admin.Debug
 end)
 
-AddCommand("killscript", {}, {"Core"}, 2, function(args, speaker)
+AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {"Core"}, 2, function(args, speaker)
 	cons.wipe()
 	Gui.BaseObject:Destroy()
 end)
 
-AddCommand("commands", {"cmds"}, {"Core"}, 2, function()
+AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
+	ExecuteCommand("killscript")
+	coroutine.wrap(function()
+		local success, result = pcall(function()
+			return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
+		end)
+		if pcall(readfile, "dark-admin/init.lua") then
+			loadstring(readfile("dark-admin/init.lua"))()
+		elseif success then
+			loadstring(result)()
+		end
+	end)()
+end)
+
+AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"}, 2, function()
 	local new = {}
 	for _, command in next, Admin.Commands do
 		local category = command.Category or "Misc"
@@ -878,31 +895,32 @@ AddCommand("commands", {"cmds"}, {"Core"}, 2, function()
 	Gui.DisplayTable("Commands", new)
 end)
 
-AddCommand("commandinfo", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
+AddCommand("commandinfo", "commandinfo [command]", "View more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	local command = FindCommand(args[1])
 	if command then
 		Gui.DisplayTable(format("Info for %s", command.Name), {
 			format("Name: %s", command.Name),
 			format("Category: %s", command.Category),
 			format("Permission Index: %d", command.PermissionIndex),
+			format("Usage: %s", command.Usage),
 			format("This command requires %d argument(s)", command.ArgsNeeded),
 			#command.Alias > 0 and {"Aliases", unpack(command.Alias)} or "This command has no aliases",
+			{"Description", command.Description},
 			{"Permission Index", "2 - Only you can run the command\n1 - Only you and whitelisted players can run the command\n0 - Everyone in the server can run the command"}
 		})
 	end
 end)
 
-AddCommand("changelogs", {"changelog"}, {"Core"}, 2, function()
-	local new = {}
-	local success, _ = pcall(function()
-		new = game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
+AddCommand("changelogs", "changelogs", "View the changelogs.", {"changelog"}, {"Core"}, 2, function()
+	local success, result = pcall(function()
+		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
 	end)
 	if success then
-		Gui.DisplayTable("Changelog", HttpService:JSONDecode(new))
+		Gui.DisplayTable("Changelog", HttpService:JSONDecode(result))
 	end
 end)
 
-AddCommand("editpermissions", {"editperms"}, {"Core", 2}, 2, function(args)
+AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
 	local command = FindCommand(lower(tostring(args[1])))
 	if command and args[2] and isNumber(args[2]) then
 		local perm = tonumber(args[2])
@@ -915,7 +933,7 @@ AddCommand("editpermissions", {"editperms"}, {"Core", 2}, 2, function(args)
 	end
 end)
 
-AddCommand("viewtools", {}, {"Fun", 1}, 2, function(args, speaker)
+AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Fun", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -930,7 +948,7 @@ AddCommand("viewtools", {}, {"Fun", 1}, 2, function(args, speaker)
 	end
 end)
 
-AddCommand("fly", {}, {"Fun"}, 2, function(_, _, env)
+AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Fun"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if not character or not humanoid or not root then
@@ -1008,32 +1026,32 @@ AddCommand("fly", {}, {"Fun"}, 2, function(_, _, env)
 	end)
 end)
 
-AddCommand("unfly", {}, {"Fun"}, 2, function()
+AddCommand("unfly", "unfly", "Stop flying.", {}, {"Fun"}, 2, function()
 	local env = GetEnvironment("fly")[1]
 	if env then
 		env()
 	end
 end)
 
-AddCommand("flyspeed", {}, {1}, 2, function(args)
+AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
 		Config.FlySpeed = args[1]
 	end
 end)
 
-AddCommand("walkspeed", {"speed", "ws"}, {"Core", 1}, 2, function(args)
+AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Core", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().WalkSpeed = args[1]
 	end
 end)
 
-AddCommand("jumppower", {"jp"}, {"Core", 1}, 2, function(args)
+AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Core", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = args[1]
 	end
 end)
 
-AddCommand("rejoin", {"rj"}, {"Core"}, 2, function()
+AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Core"}, 2, function()
 	if #Players:GetPlayers() <= 1 then
 		LocalPlayer:Kick("\nRejoining...")
 		wait()
@@ -1043,15 +1061,14 @@ AddCommand("rejoin", {"rj"}, {"Core"}, 2, function()
 	end
 end)
 
-AddCommand("clearerrors", {"clearerror"}, {}, 2, function()
+AddCommand("clearerrors", "clearerrors", "Remove the annoying box and blur that happens when a game kicks you.", {"clearerror"}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
-AddCommand("esp", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
+AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
-	local esp
-	local success, _ = pcall(function()
-		esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/esp.lua"))()
+	local success, esp = pcall(function()
+		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/esp.lua"))()
 	end)
 	if success then
 		local Container = Gui.New("Visuals", function()
@@ -1075,7 +1092,7 @@ AddCommand("esp", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	end
 end)
 
-AddCommand("unesp", {"untracers", "unchams"}, {"Utility"}, 2, function()
+AddCommand("unesp", "unesp", "Turns off esp.", {"untracers", "unchams"}, {"Utility"}, 2, function()
 	local env = GetEnvironment("esp")[1]
 	if env then
 		env()
