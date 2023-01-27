@@ -875,8 +875,9 @@ AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and 
 		local success, result = pcall(function()
 			return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
 		end)
-		if pcall(readfile, "dark-admin/init.lua") then
-			loadstring(readfile("dark-admin/init.lua"))()
+		local file, data = pcall(readfile, "dark-admin/init.lua")
+		if file then
+			loadstring(data)()
 		elseif success then
 			loadstring(result)()
 		end
@@ -948,7 +949,7 @@ AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {},
 	end
 end)
 
-AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Fun"}, 2, function(_, _, env)
+AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Fun", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if not character or not humanoid or not root then
@@ -1039,13 +1040,13 @@ AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number]."
 	end
 end)
 
-AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Core", 1}, 2, function(args)
+AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Core", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().WalkSpeed = args[1]
 	end
 end)
 
-AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Core", 1}, 2, function(args)
+AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Core", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = args[1]
 	end
@@ -1097,6 +1098,30 @@ AddCommand("unesp", "unesp", "Turns off esp.", {"untracers", "unchams"}, {"Utili
 	if env then
 		env()
 	end
+end)
+
+AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Fun", "spawned"}, 2, function()
+	ExecuteCommand("unnoclip")
+	cons.add("noclip", RunService.Stepped, function()
+		local character = GetCharacter()
+		if character then
+			for _, v in next, character:GetChildren() do
+				if v:IsA("BasePart") and v.CanCollide then
+					v.CanCollide = false
+				end
+			end
+		end
+	end)
+	local humanoid = GetHumanoid()
+	if humanoid then
+		cons.add(humanoid.Died, function()
+			ExecuteCommand("unnoclip")
+		end)
+	end
+end)
+
+AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Fun"}, 2, function()
+	cons.remove("noclip")
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
