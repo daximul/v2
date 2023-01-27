@@ -47,6 +47,7 @@ NewInstance = function(class, props)
 	end
 	return inst
 end
+local Chatlogs = {}
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
@@ -104,6 +105,11 @@ end
 GetUsername = function(player)
 	player = player or LocalPlayer
 	return player.DisplayName and player.DisplayName or player.Name
+end
+
+GetLongUsername = function(player)
+	player = player or LocalPlayer
+	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
 end
 
 FindCommand = function(cmd)
@@ -563,6 +569,16 @@ for _, player in next, Players:GetPlayers() do
 		end)
 	end
 end
+
+cons.add(Players.PlayerAdded, function(player)
+	cons.add(player.Chatted, function(message)
+		spawn(function()
+			wait()
+			do_exec(message, player)
+		end)
+		Chatlogs[#Chatlogs + 1] = {Player = player, Message = message}
+	end)
+end)
 
 filterthrough = function(tbl, ret)
     if type(tbl) == "table" then
