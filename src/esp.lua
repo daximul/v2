@@ -427,16 +427,18 @@ function ESP:Chams(enabled)
         spawn(function()
             repeat wait()
                 for _, v in next, plrs:GetPlayers() do
-                    local char = v.Character
-                    if chamfolder ~= nil and char ~= nil then
-                        local hitbox = chamfolder:FindFirstChild(v.Name) or Instance.new("Highlight")
-                        hitbox.Name = v.Name
-                        hitbox.Parent = chamfolder
-                        hitbox.Adornee = char
-                        hitbox.OutlineColor = v.TeamColor.Color
-                        hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        hitbox.FillColor = v.TeamColor.Color
-                        hitbox.FillTransparency = 0.5
+                    if v ~= plr then
+                        local char = v.Character
+                        if chamfolder ~= nil and char ~= nil then
+                            local hitbox = chamfolder:FindFirstChild(v.Name) or Instance.new("Highlight")
+                            hitbox.Name = v.Name
+                            hitbox.Parent = chamfolder
+                            hitbox.Adornee = char
+                            hitbox.OutlineColor = v.TeamColor.Color
+                            hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            hitbox.FillColor = v.TeamColor.Color
+                            hitbox.FillTransparency = 0.5
+                        end
                     end
                 end
             until not chamsEnabled or not ESP.Enabled
