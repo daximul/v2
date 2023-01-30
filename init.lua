@@ -1070,6 +1070,20 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 	end
 end)
 
+AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].", {}, {"Core", 1}, 2, function(args)
+	if #args[1] == 1 then
+		Config.Prefix = args[1]
+		UpdateConfig()
+		Notify(format("prefix has been changed to %s", Config.Prefix))
+	elseif args[1] == "\\" then
+		Config.Prefix = args[1]
+		UpdateConfig()
+		Notify(format("prefix has been changed to %s", Config.Prefix))
+	else
+		Notify("prefix cannot be longer than 2 characters")
+	end
+end)
+
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Fun", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
