@@ -1,6 +1,12 @@
 [
     "Month / Day / Year",
     [
+        "Update 1/30/23",
+        "finally added the commands needed to whitelist people so they can use permission index 1 commands",
+        "changed most command categories",
+        "+ whitelist [player], unwhitelist [player], whitelisted, gravitygun"
+    ],
+    [
         "Update 1/29/23",
         "added plugin support ez",
         "go check out addplugin and removeplugin",
