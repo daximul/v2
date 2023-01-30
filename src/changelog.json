@@ -1,6 +1,12 @@
 [
     "Month / Day / Year",
     [
+        "Update 1/29/23",
+        "added plugin support ez",
+        "go check out addplugin and removeplugin",
+        "plugin docs dont exist :troll:"
+    ],
+    [
         "Update 1/26/23",
         "+ editpermissions [command] [number]",
         "change the permission index of a command",
