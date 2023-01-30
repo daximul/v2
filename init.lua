@@ -51,6 +51,15 @@ local Chatlogs = {}
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
+--[[
+Prote = (function()
+	local success, result = pcall(function()
+		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/prote.lua")
+	end)
+	return success and loadstring(result)() or {ProtectObject = function() end, SpoofObject = function() end, SpoofProperty = function() end, UnSpoofObject = function() end, FocusedBox = function() end, Hook = function() end}
+end)()
+]]
+
 cons = {connections = {}, loaded = true}
 cons.add = function(name, con, func)
     if not func then
@@ -136,8 +145,8 @@ SendChatMessage = function(str)
 	end
 end
 
-local FirstCharCapitalized = function(str)
-	return str == gsub(str, "%S+", gsub(str, "^%l", upper))
+local CapitalizeFirstCharacter = function(str)
+	return gsub(str, "%S+", gsub(str, "^%l", upper))
 end
 
 SplitString = function(str, delim)
@@ -597,7 +606,7 @@ Admin.CommandRequirements.spawned = {
     warning = "you need to be spawned for this command"
 }
 
-AddCommand = function(name, usage, description, alias, reqs, perm, func)
+AddCommand = function(name, usage, description, alias, reqs, perm, func, plgin)
     local Id = #Admin.Commands + 1
     Admin.Commands[Id] = {
         Name = name,
@@ -610,7 +619,7 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func)
             return type(v) == "number"
         end)[1]) or 0,
         Category = filterthrough(reqs, function(_, v)
-            return type(v) == "string" and FirstCharCapitalized(v)
+            return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
         end)[1] or "Misc",
         Func = function()
             for _, v in next, reqs do
@@ -628,7 +637,8 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func)
             end
             return func
         end,
-        Env = {}
+        Env = {},
+        Plugin = plgin or false
     }
     local DestroyFunc = function() Admin.Commands[Id] = nil end
     return {Destroy = DestroyFunc, Remove = DestroyFunc, Delete = DestroyFunc}
@@ -684,10 +694,12 @@ end)()
 -- File system
 local Config = {
 	Prefix = ";",
+	Plugins = {},
 	LoweredText = false,
 	FlySpeed = 1
 }
 local MiscConfig = {Permissions = {}}
+local UpdateConfig, UpdateMiscConfig = function() end, function() end
 do
 	if not isfolder("dark-admin") then
 		makefolder("dark-admin")
@@ -708,13 +720,11 @@ do
 		end
 		Config = cachedconfigs
 	end
-	spawn(function()
-		repeat wait(10)
-			if writefile then
-				writefile(save, HttpService:JSONEncode(Config))
-			end
-		until not cons.loaded
-	end)
+	UpdateConfig = function()
+		if writefile and cons.loaded then
+			writefile(save, HttpService:JSONEncode(Config))
+		end
+	end
 	local save2 = "dark-admin/misc.json"
 	local cachedconfigs2 = pcall(readfile, save2) and HttpService:JSONDecode(readfile(save2))
 	if cachedconfigs2 then
@@ -725,14 +735,115 @@ do
 		end
 		MiscConfig = cachedconfigs2
 	end
-	spawn(function()
-		repeat wait(10)
-			if writefile then
-				writefile(save2, HttpService:JSONEncode(MiscConfig))
-			end
-		until not cons.loaded
-	end)
+	UpdateMiscConfig = function()
+		if writefile and cons.loaded then
+			writefile(save2, HttpService:JSONEncode(MiscConfig))
+		end
+	end
 	Admin.Prefix = Config.Prefix
+end
+
+-- Plugins
+PluginExtensions = {".luau", ".lua", ".txt", ".da"}
+
+LoadPlugin = function(path, force)
+	local Loaded, Plugin = pcall(readfile, format("dark-admin/plugins/%s", path))
+	if not Loaded then
+		Notify(format("plugin error for %s\nplease open console (F9) for the error", path))
+		for i, v in next, Config.Plugins do
+			if v == path then
+				remove(Config.Plugins, i)
+			end
+		end
+		UpdateConfig()
+		print("Plugin Error, Stack Traceback:", debug.traceback(Plugin))
+		return
+	else
+		Plugin = loadstring(Plugin)()
+		spawn(function()
+			if Plugin.Commands and type(Plugin.Commands) == "table" then
+				for _, v in next, Plugin.Commands do
+					if v.Name then
+						local Requirements = v.Requirements or {}
+						local Category = filterthrough(Requirements, function(_, v)
+							return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
+						end)[1]
+						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, v)
+							return type(v) == "number"
+						end)[1])
+						if Category == nil then
+							if v.Category and type(v.Category) == "string" then
+								v.Category = CapitalizeFirstCharacter(v.Category)
+								insert(Requirements, v.Category)
+							else
+								insert(Requirements, "Misc")
+							end
+						end
+						if ArgsNeeded == nil then
+							if v.ArgsNeeded and type(v.ArgsNeeded) == "number" then
+								insert(Requirements, v.ArgsNeeded)
+							else
+								insert(Requirements, 0)
+							end
+						end
+						AddCommand(v.Name, v.Usage or v.Name, v.Description or "No description provided.", v.Aliases or {}, Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
+					end
+				end
+			end
+		end)
+		if not force then
+			if Plugin.Description then
+				Notify((Plugin.Author and format("Author: %s\nName: %s\nDescription: %s", Plugin.Author, Plugin.Name, Plugin.Description)) or format("Name: %s\nDescription: %s", Plugin.Name, Plugin.Description), 10)
+			else
+				Notify((Plugin.Author and format("Author: %s\nName: %s", Plugin.Author, Plugin.Name)) or format("Name: %s", Plugin.Name))
+			end
+			UpdateConfig()
+		end
+	end
+end
+
+InstallPlugin = function(name)
+	local file = false
+	for _, extension in next, PluginExtensions do
+		name = gsub(name, extension, "")
+		if pcall(readfile, format("dark-admin/plugins/%s", name .. extension)) then
+			file = name .. extension
+			break
+		end
+	end
+	if file then
+		if not FindInTable(Config.Plugins, file) then
+			insert(Config.Plugins, file)
+			LoadPlugin(file)
+		else
+			Notify(format("plugin (%s) already loaded", file))
+		end
+	end
+end
+
+UninstallPlugin = function(name)
+	local file = false
+	for _, extension in next, PluginExtensions do
+		name = gsub(name, extension, "")
+		if pcall(readfile, format("dark-admin/plugins/%s", name .. extension)) then
+			file = name .. extension
+			break
+		end
+	end
+	if file then
+		for i, v in next, Admin.Commands do
+			if v.Plugin and v.Plugin == file then
+				remove(Admin.Commands, i)
+			end
+		end
+		for i, v in next, Config.Plugins do
+			if v == file then
+				remove(Config.Plugins, i)
+				UpdateConfig()
+				Notify(format("plugin (%s) has been removed", file))
+			end
+		end
+	end
 end
 
 -- Gui
@@ -900,6 +1011,14 @@ AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and 
 	end)()
 end)
 
+AddCommand("addplugin", "addplugin [name]", "Add a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
+	InstallPlugin(getstring(1))
+end)
+
+AddCommand("removeplugin", "removeplugin [name]", "Remove a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
+	UninstallPlugin(getstring(1))
+end)
+
 AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"}, 2, function()
 	local new = {}
 	for _, command in next, Admin.Commands do
@@ -915,7 +1034,7 @@ end)
 AddCommand("commandinfo", "commandinfo [command]", "View more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	local command = FindCommand(args[1])
 	if command then
-		Gui.DisplayTable(format("Info for %s", command.Name), {
+		Gui.DisplayTable("Command Info", {
 			format("Name: %s", command.Name),
 			format("Category: %s", command.Category),
 			format("Permission Index: %d", command.PermissionIndex),
@@ -946,6 +1065,7 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 		end
 		command.PermissionIndex = perm
 		MiscConfig.Permissions[command.Name] = perm
+		UpdateMiscConfig()
 		Notify(format("set permission of %s to %d", command.Name, perm))
 	end
 end)
@@ -1053,6 +1173,7 @@ end)
 AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
 		Config.FlySpeed = args[1]
+		UpdateConfig()
 	end
 end)
 
@@ -1141,6 +1262,12 @@ AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Fun"}, 2, fun
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
+
+if Config.Plugins and type(Config.Plugins) == "table" then
+	for _, v in pairs(Config.Plugins) do
+		LoadPlugin(v, true)
+	end
+end
 
 for i, v in next, MiscConfig.Permissions do
 	local command = FindCommand(i)
