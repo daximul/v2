@@ -1307,6 +1307,46 @@ AddCommand("fakeout", "fakeout", "Teleport into the void and teleport back up. U
 	end
 end)
 
+AddCommand("car", "car [number]", "Become a car? The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args, speaker)
+	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
+	if character and humanoid and animate then
+		local speed = 70
+		if args[1] and isNumber(args[1]) then
+			speed = args[1]
+		end
+		humanoid.WalkSpeed = speed
+		humanoid.JumpPower = 0.0001
+		if humanoid.RigType == Enum.HumanoidRigType.R6 then
+			animate.walk.WalkAnim.AnimationId = "rbxassetid://129342287"
+			animate.run.RunAnim.AnimationId = "rbxassetid://129342287"
+			animate.fall.FallAnim.AnimationId = "rbxassetid://129342287"
+			animate.idle.Animation1.AnimationId = "rbxassetid://129342287"
+			animate.idle.Animation2.AnimationId = "rbxassetid://129342287"
+			animate.jump.JumpAnim.AnimationId = "rbxassetid://129342287"
+			for _, obj in next, character:GetDescendants() do
+				if obj:IsA("Part") then
+					obj.CustomPhysicalProperties = PhysicalProperties.new(0.04, 0, 0)
+				end
+			end
+			humanoid.HipHeight = -1.03
+		end
+		if humanoid.RigType == Enum.HumanoidRigType.R15 then
+			animate.walk.WalkAnim.AnimationId = "rbxassetid://3360694441"
+			animate.run.RunAnim.AnimationId = "rbxassetid://3360694441"
+			animate.fall.FallAnim.AnimationId = "rbxassetid://3360694441"
+			animate.idle.Animation1.AnimationId = "rbxassetid://3360694441"
+			animate.idle.Animation2.AnimationId = "rbxassetid://3360694441"
+			animate.jump.JumpAnim.AnimationId = "rbxassetid://3360694441"
+			for _, obj in next, character:GetDescendants() do
+				if obj:IsA("MeshPart") then
+					obj.CustomPhysicalProperties = PhysicalProperties.new(0.04, 0, 0)
+				end
+			end
+			humanoid.HipHeight = 0.56
+		end
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
