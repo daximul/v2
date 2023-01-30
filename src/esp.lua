@@ -402,17 +402,6 @@ local Updating = runserv.RenderStepped:Connect(function()
     end
 end)
 
-function ESP:Kill()
-    ESP.Debug = false
-    ESP:Toggle(false)
-    ESP.Players = false
-    ESP.Tracers = false
-    ESP.Boxes = false
-    ESP.Names = false
-    ESP.Health = false
-    Updating:Disconnect()
-end
-
 function ESP:DefaultSetup(color)
     ESP:Toggle(true)
     ESP.Players = true
@@ -458,6 +447,18 @@ function ESP:Chams(enabled)
             chamfolder = nil
         end
     end
+end
+
+function ESP:Kill()
+    ESP.Debug = false
+    ESP:Toggle(false)
+    ESP.Players = false
+    ESP.Tracers = false
+    ESP.Boxes = false
+    ESP.Names = false
+    ESP.Health = false
+    Updating:Disconnect()
+    ESP:Chams(false)
 end
 
 return ESP
