@@ -1271,6 +1271,22 @@ AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Fun"}, 2, fun
 	cons.remove("noclip")
 end)
 
+AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"Fun", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and target.Character then
+			local root, root2, humanoid = GetRoot(), GetRoot(target.Character), GetHumanoid()
+			if root and root2 then
+				if humanoid and humanoid.SeatPart then
+					humanoid.Sit = false
+					wait(0.1)
+				end
+				root.CFrame = root2.CFrame + Vector3.new(3, 1, 0)
+			end
+		end
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
