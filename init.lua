@@ -1388,6 +1388,12 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 	end
 end)
 
+AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part.", {"telekinesis"}, {"Fun"}, 2, function()
+	pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
+	end)
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
