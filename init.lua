@@ -121,6 +121,15 @@ GetLongUsername = function(player)
 	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
 end
 
+WhitelistInfo = function(player)
+	player = player or LocalPlayer
+	local data = Admin.Whitelisted[tostring(player.UserId)]
+	if data and type(data) == "table" then
+		return data
+	end
+	return {Player = player, Value = false}
+end
+
 FindCommand = function(cmd)
 	cmd = lower(cmd)
 	for _, v in pairs(Admin.Commands) do
@@ -484,7 +493,7 @@ ExecuteCommand = function(cmdStr, speaker, store)
 			local cmd = FindCommand(cmdName)
 			if cmd then
 				if not speaker then speaker = LocalPlayer end
-				if (speaker == LocalPlayer) or ((Admin.Whitelisted[tostring(speaker.UserId)] == true) and cmd.PermissionIndex == 1) or (cmd.PermissionIndex == 0) then
+				if (speaker == LocalPlayer) or ((WhitelistInfo(speaker).Value == true) and cmd.PermissionIndex == 1) or (cmd.PermissionIndex == 0) then
 					remove(args, 1)
 					Admin.CommandArgs = args
 					if store then
@@ -1070,6 +1079,38 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 	end
 end)
 
+AddCommand("whitelist", "whitelist [player]", "Whitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target then
+			Admin.Whitelisted[tostring(target.UserId)] = {Player = target, Value = true}
+			Notify(format("whitelisted %s", GetLongUsername(target)))
+		end
+	end
+end)
+
+AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target then
+			Admin.Whitelisted[tostring(target.UserId)] = nil
+			Notify(format("removed the whitelist for %s", GetLongUsername(target)))
+		end
+	end
+end)
+
+AddCommand("whitelisted", "whitelisted", "View a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
+	local new = {}
+	for _, v in next, Admin.Whitelisted do
+		insert(new, GetLongUsername(v.Player))
+	end
+	if #new == 0 then
+		Notify("no players are currently whitelisted")
+	else
+		Gui.DisplayTable("Whitelisted", new)
+	end
+end)
+
 AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].", {}, {"Core", 1}, 2, function(args)
 	if #args[1] <= 2 then
 		Config.Prefix = args[1]
@@ -1296,18 +1337,18 @@ AddCommand("unantivoid", "unantivoid", "Sets the FallenPartsDestroyHeight back t
 	workspace.FallenPartsDestroyHeight = OldFallenPartsDestroyHeight
 end)
 
-AddCommand("fakeout", "fakeout", "Teleport into the void and teleport back up. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
+AddCommand("fakeout", "fakeout", "Teleport into the void and then teleport back to your original position. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
 	ExecuteCommand("antivoid")
 	local root = GetRoot()
 	if root then
 		local oldpos = root.CFrame
-		root.CFrame = CFrame.new(Vector3.new(0, -42069, 0))
+		root.CFrame = CFrame.new(Vector3.new(0, -69420, 0))
 		wait(0.75)
 		root.CFrame = oldpos
 	end
 end)
 
-AddCommand("car", "car [number]", "Become a car? The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args, speaker)
+AddCommand("car", "car [number]", "Become some form of a car. The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args, speaker)
 	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
 	if character and humanoid and animate then
 		local speed = 70
@@ -1358,6 +1399,11 @@ end
 for i, v in next, MiscConfig.Permissions do
 	local command = FindCommand(i)
 	if command then
-		command.PermissionIndex = v
+		if command.PermissionIndex == v then
+			MiscConfig.Permissions[i] = nil
+		else
+			command.PermissionIndex = v
+		end
 	end
 end
+UpdateMiscConfig()
