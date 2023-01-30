@@ -1071,7 +1071,7 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 end)
 
 AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].", {}, {"Core", 1}, 2, function(args)
-	if #args[1] <= then
+	if #args[1] <= 2 then
 		Config.Prefix = args[1]
 		UpdateConfig()
 		Notify(format("prefix has been changed to %s", Config.Prefix))
@@ -1080,7 +1080,7 @@ AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].",
 	end
 end)
 
-AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Fun", 1}, 2, function(args, speaker)
+AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1095,7 +1095,7 @@ AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {},
 	end
 end)
 
-AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Fun", "spawned"}, 2, function(_, _, env)
+AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if not character or not humanoid or not root then
@@ -1173,33 +1173,33 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Fun", "spawne
 	end)
 end)
 
-AddCommand("unfly", "unfly", "Stop flying.", {}, {"Fun"}, 2, function()
+AddCommand("unfly", "unfly", "Stop flying.", {}, {"Utility"}, 2, function()
 	local env = GetEnvironment("fly")[1]
 	if env then
 		env()
 	end
 end)
 
-AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {1}, 2, function(args)
+AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
 		Config.FlySpeed = args[1]
 		UpdateConfig()
 	end
 end)
 
-AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Core", "spawned", 1}, 2, function(args)
+AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().WalkSpeed = args[1]
 	end
 end)
 
-AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Core", "spawned", 1}, 2, function(args)
+AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = args[1]
 	end
 end)
 
-AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Core"}, 2, function()
+AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Utility"}, 2, function()
 	if #Players:GetPlayers() <= 1 then
 		LocalPlayer:Kick("\nRejoining...")
 		wait()
@@ -1247,7 +1247,7 @@ AddCommand("unesp", "unesp", "Turns off esp.", {"untracers", "unchams"}, {"Utili
 	end
 end)
 
-AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Fun", "spawned"}, 2, function()
+AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function()
 	ExecuteCommand("unnoclip")
 	cons.add("noclip", RunService.Stepped, function()
 		local character = GetCharacter()
@@ -1267,11 +1267,11 @@ AddCommand("noclip", "noclip", "Makes your character able to walk through walls.
 	end
 end)
 
-AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Fun"}, 2, function()
+AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2, function()
 	cons.remove("noclip")
 end)
 
-AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"Fun", 1}, 2, function(args, speaker)
+AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target and target.Character then
@@ -1284,6 +1284,26 @@ AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"
 				root.CFrame = root2.CFrame + Vector3.new(3, 1, 0)
 			end
 		end
+	end
+end)
+
+local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
+AddCommand("antivoid", "antivoid", "Makes it so you can't die from falling in the void.", {}, {"Utility"}, 2, function()
+	workspace.FallenPartsDestroyHeight = 0/1/0
+end)
+
+AddCommand("unantivoid", "unantivoid", "Sets the FallenPartsDestroyHeight back to before antivoid was ran.", {}, {"Utility"}, 2, function()
+	workspace.FallenPartsDestroyHeight = OldFallenPartsDestroyHeight
+end)
+
+AddCommand("fakeout", "fakeout", "Teleport into the void and teleport back up. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
+	ExecuteCommand("antivoid")
+	local root = GetRoot()
+	if root then
+		local oldpos = root.CFrame
+		root.CFrame = CFrame.new(Vector3.new(0, -42069, 0))
+		wait(0.75)
+		root.CFrame = oldpos
 	end
 end)
 
