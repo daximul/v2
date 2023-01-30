@@ -5,7 +5,7 @@
         "added plugin support ez",
         "go check out addplugin and removeplugin",
         "plugin docs dont exist :troll:",
-        "+ addplugin [name], removeplugin [name], goto [player], antivoid, unantivoid, fakeout"
+        "+ addplugin [name], removeplugin [name], goto [player], antivoid, unantivoid, fakeout, car [number]"
     ],
     [
         "Update 1/26/23",
