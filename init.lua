@@ -1071,15 +1071,11 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 end)
 
 AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].", {}, {"Core", 1}, 2, function(args)
-	if #args[1] == 1 then
+	if #args[1] <= then
 		Config.Prefix = args[1]
 		UpdateConfig()
 		Notify(format("prefix has been changed to %s", Config.Prefix))
-	elseif args[1] == "\\" then
-		Config.Prefix = args[1]
-		UpdateConfig()
-		Notify(format("prefix has been changed to %s", Config.Prefix))
-	else
+	elseif #args[1] > 2 then
 		Notify("prefix cannot be longer than 2 characters")
 	end
 end)
