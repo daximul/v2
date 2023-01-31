@@ -47,7 +47,6 @@ NewInstance = function(class, props)
 	end
 	return inst
 end
-local Chatlogs = {}
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
@@ -109,6 +108,30 @@ end
 GetRoot = function(character)
 	character = character or GetCharacter()
 	return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+end
+
+tbl_concat = function(...)
+	local new = {}
+	for i, v in next, {...} do
+		for _, v2 in next, v do
+			new[i] = v2
+		end
+	end
+	return new
+end
+
+HasTool = function(player)
+	player = player or LocalPlayer
+	local character, backpack = GetCharacter(player), GetBackpack(player)
+	if character and backpack then
+		local list = tbl_concat(character:GetChildren(), backpack:GetChildren())
+		for i = 1, #list do
+			if list[i]:IsA("Tool") then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 GetUsername = function(player)
@@ -594,7 +617,6 @@ cons.add(Players.PlayerAdded, function(player)
 			wait()
 			do_exec(message, player)
 		end)
-		Chatlogs[#Chatlogs + 1] = {Player = player, Message = message}
 	end)
 end)
 
@@ -610,9 +632,15 @@ filterthrough = function(tbl, ret)
     end
 end
 
-Admin.CommandRequirements.spawned = {
-    func = function() return GetCharacter() ~= nil end,
-    warning = "you need to be spawned for this command"
+Admin.CommandRequirements = {
+	spawned = {
+		func = function() return GetCharacter() ~= nil end,
+		warning = "you need to be spawned for this command"
+	},
+	tool = {
+		func = HasTool,
+		warning = "you need a tool for this command"
+	}
 }
 
 AddCommand = function(name, usage, description, alias, reqs, perm, func, plgin)
@@ -700,7 +728,7 @@ local fakeRequire = (function()
 	return load
 end)()
 
--- File system
+-- Filesystem
 local Config = {
 	Prefix = ";",
 	Plugins = {},
@@ -1035,7 +1063,7 @@ AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"},
 		if not new[category] then
 			new[category] = {}
 		end
-		new[category][command.Name] = Config.Prefix .. lower(command.Name)
+		new[category][command.Name] = lower(command.Usage)
 	end
 	Gui.DisplayTable("Commands", new)
 end)
