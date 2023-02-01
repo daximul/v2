@@ -39,14 +39,8 @@ TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
 split, format, upper, clamp = string.split, string.format, string.upper, math.clamp
+local getconnections = getconnections or get_signal_cons
 local creatingInstance = Instance.new
-NewInstance = function(class, props)
-	local inst = creatingInstance(class)
-	for prop, value in pairs(props) do
-		inst[prop] = value
-	end
-	return inst
-end
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
@@ -86,6 +80,14 @@ cons.wipe = function()
 end
 
 isNumber = function(str) if tonumber(str) ~= nil or str == "inf" then return true end end
+
+NewInstance = function(class, props)
+	local inst = creatingInstance(class)
+	for prop, value in pairs(props) do
+		inst[prop] = value
+	end
+	return inst
+end
 
 FindInTable = function(tbl, val)
 	if not tbl then return false end
@@ -1576,6 +1578,38 @@ end)
 
 AddCommand("memory", "memory", "Notify yourself your memory usage.", {}, {"Utility"}, 2, function()
 	Notify("your memory usage is " .. math.round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
+end)
+
+AddCommand("infinitejump", "infinitejump", "Make your character able to infinitely jump with no cooldown.", {}, {"Utility"}, 2, function()
+	ExecuteCommand("uninfinitejump")
+	cons.add("infinite jump", UserInputService.JumpRequest, function()
+		local humanoid = GetHumanoid()
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		end
+	end)
+end)
+
+AddCommand("uninfinitejump", "uninfinitejump", "Disables infinitejump.", {}, {"Utility"}, 2, function()
+	cons.remove("infinite jump")
+end)
+
+AddCommand("antiafk", "antiafk", "Prevent yourself from being kicked after being idle for 20 minutes.", {"antiidle"}, {"Utility"}, 2, function()
+	if getconnections then
+		for _, v in next, getconnections(LocalPlayer.Idled, true) do
+			if v["Disable"] then
+				v["Disable"](v)
+			elseif v["Disconnect"] then
+				v["Disconnect"](v)
+			end
+		end
+	else
+		local VirtualUser = Services.VirtualUser
+		LocalPlayer.Idled:Connect(function()
+			VirtualUser:CaptureController()
+			VirtualUser:ClickButton2(Vector2.new())
+		end)
+	end
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
