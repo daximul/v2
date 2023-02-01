@@ -1530,9 +1530,7 @@ AddCommand("btools", "btools", "Give yourself basic building tools. Other player
 	local backpack = GetBackpack()
 	if backpack then
 		for i = 1, 4 do
-			local tool = Instance.new("HopperBin")
-			tool.BinType = i
-			tool.Parent = backpack
+			NewInstance("HopperBin", {BinType = i, Parent = backpack})
 		end
 	end
 end)
