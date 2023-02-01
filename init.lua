@@ -733,7 +733,8 @@ local Config = {
 	Prefix = ";",
 	Plugins = {},
 	LoweredText = false,
-	FlySpeed = 1
+	FlySpeed = 1,
+	TweenSpeed = 1
 }
 local MiscConfig = {Permissions = {}}
 local UpdateConfig, UpdateMiscConfig = function() end, function() end
@@ -1117,7 +1118,7 @@ AddCommand("whitelist", "whitelist [player]", "Whitelist a [player] to use permi
 	end
 end)
 
-AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("unwhitelist", "unwhitelist [player]", "Unwhitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1147,6 +1148,16 @@ AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].",
 	elseif #args[1] > 2 then
 		Notify("prefix cannot be longer than 2 characters")
 	end
+end)
+
+AddCommand("lowercasedcommandbar", "lowercasedcommandbar", "Makes all future text in the command bar lowercased.", {}, {"Core"}, 2, function()
+	Config.LoweredText = true
+	UpdateConfig()
+end)
+
+AddCommand("unlowercasedcommandbar", "unlowercasedcommandbar", "Undoes lowercasedcommandbar.", {}, {"Core"}, 2, function()
+	Config.LoweredText = false
+	UpdateConfig()
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -1251,20 +1262,20 @@ end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
-		Config.FlySpeed = args[1]
+		Config.FlySpeed = tonumber(args[1])
 		UpdateConfig()
 	end
 end)
 
 AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
-		GetHumanoid().WalkSpeed = args[1]
+		GetHumanoid().WalkSpeed = tonumber(args[1])
 	end
 end)
 
 AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
-		GetHumanoid().JumpPower = args[1]
+		GetHumanoid().JumpPower = tonumber(args[1])
 	end
 end)
 
@@ -1381,7 +1392,7 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 	if character and humanoid and animate then
 		local speed = 70
 		if args[1] and isNumber(args[1]) then
-			speed = args[1]
+			speed = tonumber(args[1])
 		end
 		humanoid.WalkSpeed = speed
 		humanoid.JumpPower = 0.0001
@@ -1420,6 +1431,97 @@ AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. 
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 	end)
+end)
+
+AddCommand("tweenspeed", "tweenspeed [number]", "Change the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+	local speed = 1
+	if args[1] and isNumber(args[1]) then
+		speed = tonumber(args[1])
+	end
+	Config.TweenSpeed = speed
+	UpdateConfig()
+end)
+
+AddCommand("gotocamera", "gotocamera", "Teleport to your camera.", {"tocamera", "gotocam", "tocam"}, {"Utility"}, 2, function()
+	local root, camera = GetRoot(), workspace.CurrentCamera
+	if root and camera then
+		root.CFrame = camera.CFrame
+	end
+end)
+
+AddCommand("tweengotocamera", "tweengotocamera", "Teleport to your camera.", {"tweentocamera", "tweengotocam", "tweentocam"}, {"Utility"}, 2, function()
+	local root, camera = GetRoot(), workspace.CurrentCamera
+	if root and camera then
+		TweenService:Create(root, TweenInfo.new(Config.TweenSpeed, Enum.EasingStyle.Linear), {CFrame = camera.CFrame}):Play()
+	end
+end)
+
+AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of view to [number]. [number] is an optional argument.", {"fov"}, {"Utility"}, 2, function(args)
+	local fov = 70
+	if args[1] and isNumber(args[1]) then
+		fov = tonumber(args[1])
+	end
+	workspace.CurrentCamera.FieldOfView = fov
+end)
+
+AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function(_, speaker)
+	workspace.CurrentCamera:Remove()
+	wait(0.1)
+	repeat wait() until GetCharacter(speaker) ~= nil
+	workspace.CurrentCamera.CameraSubject = GetHumanoid(GetCharacter(speaker))
+	workspace.CurrentCamera.CameraType = "Custom"
+	speaker.CameraMaxZoomDistance = 400
+	speaker.CameraMinZoomDistance = 0.5
+	speaker.CameraMode = "Classic"
+	speaker.Character.Head.Anchored = false
+end)
+
+AddCommand("enableshiftlock", "enableshiftlock", "Enables shift lock.", {}, {"Utility"}, 2, function(_, speaker)
+	speaker.DevEnableMouseLock = true
+end)
+
+AddCommand("disableshiftlock", "disableshiftlock", "Disables shift lock.", {}, {"Utility"}, 2, function(_, speaker)
+	speaker.DevEnableMouseLock = false
+end)
+
+AddCommand("firstperson", "firstperson", "Forces your player camera into first person.", {}, {"Utility"}, 2, function(_, speaker)
+	speaker.CameraMode = "LockFirstPerson"
+end)
+
+AddCommand("thirdperson", "thirdperson", "Allows your player camera to go into third person.", {}, {"Utility"}, 2, function(_, speaker)
+	speaker.CameraMode = "Classic"
+end)
+
+AddCommand("minimumzoom", "minimumzoom [number]", "Changes your player camera minimum zoom distance to [number].", {"minzoom"}, {"Utility", 1}, 2, function(_, speaker)
+	if args[1] and isNumber(args[1]) then
+		speaker.CameraMinZoomDistance = tonumber(args[1])
+	end
+end)
+
+AddCommand("maximumzoom", "maximumzoom [number]", "Changes your player camera maximum zoom distance to [number].", {"maxzoom"}, {"Utility", 1}, 2, function(_, speaker)
+	if args[1] and isNumber(args[1]) then
+		speaker.CameraMaxZoomDistance = tonumber(args[1])
+	end
+end)
+
+AddCommand("unlockworkspace", "unlockworkspace", "Unlocks workspace.", {"unlockws"}, {"Utility"}, 2, function()
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("BasePart") then
+			v.Locked = false
+		end
+	end
+end)
+
+AddCommand("lockworkspace", "lockworkspace", "Locks workspace.", {"lockws"}, {"Utility"}, 2, function()
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("BasePart") then
+			v.Locked = true
+		end
+	end
+end)
+
+AddCommand("exitroblox", "exitroblox", "Close the Roblox program.", {"exit"}, {"Utility"}, 2, function()
+	game:Shutdown()
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
