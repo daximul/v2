@@ -1524,6 +1524,60 @@ AddCommand("exitroblox", "exitroblox", "Close the Roblox program.", {"exit"}, {"
 	game:Shutdown()
 end)
 
+AddCommand("btools", "btools", "Give yourself basic building tools. Other players can not see what is done with this command since it is only visible on your client.", {}, {"Utility"}, 2, function()
+	local backpack = GetBackpack()
+	if backpack then
+		for i = 1, 4 do
+			local tool = Instance.new("HopperBin")
+			tool.BinType = i
+			tool.Parent = backpack
+		end
+	end
+end)
+
+AddCommand("reset", "reset", "Death.", {}, {"Utility"}, 2, function()
+	local character = GetCharacter()
+	if character then
+		character:BreakJoints()
+	end
+end)
+
+AddCommand("sit", "sit", "It makes you sit. What did you expect?", {}, {"Utility"}, 2, function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid.Sit = true
+	end
+end)
+
+AddCommand("jump", "jump", "It makes you jump. What did you expect?", {}, {"Utility"}, 2, function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid.Jump = true
+	end
+end)
+
+AddCommand("stun", "stun", "Enables PlatformStand.", {}, {"Utility"}, 2, function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid.PlatformStand = true
+	end
+end)
+
+AddCommand("unstun", "unstun", "Disables PlatformStand.", {}, {"Utility"}, 2, function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid.PlatformStand = false
+	end
+end)
+
+AddCommand("ping", "ping", "Notify yourself your ping.", {}, {"Utility"}, 2, function(_, speaker)
+	Notify("your ping is " .. math.round(speaker:GetNetworkPing() * 1000) .. "ms")
+end)
+
+AddCommand("memory", "memory", "Notify yourself your memory usage.", {}, {"Utility"}, 2, function()
+	Notify("your memory usage is " .. math.round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
