@@ -55,27 +55,36 @@ end)()
 
 cons = {connections = {}, loaded = true}
 cons.add = function(name, con, func)
-    if not func then
-        func = con
-        con = name
-        name = RandomString()
-    end
-    cons.connections[name] = con:Connect(func)
-    return cons.connections[name]
+	if not func then
+		func = con
+		con = name
+		name = RandomString()
+	end
+	cons.connections[name] = con:Connect(func)
+	return cons.connections[name]
 end
 cons.remove = function(name)
-    if cons.connections[name] then
-        cons.connections[name]:Disconnect()
-        cons.connections[name] = nil
-    end
+	if type(name) == "table" then
+		for _, connection in next, name do
+			if cons.connections[connection] then
+				cons.connections[connection]:Disconnect()
+				cons.connections[connection] = nil
+			end
+		end
+	else
+		if cons.connections[name] then
+			cons.connections[name]:Disconnect()
+			cons.connections[name] = nil
+		end
+	end
 end
 cons.wipe = function()
-    for i, v in next, cons.connections do
-        if typeof(v) == "RBXScriptConnection" then
-            v:Disconnect()
-            cons.connections[i] = nil
-        end
-    end
+	for i, v in next, cons.connections do
+		if typeof(v) == "RBXScriptConnection" then
+			v:Disconnect()
+			cons.connections[i] = nil
+		end
+	end
 	cons.loaded = false
 end
 
@@ -1467,6 +1476,7 @@ AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of
 end)
 
 AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function(_, speaker)
+	ExecuteCommand("unspectate")
 	workspace.CurrentCamera:Remove()
 	wait(0.1)
 	repeat wait() until GetCharacter(speaker) ~= nil
@@ -1720,6 +1730,38 @@ AddCommand("fling", "fling [player]", "Fling [player].", {}, {"Fun", 1}, 2, func
 	end
 end)
 ]]
+
+AddCommand("spectate", "spectate [player]", "Spectate [player].", {"view"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unspectate")
+	local target, heartbeat = Players[getPlayer(args[1], speaker)[1]], RunService.Heartbeat
+	local character = GetCharacter(target)
+	if target and character then
+		workspace.CurrentCamera.CameraSubject = character
+		cons.add("spectate1", target.CharacterAdded, function()
+			heartbeat:Wait()
+			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
+		end)
+		cons.add("spectate2", speaker.CharacterAdded, function()
+			heartbeat:Wait()
+			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
+		end)
+		env[1] = function()
+			cons.remove({"spectate1", "spectate2"})
+			if GetCharacter() then
+				workspace.CurrentCamera.CameraSubject = GetCharacter()
+			end
+			env[1] = nil
+		end
+		Notify(format("now spectating %s", GetLongUsername(target)))
+	end
+end)
+
+AddCommand("unspectate", "unspectate", "Stop spectating.", {"unview"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("spectate")[1]
+	if env then
+		env()
+	end
+end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
