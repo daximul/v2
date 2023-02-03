@@ -1476,7 +1476,7 @@ AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of
 end)
 
 AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function(_, speaker)
-	ExecuteCommand("unspectate")
+	ExecuteCommand("unview")
 	workspace.CurrentCamera:Remove()
 	wait(0.1)
 	repeat wait() until GetCharacter(speaker) ~= nil
@@ -1731,8 +1731,8 @@ AddCommand("fling", "fling [player]", "Fling [player].", {}, {"Fun", 1}, 2, func
 end)
 ]]
 
-AddCommand("spectate", "spectate [player]", "Spectate [player].", {"view"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
-	ExecuteCommand("unspectate")
+AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unview")
 	local target, heartbeat = Players[getPlayer(args[1], speaker)[1]], RunService.Heartbeat
 	local character = GetCharacter(target)
 	if target and character then
@@ -1752,12 +1752,12 @@ AddCommand("spectate", "spectate [player]", "Spectate [player].", {"view"}, {"Ut
 			end
 			env[1] = nil
 		end
-		Notify(format("now spectating %s", GetLongUsername(target)))
+		Notify(format("now viewing %s", GetLongUsername(target)))
 	end
 end)
 
-AddCommand("unspectate", "unspectate", "Stop spectating.", {"unview"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("spectate")[1]
+AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("view")[1]
 	if env then
 		env()
 	end
