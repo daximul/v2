@@ -1752,11 +1752,11 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 			end
 			env[1] = nil
 		end
-		Notify(format("now spectating %s", GetLongUsername(target)))
+		Notify(format("now viewing %s", GetLongUsername(target)))
 	end
 end)
 
-AddCommand("unview", "unview", "Stop spectating.", {"unspectate"}, {"Utility"}, 2, function()
+AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, function()
 	local env = GetEnvironment("view")[1]
 	if env then
 		env()
