@@ -1417,7 +1417,7 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 			speed = tonumber(args[1])
 		end
 		humanoid.WalkSpeed = speed
-		humanoid.JumpPower = 0.0001
+		humanoid.JumpPower = 15
 		if humanoid.RigType == Enum.HumanoidRigType.R6 then
 			animate.walk.WalkAnim.AnimationId = "rbxassetid://129342287"
 			animate.run.RunAnim.AnimationId = "rbxassetid://129342287"
@@ -1427,7 +1427,7 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 			animate.jump.JumpAnim.AnimationId = "rbxassetid://129342287"
 			for _, obj in next, character:GetDescendants() do
 				if obj:IsA("Part") then
-					obj.CustomPhysicalProperties = PhysicalProperties.new(0.04, 0, 0)
+					obj.CustomPhysicalProperties = PhysicalProperties.new(0.025, 0, 0)
 				end
 			end
 			humanoid.HipHeight = -1.03
@@ -1440,8 +1440,8 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 			animate.idle.Animation2.AnimationId = "rbxassetid://3360694441"
 			animate.jump.JumpAnim.AnimationId = "rbxassetid://3360694441"
 			for _, obj in next, character:GetDescendants() do
-				if obj:IsA("MeshPart") then
-					obj.CustomPhysicalProperties = PhysicalProperties.new(0.04, 0, 0)
+				if obj:IsA("Part") or obj:IsA("MeshPart") then
+					obj.CustomPhysicalProperties = PhysicalProperties.new(0.025, 0, 0)
 				end
 			end
 			humanoid.HipHeight = 0.56
