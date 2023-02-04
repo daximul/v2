@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/4/23",
+        "+ view [player], unview, refresh, antiafk, infinitejump, uninfinitejump, memory, ping, reset, btools"
+    ],
+    [
         "Update 2/1/23",
         "i really do be lazy tho",
         "+ 25 commands"
