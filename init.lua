@@ -1763,17 +1763,19 @@ AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, 
 	end
 end)
 
-AddCommand("refresh", "refresh", "Refreshes your character. After 7 seconds you will be teleported back to your previous spot.", {}, {"Utility"}, 2, function()
-	local character, root = GetCharacter(), GetRoot()
+AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {}, {"Utility"}, 2, function(_, speaker)
+	local character, root, heartbeat = GetCharacter(), GetRoot(), RunService.Heartbeat
 	if character and root then
 		local oldpos = root.CFrame
+		cons.add("refresh", speaker.CharacterAdded, function()
+			heartbeat:Wait()
+			root = GetRoot()
+			if root then
+				root.CFrame = oldpos
+			end
+			cons.remove("refresh")
+		end)
 		character:ClearAllChildren()
-		character:LoadCharacter()
-		wait(7)
-		root = GetRoot()
-		if root then
-			root.CFrame = oldpos
-		end
 	end
 end)
 
