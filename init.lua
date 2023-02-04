@@ -1763,6 +1763,20 @@ AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, 
 	end
 end)
 
+AddCommand("refresh", "refresh", "Refreshes your character. After 7 seconds you will be teleported back to your previous spot.", {}, {"Utility"}, 2, function()
+	local character, root = GetCharacter(), GetRoot()
+	if character and root then
+		local oldpos = root.CFrame
+		character:ClearAllChildren()
+		character:LoadCharacter()
+		wait(7)
+		root = GetRoot()
+		if root then
+			root.CFrame = oldpos
+		end
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
