@@ -12,18 +12,18 @@ Admin = {
     Prefix = ";"
 }
 
-local cloneref, getserv = (cloneref or function(...) return ... end), game.GetService
+local cloneref = cloneref or function(...) return ... end
 local Services = {}
 setmetatable(Services, {
-    __index = function(tbl, prop)
-        local res, serv = pcall(game.GetService, game, prop)
-        if res then
-            Services[prop] = cloneref(serv)
-            return Services[prop]
-        end
-        return nil
-    end,
-    __mode = "v"
+	__index = function(tbl, prop)
+		local success, service = pcall(function() return game:GetService(prop) end)
+		if success then
+			Services[prop] = cloneref(service)
+			return Services[prop]
+		end
+		return nil
+	end,
+	__mode = "v"
 })
 
 Players = Services.Players
@@ -153,6 +153,17 @@ end
 GetLongUsername = function(player)
 	player = player or LocalPlayer
 	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
+end
+
+local toexecutorclipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+toexecutorclipboard = function(...)
+	if toexecutorclipboardfunc then
+		toexecutorclipboardfunc(...)
+		Notify("copied to clipboard")
+	else
+		print("[Clipboard] ", ...)
+		Notify("printed to console")
+	end
 end
 
 WhitelistInfo = function(player)
@@ -1438,7 +1449,7 @@ AddCommand("car", "car [number]", "Become some form of a car. The car's speed is
 	end
 end)
 
-AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part.", {"telekinesis"}, {"Fun"}, 2, function()
+AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part.", {"gravgun", "telekinesis", "tel"}, {"Fun"}, 2, function()
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 	end)
@@ -1488,11 +1499,11 @@ AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fi
 	speaker.Character.Head.Anchored = false
 end)
 
-AddCommand("enableshiftlock", "enableshiftlock", "Enables shift lock.", {}, {"Utility"}, 2, function(_, speaker)
+AddCommand("enableshiftlock", "enableshiftlock", "Enables shift lock.", {"enablesl"}, {"Utility"}, 2, function(_, speaker)
 	speaker.DevEnableMouseLock = true
 end)
 
-AddCommand("disableshiftlock", "disableshiftlock", "Disables shift lock.", {}, {"Utility"}, 2, function(_, speaker)
+AddCommand("disableshiftlock", "disableshiftlock", "Disables shift lock.", {"disablesl"}, {"Utility"}, 2, function(_, speaker)
 	speaker.DevEnableMouseLock = false
 end)
 
@@ -1776,6 +1787,20 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 			cons.remove("refresh")
 		end)
 		character:ClearAllChildren()
+	end
+end)
+
+AddCommand("copyusername", "copyusername [player]", "Copy the full username of [player].", {"copyname"}, {"Utility", 1}, 2, function(args, speaker)
+	local target = Players[getPlayer(args[1], speaker)[1]]
+	if target then
+		toexecutorclipboard(tostring(target.Name))
+	end
+end)
+
+AddCommand("copyuserid", "copyuserid [player]", "Copy the user id of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
+	local target = Players[getPlayer(args[1], speaker)[1]]
+	if target then
+		toexecutorclipboard(tostring(target.UserId))
 	end
 end)
 
