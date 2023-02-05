@@ -1106,6 +1106,15 @@ AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and 
 	end)()
 end)
 
+AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"Core"}, 2, function()
+	local Section = Gui.New("Help"):AddSection("Section")
+	Section:AddItem("Text", {Text = "Get Started", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	Section:AddItem("Text", {Text = "Run 'cmds' to view all available commands"})
+	Section:AddItem("Text", {Text = "See a command's info", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	Section:AddItem("Text", {Text = "You should have noticed that the command list does not let you click a command to view more information."})
+	Section:AddItem("Text", {Text = "Run 'commandinfo cmd' to view a commands's information. (change 'cmd' to name of the command)"})
+end)
+
 AddCommand("addplugin", "addplugin [name]", "Add a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
 	InstallPlugin(getstring(1))
 end)
@@ -1884,7 +1893,7 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 	end
 end)
 
-Notify(format("prefix is %s\nloaded in %.3f seconds", Config.Prefix, tick() - LoadingTick), 10)
+Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
