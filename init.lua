@@ -1288,7 +1288,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	local BodyVelocity = NewInstance("BodyVelocity", {Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root, Name = BodyVelocityName})
 
 	env[1] = function()
-		cons.remove("fly")
+		cons.remove({"fly", "unfly"})
 		if BodyGyro then
 			BodyGyro:Destroy()
 		end
@@ -1315,7 +1315,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 		end)
 	end)()
 
-	cons.add(humanoid.Died, function()
+	cons.add("unfly", humanoid.Died, function()
 		ExecuteCommand("unfly")
 	end)
 end)
