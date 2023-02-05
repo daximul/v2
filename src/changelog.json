@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/5/23",
+        "+ reach [number], boxreach [number], unreach, helpmenu"
+    ],
+    [
         "Update 2/4/23",
         "+ view [player], unview, refresh, antiafk, infinitejump, uninfinitejump, memory, ping, reset, btools"
     ],
