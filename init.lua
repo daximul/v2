@@ -145,6 +145,38 @@ HasTool = function(player)
 	return false
 end
 
+GetTool = function(player, requiresHandle)
+	player = player or LocalPlayer
+	if HasTool(player) then
+		local character, backpack = GetCharacter(player), GetBackpack(player)
+		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
+		if requiresHandle then
+			local handle = tool:FindFirstChild("Handle")
+			if handle and handle:IsA("Part") then
+				return tool
+			end
+			return nil
+		end
+		return tool
+	end
+	return nil
+end
+
+local firetouchinterest do
+	local touched = {}
+	firetouchinterest = function(part, part2, value)
+		if part and part2 then
+			if value == 0 then
+				touched[1] = part.CFrame
+				part.CFrame = part2.CFrame
+			else
+				part.CFrame = touched[1]
+				touched[1] = nil
+			end
+		end
+	end
+end
+
 GetUsername = function(player)
 	player = player or LocalPlayer
 	return player.DisplayName and player.DisplayName or player.Name
@@ -155,14 +187,16 @@ GetLongUsername = function(player)
 	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
 end
 
-local toexecutorclipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
-toexecutorclipboard = function(...)
-	if toexecutorclipboardfunc then
-		toexecutorclipboardfunc(...)
-		Notify("copied to clipboard")
-	else
-		print("[Clipboard] ", ...)
-		Notify("printed to console")
+local setclipboard do
+	local clipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+	setclipboard = function(...)
+		if clipboardfunc then
+			clipboardfunc(...)
+			Notify("copied to clipboard")
+		else
+			print("[Clipboard] ", ...)
+			Notify("printed to console")
+		end
 	end
 end
 
