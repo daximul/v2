@@ -1110,10 +1110,10 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 	local Section = Gui.New("Help"):AddSection("Section")
 	Section:AddItem("Text", {Text = "Get started", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	Section:AddItem("Text", {Text = "Run 'cmds' to view all available commands"})
-	Section:AddItem("Text", {Text = "See a command's info", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	Section:AddItem("Text", {Text = "See a command's information", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	Section:AddItem("Text", {Text = "You should have noticed that the command list does not let you click a command to view more information."})
-	Section:AddItem("Text", {Text = "Run 'commandinfo cmd' to view a command's information."})
-	Section:AddItem("Text", {Text = "Change 'cmd' to the name of the command you want to view."})
+	Section:AddItem("Text", {Text = "Run 'cmdinfo name' to view a command's information."})
+	Section:AddItem("Text", {Text = "Change 'name' to the name of the command you want to view."})
 end)
 
 AddCommand("addplugin", "addplugin [name]", "Add a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
@@ -1690,7 +1690,7 @@ AddCommand("fling", "fling [player]", "Fling [player].", {}, {"Fun", 1}, 2, func
 				if myroot.Velocity.Magnitude < 50 then
 					oldpos = myroot.CFrame
 				end
-				if humanoid.Sit then
+				if humanoid and humanoid.Sit then
 					return
 				end
 				if not character:FindFirstChildWhichIsA("BasePart") then
