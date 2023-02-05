@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/5/23",
-        "+ reach [number], boxreach [number], unreach, helpmenu"
+        "+ helpmenu, reach [number], boxreach [number], unreach, teleporttool"
     ],
     [
         "Update 2/4/23",
