@@ -1894,6 +1894,26 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 	end
 end)
 
+AddCommand("teleporttool", "teleporttool", "Give yourself a tool that teleports you where you click.", {"tweenteleporttool", "tptool", "tweentptool", "clicktp"}, {"Utility"}, 2, function()
+	local backpack = GetBackpack()
+	if backpack then
+		local tool = NewInstance("Tool", {Name = "Click TP", RequiresHandle = false, Parent = backpack})
+		cons.add(tool.Activated, function()
+			local root, pos = GetRoot(), Mouse.Hit
+			if root and pos then
+				root.CFrame = pos + Vector3.new(3, 1, 0)
+			end
+		end)
+		local tool2 = NewInstance("Tool", {Name = "Click TweenTP", RequiresHandle = false, Parent = backpack})
+		cons.add(tool2.Activated, function()
+			local root, pos = GetRoot(), Mouse.Hit
+			if root and pos then
+				TweenObj(root, "Sine", "Out", 0.5, {CFrame = pos + Vector3.new(3, 1, 0)})
+			end
+		end)
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
