@@ -1819,7 +1819,7 @@ AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, 
 	end
 end)
 
-AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {}, {"Utility"}, 2, function(_, speaker)
+AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function(_, speaker)
 	local character, root, heartbeat = GetCharacter(), GetRoot(), RunService.Heartbeat
 	if character and root then
 		local oldpos = root.CFrame
