@@ -591,18 +591,19 @@ getstring = function(begin)
 	local AA = ""
 	for i, v in pairs(Admin.CommandArgs) do
 		if i > start then
-            AA = (AA ~= "" and (AA .. " " .. v)) or (AA .. v)
+			AA = (AA ~= "" and (AA .. " " .. v)) or (AA .. v)
 		end
 	end
 	return AA
 end
 
 GetEnvironment = function(...)
-	return FindCommand(...).Env
+	local command = FindCommand(...)
+	return command and command.Env or {}
 end
 
 local getprfx = function(strn)
-    if sub(strn, 1, len(Admin.Prefix)) == Admin.Prefix then return {"cmd", len(Admin.Prefix) + 1} end return
+	if sub(strn, 1, len(Admin.Prefix)) == Admin.Prefix then return {"cmd", len(Admin.Prefix) + 1} end return
 end
 
 local do_exec = function(str, plr)
@@ -1801,6 +1802,51 @@ AddCommand("copyuserid", "copyuserid [player]", "Copy the user id of [player].",
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	if target then
 		toexecutorclipboard(tostring(target.UserId))
+	end
+end)
+
+AddCommand("reach", "reach [number]", "Change the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
+	if isNumber(distance) and character and backpack then
+		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
+		local handle = tool:FindFirstChild("Handle")
+		if tool and handle and handle:IsA("Part") then
+			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
+			insert(env, {Tool = tool, Size = handle.Size, Box = box})
+			handle.Size = Vector3.new(handle.Size.X, handle.Size.Y, distance)
+			handle.Massless = true
+		end
+	end
+end)
+
+AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
+	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
+	if isNumber(distance) and character and backpack then
+		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
+		local handle = tool:FindFirstChild("Handle")
+		if tool and handle and handle:IsA("Part") then
+			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
+			insert(env, {Tool = tool, Size = handle.Size, Box = box})
+			handle.Size = Vector3.new(distance, distance, distance)
+			handle.Massless = true
+		end
+	end
+end)
+
+AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"}, 2, function()
+	local reach, boxreach = FindCommand("reach"), FindCommand("boxreach")
+	if reach and boxreach then
+		local modified = tbl_concat(reach.Env, boxreach.Env)
+		for _, data in next, modified do
+			if data.Tool and data.Tool:FindFirstChild("Handle") and data.Tool.Handle:IsA("Part") then
+				data.Tool.Handle.Size = data.Size
+			end
+			if data.Box then
+				data.Box:Destroy()
+			end
+		end
+		reach.Env = {}
+		boxreach.Env = {}
 	end
 end)
 
