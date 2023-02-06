@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/6/23",
+        "+ attach [player], kill [player], spawnpoint, unspawnpoint"
+    ],
+    [
         "Update 2/5/23",
         "+ helpmenu, reach [number], boxreach [number], unreach, teleporttool"
     ],
