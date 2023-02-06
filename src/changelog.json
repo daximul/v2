@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/6/23",
-        "+ attach [player], kill [player], spawnpoint, unspawnpoint, diedtp, control [player]"
+        "+ attach [player], kill [player], spawnpoint, unspawnpoint, diedtp, control [player], skydive [player]"
     ],
     [
         "Update 2/5/23",
