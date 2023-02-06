@@ -1981,6 +1981,46 @@ AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {}
 	cons.remove("spawn point")
 end)
 
+local lastdeath = nil
+cons.add(LocalPlayer.CharacterAdded, function()
+	repeat wait() until GetHumanoid() ~= nil
+	cons.add(GetHumanoid().Died, function()
+		local root = GetRoot()
+		if root then
+			lastdeath = root.CFrame
+		end
+	end)
+end)
+cons.add(GetHumanoid().Died, function()
+	local root = GetRoot()
+	if root then
+		lastdeath = root.CFrame
+	end
+end)
+AddCommand("diedtp", "diedtp", "Teleport to your last position before you died.", {"flashback"}, {"Utility"}, 2, function(_, speaker)
+	local root = GetRoot()
+	if lastdeath ~= nil and root then
+		root.CFrame = lastdeath
+	end
+end)
+
+AddCommand("control", "control [player]", "Control [player] for a few seconds.", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and target.Character then
+			ExecuteCommand("sit")
+			Attach(speaker, target)
+			cons.add("control", UserInputService.InputBegan, function(input, processed)
+				if not processed and input.KeyCode == Enum.KeyCode.Space then
+					ExecuteCommand("jump")
+				end
+			end)
+			speaker.CharacterAdded:Wait()
+			cons.remove("control")
+		end
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
