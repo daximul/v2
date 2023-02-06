@@ -38,7 +38,7 @@ TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
-split, format, upper, clamp, round = string.split, string.format, string.upper, math.clamp, math.round
+split, format, upper, clamp, round, heartbeat = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat
 local getconnections = getconnections or get_signal_cons
 local creatingInstance = Instance.new
 
@@ -1809,7 +1809,7 @@ end)
 
 AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unview")
-	local target, heartbeat = Players[getPlayer(args[1], speaker)[1]], RunService.Heartbeat
+	local target = Players[getPlayer(args[1], speaker)[1]]
 	local character = GetCharacter(target)
 	if target and character then
 		workspace.CurrentCamera.CameraSubject = character
@@ -1840,7 +1840,7 @@ AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, 
 end)
 
 AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function(_, speaker)
-	local character, root, heartbeat = GetCharacter(), GetRoot(), RunService.Heartbeat
+	local character, root = GetCharacter(), GetRoot()
 	if character and root then
 		local oldpos = root.CFrame
 		cons.add("refresh", speaker.CharacterAdded, function()
@@ -1951,11 +1951,16 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 			if root and root2 then
 				local oldpos = root.CFrame
 				Attach(speaker, target)
+				wait(0.3)
 				repeat wait()
 					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
 				speaker.CharacterAdded:Wait()
-				GetRoot().CFrame = oldpos
+				heartbeat:Wait()
+				root = GetRoot()
+				if root then
+					root.CFrame = oldpos
+				end
 			end
 		end
 	end
@@ -1963,7 +1968,7 @@ end)
 
 AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {}, {"Utility"}, 2, function(_, speaker)
 	ExecuteCommand("unspawnpoint")
-	local root, heartbeat = GetRoot(), RunService.Heartbeat
+	local root = GetRoot()
 	if root then
 		local saved, pos = root.CFrame, root.Position
 		Notify(format("set a spawn point at (%s, %s, %s)", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
@@ -2023,10 +2028,10 @@ end)
 
 AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky and bring [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
-		local target, root, heartbeat = Players[available], GetRoot(), RunService.Heartbeat
+		local target, root = Players[available], GetRoot()
 		if target and target.Character and root then
 			local oldpos = root.CFrame
-			root.CFrame = CFrame.new(Vector3.new(0, 69420, 0))
+			root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
 			heartbeat:Wait()
 			Attach(speaker, target)
 			speaker.CharacterAdded:Wait()
