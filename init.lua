@@ -2021,6 +2021,24 @@ AddCommand("control", "control [player]", "Control [player] for a few seconds.",
 	end
 end)
 
+AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky and bring [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target, root, heartbeat = Players[available], GetRoot(), RunService.Heartbeat
+		if target and target.Character and root then
+			local oldpos = root.CFrame
+			root.CFrame = CFrame.new(Vector3.new(0, 69420, 0))
+			heartbeat:Wait()
+			Attach(speaker, target)
+			speaker.CharacterAdded:Wait()
+			heartbeat:Wait()
+			root = GetRoot()
+			if root then
+				root.CFrame = oldpos
+			end
+		end
+	end
+end)
+
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
