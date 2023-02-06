@@ -38,7 +38,7 @@ TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
-split, format, upper, clamp = string.split, string.format, string.upper, math.clamp
+split, format, upper, clamp, round = string.split, string.format, string.upper, math.clamp, math.round
 local getconnections = getconnections or get_signal_cons
 local creatingInstance = Instance.new
 
@@ -164,7 +164,7 @@ end
 
 local firetouchinterest do
 	local touched = {}
-	firetouchinterest = function(part, part2, value)
+	firetouchinterest = (getgenv and getgenv().firetouchinterest) or function(part, part2, value)
 		if part and part2 then
 			if value == 0 then
 				touched[1] = part.CFrame
@@ -209,6 +209,26 @@ WhitelistInfo = function(player)
 	return {Player = player, Value = false}
 end
 
+Attach = function(speaker, target)
+	if HasTool(speaker) and target then
+		local tool, character, tcharacter = GetTool(speaker, true), GetCharacter(speaker), GetCharacter(target)
+		if tool and character and tcharacter then
+			local humanoid, root, root2 = GetHumanoid(character), GetRoot(character), GetRoot(tcharacter)
+			if humanoid and root and root2 then
+				local new = humanoid:Clone()
+				new.Parent = humanoid.Parent
+				new.Name = humanoid.Name
+				humanoid:Destroy()
+				workspace.CurrentCamera.CameraSubject = character
+				humanoid.DisplayDistanceType = "None"
+				tool.Parent = character
+				firetouchinterest(root2, tool.Handle, 0)
+				firetouchinterest(root2, tool.Handle, 1)
+			end
+		end
+	end
+end
+
 FindCommand = function(cmd)
 	cmd = lower(cmd)
 	for _, v in pairs(Admin.Commands) do
@@ -216,6 +236,11 @@ FindCommand = function(cmd)
 			return v
 		end
 	end
+end
+
+GetEnvironment = function(...)
+	local command = FindCommand(...)
+	return command and command.Env or {}
 end
 
 RemoveCommand = function(cmd)
@@ -629,11 +654,6 @@ getstring = function(begin)
 		end
 	end
 	return AA
-end
-
-GetEnvironment = function(...)
-	local command = FindCommand(...)
-	return command and command.Env or {}
 end
 
 local getprfx = function(strn)
@@ -1637,11 +1657,11 @@ AddCommand("unstun", "unstun", "Disables PlatformStand.", {}, {"Utility"}, 2, fu
 end)
 
 AddCommand("ping", "ping", "Notify yourself your ping.", {}, {"Utility"}, 2, function(_, speaker)
-	Notify("your ping is " .. math.round(speaker:GetNetworkPing() * 1000) .. "ms")
+	Notify("your ping is " .. round(speaker:GetNetworkPing() * 1000) .. "ms")
 end)
 
 AddCommand("memory", "memory", "Notify yourself your memory usage.", {}, {"Utility"}, 2, function()
-	Notify("your memory usage is " .. math.round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
+	Notify("your memory usage is " .. round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
 end)
 
 AddCommand("infinitejump", "infinitejump", "Make your character able to infinitely jump with no cooldown.", {}, {"Utility"}, 2, function()
@@ -1852,9 +1872,9 @@ end)
 AddCommand("reach", "reach [number]", "Change the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
 	if isNumber(distance) and character and backpack then
-		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
-		local handle = tool:FindFirstChild("Handle")
-		if tool and handle and handle:IsA("Part") then
+		local tool = GetTool(speaker, true)
+		local handle = tool.Handle
+		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
 			insert(env, {Tool = tool, Size = handle.Size, Box = box})
 			handle.Size = Vector3.new(handle.Size.X, handle.Size.Y, distance)
@@ -1866,9 +1886,9 @@ end)
 AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
 	if isNumber(distance) and character and backpack then
-		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
-		local handle = tool:FindFirstChild("Handle")
-		if tool and handle and handle:IsA("Part") then
+		local tool = GetTool(speaker, true)
+		local handle = tool.Handle
+		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
 			insert(env, {Tool = tool, Size = handle.Size, Box = box})
 			handle.Size = Vector3.new(distance, distance, distance)
@@ -1882,7 +1902,7 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 	if reach and boxreach then
 		local modified = tbl_concat(reach.Env, boxreach.Env)
 		for _, data in next, modified do
-			if data.Tool and data.Tool:FindFirstChild("Handle") and data.Tool.Handle:IsA("Part") then
+			if data.Tool and data.Tool.Handle then
 				data.Tool.Handle.Size = data.Size
 			end
 			if data.Box then
@@ -1912,6 +1932,53 @@ AddCommand("teleporttool", "teleporttool", "Give yourself a tool that teleports 
 			end
 		end)
 	end
+end)
+
+AddCommand("attach", "attach [player]", "Attach yourself to [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and target.Character then
+			Attach(speaker, target)
+		end
+	end
+end)
+
+AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target, tool, character = Players[available], GetTool(speaker, true), GetCharacter(speaker)
+		if target and target.Character and tool then
+			local root, root2 = GetRoot(), GetRoot(GetCharacter(target))
+			if root and root2 then
+				local oldpos = root.CFrame
+				Attach(speaker, target)
+				repeat wait()
+					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
+				until not root or not root2
+				speaker.CharacterAdded:Wait()
+				GetRoot().CFrame = oldpos
+			end
+		end
+	end
+end)
+
+AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {}, {"Utility"}, 2, function(_, speaker)
+	ExecuteCommand("unspawnpoint")
+	local root, heartbeat = GetRoot(), RunService.Heartbeat
+	if root then
+		local saved, pos = root.CFrame, root.Position
+		Notify(format("set a spawn point at (%s, %s, %s)", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
+		cons.add("spawn point", speaker.CharacterAdded, function()
+			heartbeat:Wait()
+			root = GetRoot()
+			if root then
+				root.CFrame = saved
+			end
+		end)
+	end
+end)
+
+AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {}, {"Utility"}, 2, function(_, speaker)
+	cons.remove("spawn point")
 end)
 
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
