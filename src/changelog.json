@@ -1,6 +1,11 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/7/23",
+        "added Distance option to esp (on by default)",
+        "+ handlekill [player], invisible, uninvisible"
+    ],
+    [
         "Update 2/6/23",
         "+ attach [player], kill [player], spawnpoint, unspawnpoint, diedtp, control [player], skydive [player]"
     ],
