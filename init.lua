@@ -162,17 +162,15 @@ GetTool = function(player, requiresHandle)
 	return nil
 end
 
-local firetouchinterest do
-	local touched = {}
-	firetouchinterest = (getgenv and getgenv().firetouchinterest) or function(part, part2, value)
-		if part and part2 then
-			if value == 0 then
-				touched[1] = part.CFrame
-				part.CFrame = part2.CFrame
-			else
-				part.CFrame = touched[1]
-				touched[1] = nil
-			end
+local touchedcache = {}
+firerbxtouch = (getgenv and getgenv().firetouchinterest) or function(part, part2, value)
+	if part and part2 then
+		if value == 0 then
+			touchedcache[1] = part.CFrame
+			part.CFrame = part2.CFrame
+		else
+			part.CFrame = touchedcache[1]
+			touchedcache[1] = nil
 		end
 	end
 end
@@ -187,16 +185,14 @@ GetLongUsername = function(player)
 	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
 end
 
-local setclipboard do
-	local clipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
-	setclipboard = function(...)
-		if clipboardfunc then
-			clipboardfunc(...)
-			Notify("copied to clipboard")
-		else
-			print("[Clipboard] ", ...)
-			Notify("printed to console")
-		end
+local clipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+toexecutorclipboard = function(...)
+	if clipboardfunc then
+		clipboardfunc(...)
+		Notify("copied to clipboard")
+	else
+		print("[Clipboard]", ...)
+		Notify("printed to console")
 	end
 end
 
@@ -209,11 +205,11 @@ WhitelistInfo = function(player)
 	return {Player = player, Value = false}
 end
 
-Attach = function(speaker, target)
-	if HasTool(speaker) and target then
-		local tool, character, tcharacter = GetTool(speaker, true), GetCharacter(speaker), GetCharacter(target)
+Attach = function(target)
+	if HasTool(LocalPlayer) and target then
+		local tool, character, tcharacter = GetTool(LocalPlayer, true), GetCharacter(), GetCharacter(target)
 		if tool and character and tcharacter then
-			local humanoid, root, root2 = GetHumanoid(character), GetRoot(character), GetRoot(tcharacter)
+			local humanoid, root, root2 = GetHumanoid(), GetRoot(), GetRoot(tcharacter)
 			if humanoid and root and root2 then
 				local new = humanoid:Clone()
 				new.Parent = humanoid.Parent
@@ -222,17 +218,17 @@ Attach = function(speaker, target)
 				workspace.CurrentCamera.CameraSubject = character
 				humanoid.DisplayDistanceType = "None"
 				tool.Parent = character
-				firetouchinterest(root2, tool.Handle, 0)
-				firetouchinterest(root2, tool.Handle, 1)
+				firerbxtouch(root2, tool.Handle, 0)
+				firerbxtouch(root2, tool.Handle, 1)
 			end
 		end
 	end
 end
 
 FindCommand = function(cmd)
-	cmd = lower(cmd)
+	cmd = lower(tostring(cmd))
 	for _, v in pairs(Admin.Commands) do
-		if lower(v.Name) == cmd or FindInTable(v.Alias, cmd) then
+		if lower(tostring(v.Name)) == cmd or FindInTable(v.Alias, cmd) then
 			return v
 		end
 	end
@@ -244,17 +240,17 @@ GetEnvironment = function(...)
 end
 
 RemoveCommand = function(cmd)
-	cmd = lower(cmd)
+	cmd = lower(tostring(cmd))
 	for i, v in pairs(Admin.Commands) do
-		if lower(v.Name) == cmd or FindInTable(v.Alias, cmd) then
+		if lower(tostring(v.Name)) == cmd or FindInTable(v.Alias, cmd) then
 			remove(Admin.Commands, i)
 		end
 	end
 end
 
-SendChatMessage = function(str)
+SendChatMessage = function(str, channel)
 	if ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") and ReplicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRequest") then
-		ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(str, "All")
+		ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(str, channel or "All")
 	end
 end
 
@@ -720,10 +716,10 @@ Admin.CommandRequirements = {
 	}
 }
 
-AddCommand = function(name, usage, description, alias, reqs, perm, func, plgin)
+AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
     local Id = #Admin.Commands + 1
     Admin.Commands[Id] = {
-        Name = name,
+        Name = lower(tostring(name)),
         Usage = usage,
         Description = description,
         Alias = alias or {},
@@ -752,7 +748,7 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, plgin)
             return func
         end,
         Env = {},
-        Plugin = plgin or false
+        Plugin = pl or false
     }
     local DestroyFunc = function() Admin.Commands[Id] = nil end
     return {Destroy = DestroyFunc, Remove = DestroyFunc, Delete = DestroyFunc}
@@ -1157,7 +1153,7 @@ AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"},
 end)
 
 AddCommand("commandinfo", "commandinfo [command]", "View more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
-	local command = FindCommand(args[1])
+	local command = FindCommand(lower(tostring(args[1])))
 	if command then
 		Gui.DisplayTable("Command Info", {
 			format("Name: %s", command.Name or "command"),
@@ -1251,13 +1247,15 @@ AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {},
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
-			local tools = {}
-			for _, v in next, GetBackpack(target):GetChildren() do
-				if v:IsA("Tool") or v:IsA("HopperBin") then
-					insert(tools, v.Name)
+			local backpack, tools = GetBackpack(target), {}
+			if backpack then
+				for _, v in next, backpack:GetChildren() do
+					if v:IsA("Tool") or v:IsA("HopperBin") then
+						insert(tools, v.Name)
+					end
 				end
+				Gui.DisplayTable(format("Tools (%s)", GetUsername(target)), tools)
 			end
-			Gui.DisplayTable(format("Tools (%s)", GetUsername(target)), tools)
 		end
 	end
 end)
@@ -1428,14 +1426,14 @@ AddCommand("noclip", "noclip", "Makes your character able to walk through walls.
 	end)
 	local humanoid = GetHumanoid()
 	if humanoid then
-		cons.add(humanoid.Died, function()
+		cons.add("noclip2", humanoid.Died, function()
 			ExecuteCommand("unnoclip")
 		end)
 	end
 end)
 
 AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2, function()
-	cons.remove("noclip")
+	cons.remove({"noclip", "noclip2"})
 end)
 
 AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"Utility", 1}, 2, function(args, speaker)
@@ -1474,7 +1472,7 @@ AddCommand("fakeout", "fakeout", "Teleport into the void and then teleport back 
 	end
 end)
 
-AddCommand("car", "car [number]", "Become some form of a car. The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args, speaker)
+AddCommand("car", "car [number]", "Become some form of a car. The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args)
 	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
 	if character and humanoid and animate then
 		local speed = 70
@@ -1551,44 +1549,44 @@ AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of
 	workspace.CurrentCamera.FieldOfView = fov
 end)
 
-AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function(_, speaker)
+AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function()
 	ExecuteCommand("unview")
 	workspace.CurrentCamera:Remove()
 	wait(0.1)
-	repeat wait() until GetCharacter(speaker) ~= nil
-	workspace.CurrentCamera.CameraSubject = GetHumanoid(GetCharacter(speaker))
+	repeat wait() until GetCharacter() ~= nil
+	workspace.CurrentCamera.CameraSubject = GetHumanoid()
 	workspace.CurrentCamera.CameraType = "Custom"
-	speaker.CameraMaxZoomDistance = 400
-	speaker.CameraMinZoomDistance = 0.5
-	speaker.CameraMode = "Classic"
-	speaker.Character.Head.Anchored = false
+	LocalPlayer.CameraMaxZoomDistance = 400
+	LocalPlayer.CameraMinZoomDistance = 0.5
+	LocalPlayer.CameraMode = "Classic"
+	LocalPlayer.Character.Head.Anchored = false
 end)
 
-AddCommand("enableshiftlock", "enableshiftlock", "Enables shift lock.", {"enablesl"}, {"Utility"}, 2, function(_, speaker)
-	speaker.DevEnableMouseLock = true
+AddCommand("enableshiftlock", "enableshiftlock", "Enables shift lock.", {"enablesl"}, {"Utility"}, 2, function()
+	LocalPlayer.DevEnableMouseLock = true
 end)
 
-AddCommand("disableshiftlock", "disableshiftlock", "Disables shift lock.", {"disablesl"}, {"Utility"}, 2, function(_, speaker)
-	speaker.DevEnableMouseLock = false
+AddCommand("disableshiftlock", "disableshiftlock", "Disables shift lock.", {"disablesl"}, {"Utility"}, 2, function()
+	LocalPlayer.DevEnableMouseLock = false
 end)
 
-AddCommand("firstperson", "firstperson", "Forces your player camera into first person.", {}, {"Utility"}, 2, function(_, speaker)
-	speaker.CameraMode = "LockFirstPerson"
+AddCommand("firstperson", "firstperson", "Forces your player camera into first person.", {}, {"Utility"}, 2, function()
+	LocalPlayer.CameraMode = "LockFirstPerson"
 end)
 
-AddCommand("thirdperson", "thirdperson", "Allows your player camera to go into third person.", {}, {"Utility"}, 2, function(_, speaker)
-	speaker.CameraMode = "Classic"
+AddCommand("thirdperson", "thirdperson", "Allows your player camera to go into third person.", {}, {"Utility"}, 2, function()
+	LocalPlayer.CameraMode = "Classic"
 end)
 
-AddCommand("minimumzoom", "minimumzoom [number]", "Changes your player camera minimum zoom distance to [number].", {"minzoom"}, {"Utility", 1}, 2, function(_, speaker)
+AddCommand("minimumzoom", "minimumzoom [number]", "Changes your player camera minimum zoom distance to [number].", {"minzoom"}, {"Utility", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
-		speaker.CameraMinZoomDistance = tonumber(args[1])
+		LocalPlayer.CameraMinZoomDistance = tonumber(args[1])
 	end
 end)
 
-AddCommand("maximumzoom", "maximumzoom [number]", "Changes your player camera maximum zoom distance to [number].", {"maxzoom"}, {"Utility", 1}, 2, function(_, speaker)
+AddCommand("maximumzoom", "maximumzoom [number]", "Changes your player camera maximum zoom distance to [number].", {"maxzoom"}, {"Utility", 1}, 2, function(args)
 	if args[1] and isNumber(args[1]) then
-		speaker.CameraMaxZoomDistance = tonumber(args[1])
+		LocalPlayer.CameraMaxZoomDistance = tonumber(args[1])
 	end
 end)
 
@@ -1817,7 +1815,7 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 			heartbeat:Wait()
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
-		cons.add("spectate2", speaker.CharacterAdded, function()
+		cons.add("spectate2", LocalPlayer.CharacterAdded, function()
 			heartbeat:Wait()
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
@@ -1839,11 +1837,11 @@ AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, 
 	end
 end)
 
-AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function(_, speaker)
+AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function()
 	local character, root = GetCharacter(), GetRoot()
 	if character and root then
 		local oldpos = root.CFrame
-		cons.add("refresh", speaker.CharacterAdded, function()
+		cons.add("refresh", LocalPlayer.CharacterAdded, function()
 			heartbeat:Wait()
 			root = GetRoot()
 			if root then
@@ -1872,7 +1870,7 @@ end)
 AddCommand("reach", "reach [number]", "Change the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
 	if isNumber(distance) and character and backpack then
-		local tool = GetTool(speaker, true)
+		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
@@ -1886,7 +1884,7 @@ end)
 AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
 	if isNumber(distance) and character and backpack then
-		local tool = GetTool(speaker, true)
+		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
@@ -1936,26 +1934,23 @@ end)
 
 AddCommand("attach", "attach [player]", "Attach yourself to [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
-		local target = Players[available]
-		if target and target.Character then
-			Attach(speaker, target)
-		end
+		Attach(Players[available])
 	end
 end)
 
 AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
-		local target, tool, character = Players[available], GetTool(speaker, true), GetCharacter(speaker)
+		local target, tool, character = Players[available], GetTool(LocalPlayer, true), GetCharacter()
 		if target and target.Character and tool then
 			local root, root2 = GetRoot(), GetRoot(GetCharacter(target))
 			if root and root2 then
 				local oldpos = root.CFrame
-				Attach(speaker, target)
+				Attach(target)
 				wait(0.3)
 				repeat wait()
 					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
-				speaker.CharacterAdded:Wait()
+				LocalPlayer.CharacterAdded:Wait()
 				heartbeat:Wait()
 				root = GetRoot()
 				if root then
@@ -2014,7 +2009,7 @@ AddCommand("control", "control [player]", "Control [player] for a few seconds.",
 		local target = Players[available]
 		if target and target.Character then
 			ExecuteCommand("sit")
-			Attach(speaker, target)
+			Attach(target)
 			cons.add("control", UserInputService.InputBegan, function(input, processed)
 				if not processed and input.KeyCode == Enum.KeyCode.Space then
 					ExecuteCommand("jump")
@@ -2033,7 +2028,7 @@ AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky an
 			local oldpos = root.CFrame
 			root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
 			heartbeat:Wait()
-			Attach(speaker, target)
+			Attach(target)
 			speaker.CharacterAdded:Wait()
 			heartbeat:Wait()
 			root = GetRoot()
