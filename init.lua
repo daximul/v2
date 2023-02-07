@@ -38,7 +38,7 @@ TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
-split, format, upper, clamp, round, heartbeat = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat
+split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
 local getconnections = getconnections or get_signal_cons
 local creatingInstance = Instance.new
 
@@ -1046,7 +1046,7 @@ cons.add(CommandBar.Focused, function()
 		if CommandBar:IsFocused() then
 			if input.KeyCode == Enum.KeyCode.Tab then
                 	if CommandBar.Text == "" or CommandBar.Text == " " then
-                    	RunService.RenderStepped:Wait()
+                    	renderstepped:Wait()
                     	CommandBar.Text = ""
                 	end
 					if Prediction.Text == "" or Prediction.Text == " " then
@@ -1306,6 +1306,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	local BodyVelocity = NewInstance("BodyVelocity", {Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root, Name = BodyVelocityName})
 
 	env[1] = function()
+		env[1] = nil
 		cons.remove({"fly", "unfly"})
 		if BodyGyro then
 			BodyGyro:Destroy()
@@ -1316,7 +1317,6 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 		if GetHumanoid() then
 			GetHumanoid().PlatformStand = false
 		end
-		env[1] = nil
 	end
 
 	coroutine.wrap(function()
@@ -1389,18 +1389,19 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 		end)
 		local Section = Container:AddSection("Section")
 		Section:AddItem("Toggle", {Text = "ESP", Default = true, Function = function(callback) esp:Toggle(callback) end})
+		Section:AddItem("Toggle", {Text = "Distance", Default = true, Function = function(callback) esp.Distance = callback end})
 		Section:AddItem("Toggle", {Text = "Names", Default = true, Function = function(callback) esp.Names = callback end})
 		Section:AddItem("Toggle", {Text = "Boxes", Function = function(callback) esp.Boxes = callback end})
 		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
 		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
 		Section:AddItem("Toggle", {Text = "Chams", Function = function(callback) esp:Chams(callback) end})
 		env[1] = function()
+			env[1] = nil
 			if Container and Container.Close then
 				Container.Close()
 			else
 				esp:Kill()
 			end
-			env[1] = nil
 		end
 	end
 end)
@@ -1820,11 +1821,11 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
 		env[1] = function()
+			env[1] = nil
 			cons.remove({"spectate1", "spectate2"})
 			if GetCharacter() then
 				workspace.CurrentCamera.CameraSubject = GetCharacter()
 			end
-			env[1] = nil
 		end
 		Notify(format("now viewing %s", GetLongUsername(target)))
 	end
@@ -2036,6 +2037,82 @@ AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky an
 				root.CFrame = oldpos
 			end
 		end
+	end
+end)
+
+AddCommand("handlekill", "handlekill [player]", "Kill [player] with tool damage.", {"hkill"}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and target.Character then
+			local tool = GetTool(LocalPlayer, true)
+			local handle = tool.Handle
+			if tool and handle then
+				tool.Parent = GetCharacter()
+				spawn(function()
+					while tool and handle and GetCharacter() and GetCharacter(target) and tool.Parent == GetCharacter() do
+						local humanoid = GetHumanoid(GetCharacter(target))
+						if not humanoid or humanoid.Health <= 0 then
+							break
+						end
+						for _, obj in next, GetCharacter(target):GetChildren() do
+							obj = ((obj:IsA("BasePart") and firerbxtouch(handle, obj, 1, (renderstepped:Wait() and nil) or firerbxtouch(handle, obj, 0)) and nil) or obj) or obj
+						end
+					end
+					Notify(format("%s has either died or left, or you unequipped the tool", GetLongUsername(target)))
+				end)
+			end
+		end
+	end
+end)
+
+AddCommand("invisible", "invisible", "Become invisible to other players.", {"invis"}, {"Utility", "spawned"}, 2, function(_, _, env)
+	ExecuteCommand("uninvisible")
+	local character, root = GetCharacter(), GetRoot()
+	if character and root then
+		local oldpos = root.CFrame
+		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
+		heartbeat:Wait()
+		root.Anchored = true
+		local seat = NewInstance("Seat", {Name = RandomString(), Parent = workspace, CFrame = root.CFrame, Anchored = false, Transparency = 1, CanCollide = false})
+		local weld = NewInstance("Weld", {Name = RandomString(), Parent = seat, Part0 = seat, Part1 = root})
+		root.Anchored = false
+		seat.CFrame = oldpos
+		local saved = {}
+		for _, v in next, character:GetChildren() do
+			if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Part") then
+				insert(saved, {Object = v, Transparency = v.Transparency})
+				v.Transparency = v.Transparency <= 0.3 and 0.4 or v.Transparency
+			elseif v:IsA("Accessory") then
+				local handle = v:FindFirstChildWhichIsA("MeshPart") or v:FindFirstChildWhichIsA("Part")
+				if handle then
+					insert(saved, {Object = handle, Transparency = handle.Transparency})
+					handle.Transparency = handle.Transparency <= 0.3 and 0.4 or handle.Transparency
+				end
+			end
+		end
+		env[1] = function()
+			env[1] = nil
+			if weld then
+				weld.Part0 = nil
+				weld.Part1 = nil
+				weld:Destroy()
+			end
+			if seat then
+				seat:Destroy()
+			end
+			for _, v in next, saved do
+				if v.Object and v.Transparency then
+					v.Object.Transparency = v.Transparency
+				end
+			end
+		end
+	end
+end)
+
+AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("invisible")[1]
+	if env then
+		env()
 	end
 end)
 
