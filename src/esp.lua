@@ -5,6 +5,7 @@ local Vector2, Vector3, newDrawing, fromRGB = Vector2.new, Vector3.new, Drawing.
 
 local ESP = {
     Enabled = false,
+    Distance = true,
     Boxes = true,
     BoxShift = newCFrame(0, -1.5, 0),
     BoxSize = Vector3(4, 6, 0),
@@ -249,10 +250,14 @@ function boxBase:Update()
             end
             self.Components.Name.Color = color
 
-            self.Components.Distance.Visible = true
-            self.Components.Distance.Position = Vector2(TagPos.X, TagPos.Y + 14)
-            self.Components.Distance.Text = floor((cam.CFrame.p - cf.p).magnitude) .. "m away"
-            self.Components.Distance.Color = color
+            if ESP.Distance then
+                self.Components.Distance.Visible = true
+                self.Components.Distance.Position = Vector2(TagPos.X, TagPos.Y + 14)
+                self.Components.Distance.Text = floor((cam.CFrame.p - cf.p).magnitude) .. "m away"
+                self.Components.Distance.Color = color
+            else
+                self.Components.Distance.Visible = false
+            end
         else
             self.Components.Name.Visible = false
             self.Components.Distance.Visible = false
@@ -406,6 +411,7 @@ function ESP:DefaultSetup(color)
     ESP:Toggle(true)
     ESP.Players = true
     ESP.Tracers = true
+    ESP.Distance = true
     ESP.Boxes = true
     ESP.Names = true
     ESP.Health = true
@@ -456,6 +462,7 @@ function ESP:Kill()
     ESP:Toggle(false)
     ESP.Players = false
     ESP.Tracers = false
+    ESP.Distance = false
     ESP.Boxes = false
     ESP.Names = false
     ESP.Health = false
