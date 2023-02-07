@@ -105,7 +105,7 @@ FindInTable = function(tbl, val)
 end
 
 GetCharacter = function(player)
-    return (player or LocalPlayer).Character
+	return (player or LocalPlayer).Character
 end
 
 GetHumanoid = function(character)
@@ -657,20 +657,20 @@ local getprfx = function(strn)
 end
 
 local do_exec = function(str, plr)
-    str = gsub(str, "/e ", "")
-    local t = getprfx(str)
-    if not t then return end
-    str = sub(str, t[2])
-    if t[1] == "cmd" then
-        ExecuteCommand(str, plr, true)
-    end
+	str = gsub(str, "/e ", "")
+	local t = getprfx(str)
+	if not t then return end
+	str = sub(str, t[2])
+	if t[1] == "cmd" then
+		ExecuteCommand(str, plr, true)
+	end
 end
 
 cons.add(LocalPlayer.Chatted, function(message)
-    spawn(function()
-        wait()
-        do_exec(tostring(message), LocalPlayer)
-    end)
+	spawn(function()
+		wait()
+		do_exec(tostring(message), LocalPlayer)
+	end)
 end)
 
 for _, player in next, Players:GetPlayers() do
@@ -694,15 +694,15 @@ cons.add(Players.PlayerAdded, function(player)
 end)
 
 filterthrough = function(tbl, ret)
-    if type(tbl) == "table" then
-        local new = {}
-        for i, v in next, tbl do
-            if ret(i, v) then
-                new[#new + 1] = v
-            end
-        end
-        return new
-    end
+	if type(tbl) == "table" then
+		local new = {}
+		for i, v in next, tbl do
+			if ret(i, v) then
+				new[#new + 1] = v
+			end
+		end
+		return new
+	end
 end
 
 Admin.CommandRequirements = {
@@ -717,41 +717,41 @@ Admin.CommandRequirements = {
 }
 
 AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
-    local Id = #Admin.Commands + 1
-    Admin.Commands[Id] = {
-        Name = lower(tostring(name)),
-        Usage = usage,
-        Description = description,
-        Alias = alias or {},
-        Requirements = reqs or {},
-        PermissionIndex = perm or 2,
-        ArgsNeeded = tonumber(filterthrough(reqs, function(_, v)
-            return type(v) == "number"
-        end)[1]) or 0,
-        Category = filterthrough(reqs, function(_, v)
-            return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
-        end)[1] or "Misc",
-        Func = function()
-            for _, v in next, reqs do
-                if type(v) == "function" and v() == false then
-                    if Admin.RequirementsNotification then
-                        Notify("you are missing something that is needed for this command")
-                    end
-                    return false
-                elseif type(v) == "string" and Admin.CommandRequirements[v] ~= nil and Admin.CommandRequirements[v].func() == false then
-                    if Admin.RequirementsNotification then
-                        Notify(Admin.CommandRequirements[v].warning)
-                    end
-                    return false
-                end
-            end
-            return func
-        end,
-        Env = {},
-        Plugin = pl or false
-    }
-    local DestroyFunc = function() Admin.Commands[Id] = nil end
-    return {Destroy = DestroyFunc, Remove = DestroyFunc, Delete = DestroyFunc}
+	local Id = #Admin.Commands + 1
+	Admin.Commands[Id] = {
+		Name = lower(tostring(name)),
+		Usage = usage,
+		Description = description,
+		Alias = alias or {},
+		Requirements = reqs or {},
+		PermissionIndex = perm or 2,
+		ArgsNeeded = tonumber(filterthrough(reqs, function(_, v)
+			return type(v) == "number"
+		end)[1]) or 0,
+		Category = filterthrough(reqs, function(_, v)
+			return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
+		end)[1] or "Misc",
+		Func = function()
+			for _, v in next, reqs do
+				if type(v) == "function" and v() == false then
+					if Admin.RequirementsNotification then
+						Notify("you are missing something that is needed for this command")
+					end
+					return false
+				elseif type(v) == "string" and Admin.CommandRequirements[v] ~= nil and Admin.CommandRequirements[v].func() == false then
+					if Admin.RequirementsNotification then
+						Notify(Admin.CommandRequirements[v].warning)
+					end
+					return false
+				end
+			end
+			return func
+		end,
+		Env = {},
+		Plugin = pl or false
+	}
+	local DestroyFunc = function() Admin.Commands[Id] = nil end
+	return {Destroy = DestroyFunc, Remove = DestroyFunc, Delete = DestroyFunc}
 end
 
 RewriteCommand = function(cmd, func)
