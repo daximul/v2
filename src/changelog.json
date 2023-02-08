@@ -3,7 +3,7 @@
     [
         "Update 2/7/23",
         "added Distance option to esp (on by default)",
-        "+ handlekill [player], invisible, uninvisible"
+        "+ handlekill [player], invisible, uninvisible, chatlogs"
     ],
     [
         "Update 2/6/23",
