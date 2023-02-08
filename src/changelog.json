@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/8/23",
-        "+ teleportwalk [number], unteleportwalk, f3x"
+        "+ teleportwalk [number], unteleportwalk, f3x, swim, unswim"
     ],
     [
         "Update 2/7/23",
