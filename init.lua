@@ -123,7 +123,7 @@ GetRoot = function(character)
 	return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
 end
 
-tbl_concat = function(...)
+merge_table = function(...)
 	local new = {}
 	for i, v in next, {...} do
 		for _, v2 in next, v do
@@ -137,7 +137,7 @@ HasTool = function(player)
 	player = player or LocalPlayer
 	local character, backpack = GetCharacter(player), GetBackpack(player)
 	if character and backpack then
-		local list = tbl_concat(character:GetChildren(), backpack:GetChildren())
+		local list = merge_table(character:GetChildren(), backpack:GetChildren())
 		for i = 1, #list do
 			if list[i]:IsA("Tool") then
 				return true
@@ -487,33 +487,33 @@ end
 onlyIncludeInTable = function(tab, matches)
 	local matchTable = {}
 	local resultTable = {}
-	for i, v in pairs(matches) do matchTable[v.Name] = true end
-	for i, v in pairs(tab) do if matchTable[v.Name] then insert(resultTable, v) end end
+	for _, v in pairs(matches) do matchTable[v.Name] = true end
+	for _, v in pairs(tab) do if matchTable[v.Name] then insert(resultTable, v) end end
 	return resultTable
 end
 
 removeTableMatches = function(tab, matches)
 	local matchTable = {}
 	local resultTable = {}
-	for i,v in pairs(matches) do matchTable[v.Name] = true end
-	for i,v in pairs(tab) do if not matchTable[v.Name] then insert(resultTable, v) end end
+	for _, v in pairs(matches) do matchTable[v.Name] = true end
+	for _, v in pairs(tab) do if not matchTable[v.Name] then insert(resultTable, v) end end
 	return resultTable
 end
 
-getPlayersByName = function(Name)
-	local Name, Len, Found = string.lower(Name), #Name, {}
+getPlayersByName = function(name)
+	local name, len, found = string.lower(name), #name, {}
 	for _, v in pairs(Players:GetPlayers()) do
-		if sub(Name, 0, 1) == "@" then
-			if sub(string.lower(v.Name), 1, Len - 1) == sub(Name, 2) then
-				insert(Found, v)
+		if sub(name, 0, 1) == "@" then
+			if sub(string.lower(v.Name), 1, len - 1) == sub(name, 2) then
+				insert(found, v)
 			end
 		else
-			if sub(lower(v.Name), 1, Len) == Name or sub(lower(v.DisplayName), 1, Len) == Name then
-				insert(Found, v)
+			if sub(lower(v.Name), 1, len) == name or sub(lower(v.DisplayName), 1, len) == name then
+				insert(found, v)
 			end
 		end
 	end
-	return Found
+	return found
 end
 
 getPlayer = function(list, speaker)
@@ -839,7 +839,7 @@ do
 	if not isfolder("dark-admin/logs") then
 		makefolder("dark-admin/logs")
 	end
-	local save = "dark-admin/config.json"
+	local save, save2 = "dark-admin/config.json", "dark-admin/misc.json"
 	local cachedconfigs = pcall(readfile, save) and HttpService:JSONDecode(readfile(save))
 	if cachedconfigs then
 		for setting, value in next, Config do
@@ -854,7 +854,6 @@ do
 			writefile(save, HttpService:JSONEncode(Config))
 		end
 	end
-	local save2 = "dark-admin/misc.json"
 	local cachedconfigs2 = pcall(readfile, save2) and HttpService:JSONDecode(readfile(save2))
 	if cachedconfigs2 then
 		for setting, value in next, MiscConfig do
@@ -876,19 +875,19 @@ end
 PluginExtensions = {".luau", ".lua", ".txt", ".da"}
 
 LoadPlugin = function(path, force)
-	local Loaded, Plugin = pcall(readfile, format("dark-admin/plugins/%s", path))
-	if not Loaded then
-		Notify(format("plugin error for %s\nplease open console (F9) for the error", path))
+	local success, result = pcall(readfile, format("dark-admin/plugins/%s", path))
+	if not success then
+		Notify(format("plugin error for (%s)\nplease open console (F9) for the error", path))
 		for i, v in next, Config.Plugins do
 			if v == path then
 				remove(Config.Plugins, i)
 			end
 		end
 		UpdateConfig()
-		print("Plugin Error, Stack Traceback:", debug.traceback(Plugin))
+		print("Plugin Error, Stack Traceback:", debug.traceback(result))
 		return
 	else
-		Plugin = loadstring(Plugin)()
+		local Plugin = loadstring(result)()
 		spawn(function()
 			if Plugin.Commands and type(Plugin.Commands) == "table" then
 				for _, v in next, Plugin.Commands do
@@ -1000,12 +999,12 @@ local StringFind = function(tbl, str)
 end
 
 local PlayerArgs = function(argument)
-	argument = lower(argument)
+	argument = lower(tostring(argument))
 	return StringFind(Admin.PredictionCases, argument) or (function()
 		for _, v in ipairs(Players:GetPlayers()) do
-			local Name = lower(v.Name)
-			if MatchSearch(argument, Name) then
-				return Name
+			local name = lower(tostring(v.Name))
+			if MatchSearch(argument, name) then
+				return name
 			end
 		end
 	end)()
@@ -1966,7 +1965,7 @@ end)
 AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"}, 2, function()
 	local reach, boxreach = FindCommand("reach"), FindCommand("boxreach")
 	if reach and boxreach then
-		local modified = tbl_concat(reach.Env, boxreach.Env)
+		local modified = merge_table(reach.Env, boxreach.Env)
 		for _, data in next, modified do
 			if data.Tool and data.Tool.Handle then
 				data.Tool.Handle.Size = data.Size
@@ -2256,13 +2255,13 @@ if Config.Plugins and type(Config.Plugins) == "table" then
 	end
 end
 
-for i, v in next, MiscConfig.Permissions do
-	local command = FindCommand(i)
+for name, permission in next, MiscConfig.Permissions do
+	local command = FindCommand(name)
 	if command then
-		if command.PermissionIndex == v then
-			MiscConfig.Permissions[i] = nil
+		if command.PermissionIndex == permission then
+			MiscConfig.Permissions[name] = nil
 		else
-			command.PermissionIndex = v
+			command.PermissionIndex = permission
 		end
 	end
 end
