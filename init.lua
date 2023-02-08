@@ -2071,7 +2071,7 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 	if character and root then
 		local oldpos = root.CFrame
 		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
-		heartbeat:Wait()
+		wait(0.2)
 		root.Anchored = true
 		local seat = NewInstance("Seat", {Name = RandomString(), Parent = workspace, CFrame = root.CFrame, Anchored = false, Transparency = 1, CanCollide = false})
 		local weld = NewInstance("Weld", {Name = RandomString(), Parent = seat, Part0 = seat, Part1 = root})
