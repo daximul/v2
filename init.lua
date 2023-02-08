@@ -1260,30 +1260,34 @@ AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core
 	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
 	local Section = Container:AddSection("Section")
 	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
-		local os = os.date("*t")
-		local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
-		local name = gsub(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name, "[*\\?:<>|]+", "")
-		local data = format("Chatlogs for \"%s\"\n\n\n\n", name)
-		for _, v in next, ChatHistory do
-			data = data .. format("[%s]: %s\n", v.Name, v.Message)
-		end
-		local success, result = pcall(function()
-			writefile(format("dark-admin/logs/%s - %s.txt", name, date), data)
-		end)
-		if success then
-			Notify("successfully saved chatlogs")
-		else
-			warn("Save Error:", result)
-			Notify("failed to save chatlogs, check console for more info")
-		end
+		ExecuteCommand("savechatlogs")
 	end})
 	spawn(function()
 		for _, v in next, ChatHistory do
 			local log = format("[%s]: %s", v.Name, v.Message)
-			Section:AddItem("Button", {Text = log, Function = function() toexecutorclipboard(log) end})
+			Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
 		end
 	end)
 	env[1] = {UI = Container, Section = Section}
+end)
+
+AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in the chatlogs to save it, this exists.", {}, {"Core"}, 2, function()
+	local os = os.date("*t")
+	local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
+	local name = gsub(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name, "[*\\?:<>|]+", "")
+	local data = format("Chatlogs for \"%s\"\n\n\n\n", name)
+	for _, v in next, ChatHistory do
+		data = data .. format("[%s]: %s\n", v.Name, v.Message)
+	end
+	local success, result = pcall(function()
+		writefile(format("dark-admin/logs/%s - %s.txt", name, date), data)
+	end)
+	if success then
+		Notify("successfully saved chatlogs")
+	else
+		warn("Save Error:", result)
+		Notify("failed to save chatlogs, check console for more info")
+	end
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2161,6 +2165,39 @@ AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "v
 	if env then
 		env()
 	end
+end)
+
+AddCommand("teleportwalk", "teleportwalk [number]", "Teleport to your move direction. [number] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
+	ExecuteCommand("unteleportwalk")
+	local character, humanoid = GetCharacter(), GetHumanoid()
+	local active = true
+	if character and humanoid then
+		env[1] = function()
+			env[1] = nil
+			active = false
+		end
+		while active and character and humanoid do
+			local delta = heartbeat:Wait()
+			if humanoid.MoveDirection.Magnitude > 0 then
+				if args[1] and isNumber(args[1]) then
+					character:TranslateBy(humanoid.MoveDirection * tonumber(args[1]) * delta * 10)
+				else
+					character:TranslateBy(humanoid.MoveDirection * delta * 10)
+				end
+			end
+		end
+	end
+end)
+
+AddCommand("unteleportwalk", "unteleportwalk", "Stop teleport walk.", {"untpwalk"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("teleportwalk")[1]
+	if env then
+		env()
+	end
+end)
+
+AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {}, {"Fun"}, 2, function()
+	loadstring(game:GetObjects("rbxassetid://6695644299")[1].Source)()
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
