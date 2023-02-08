@@ -41,6 +41,8 @@ remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
 local getconnections = getconnections or get_signal_cons
 local creatingInstance = Instance.new
+local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
+local OldGravity = workspace.Gravity
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
@@ -744,6 +746,9 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 		Category = filterthrough(reqs, function(_, v)
 			return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
 		end)[1] or "Misc",
+		CustomArgs = filterthrough(reqs, function(_, v)
+			return type(v) == "table"
+		end)[1] or {},
 		Func = function()
 			for _, v in next, reqs do
 				if type(v) == "function" and v() == false then
@@ -1012,7 +1017,7 @@ cons.add(CommandBar.FocusLost, function()
 end)
 
 cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
-    if Config.LoweredText then CommandBar.Text = lower(CommandBar.Text) end
+	if Config.LoweredText then CommandBar.Text = lower(CommandBar.Text) end
 	Prediction.Text = ""
 	local InputText = CommandBar.Text
 	local Args = split(InputText, " ")
@@ -1022,12 +1027,14 @@ cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
 		local FoundAlias = false
 		if MatchSearch(InputText, v.Name) then
 			Prediction.Text = v.Name
+			Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
 			break
 		end
 		for _, v2 in next, v.Alias do
 			if MatchSearch(InputText, v2) then
 				FoundAlias = true
 				Prediction.Text = v2
+				Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
 				break
 			end
 			if FoundAlias then break end
@@ -1036,8 +1043,14 @@ cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
 	for i, v in next, Args do
 		if i > 1 and v ~= "" then
 			local Predict = ""
-			if #CmdArgs >= 1 then
-				Predict = PlayerArgs(v) or Predict
+			if #Admin.CommandArgs >= 1 then
+				for i2, v2 in next, Admin.CommandArgs do
+					if lower(tostring(v2)) == "player" then
+						Predict = PlayerArgs(v) or Predict
+					else
+						Predict = MatchSearch(v, v2) and v2 or Predict
+					end
+				end
 			else
 				Predict = PlayerArgs(v) or Predict
 			end
@@ -1272,6 +1285,10 @@ AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core
 end)
 
 AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in the chatlogs to save it, this exists.", {}, {"Core"}, 2, function()
+	if #ChatHistory == 0 then
+		Notify("no chat history available")
+		return
+	end
 	local os = os.date("*t")
 	local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
 	local name = gsub(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name, "[*\\?:<>|]+", "")
@@ -1500,7 +1517,6 @@ AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"
 	end
 end)
 
-local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 AddCommand("antivoid", "antivoid", "Makes it so you can't die from falling in the void.", {}, {"Utility"}, 2, function()
 	workspace.FallenPartsDestroyHeight = 0/1/0
 end)
@@ -2170,13 +2186,11 @@ end)
 AddCommand("teleportwalk", "teleportwalk [number]", "Teleport to your move direction. [number] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
 	ExecuteCommand("unteleportwalk")
 	local character, humanoid = GetCharacter(), GetHumanoid()
-	local active = true
 	if character and humanoid then
 		env[1] = function()
 			env[1] = nil
-			active = false
 		end
-		while active and character and humanoid do
+		while env[1] and character and humanoid do
 			local delta = heartbeat:Wait()
 			if humanoid.MoveDirection.Magnitude > 0 then
 				if args[1] and isNumber(args[1]) then
@@ -2198,6 +2212,42 @@ end)
 
 AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {}, {"Fun"}, 2, function()
 	loadstring(game:GetObjects("rbxassetid://6695644299")[1].Source)()
+end)
+
+AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we need to talk about among us.", {}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unswim")
+	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
+	if character and humanoid and root then
+		workspace.Gravity = 0
+		local enums, v3, v0 = Enum.HumanoidStateType:GetEnumItems(), Vector3.new, Vector3.zero
+		remove(enums, tfind(enums, Enum.HumanoidStateType.None))
+		for _, state in next, enums do
+			humanoid:SetStateEnabled(state, false)
+		end
+		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+		cons.add("swim", heartbeat, function()
+			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
+			root.Velocity = ((moving or UserInputService:IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, UserInputService:IsKeyDown(Enum.KeyCode.Space) and 1 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
+		end)
+		env[1] = function()
+			env[1] = nil
+			cons.remove("swim")
+			workspace.Gravity = OldGravity
+			humanoid = GetHumanoid()
+			if humanoid then
+				for _, state in next, enums do
+					humanoid:SetStateEnabled(state, true)
+				end
+			end
+		end
+	end
+end)
+
+AddCommand("unswim", "unswim", "Stop swimming.", {}, {"Utility"}, 2, function()
+	local env = GetEnvironment("swim")[1]
+	if env then
+		env()
+	end
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
