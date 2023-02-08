@@ -1,9 +1,13 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/8/23",
+        "+ teleportwalk [number], unteleportwalk, f3x"
+    ],
+    [
         "Update 2/7/23",
         "added Distance option to esp (on by default)",
-        "+ handlekill [player], invisible, uninvisible, chatlogs"
+        "+ handlekill [player], invisible, uninvisible, chatlogs, savechatlogs"
     ],
     [
         "Update 2/6/23",
