@@ -254,6 +254,16 @@ SendChatMessage = function(str, channel)
 	end
 end
 
+local ChatHistory = {}
+local LogChatMessage = function(player, message)
+	insert(ChatHistory, {Player = player, Name = GetLongUsername(player), Message = message})
+	local Container = GetEnvironment("chatlogs")[1]
+	if Container and Container.UI and Container.Section then
+		local log = format("[%s]: %s", GetLongUsername(player), message)
+		Container.Section:AddItem("Button", {Text = log, Function = function() toexecutorclipboard(log) end})
+	end
+end
+
 local CapitalizeFirstCharacter = function(str)
 	return gsub(str, "%S+", gsub(str, "^%l", upper))
 end
@@ -671,6 +681,7 @@ cons.add(LocalPlayer.Chatted, function(message)
 		wait()
 		do_exec(tostring(message), LocalPlayer)
 	end)
+	LogChatMessage(LocalPlayer, message)
 end)
 
 for _, player in next, Players:GetPlayers() do
@@ -680,6 +691,7 @@ for _, player in next, Players:GetPlayers() do
 				wait()
 				do_exec(message, player)
 			end)
+			LogChatMessage(player, message)
 		end)
 	end
 end
@@ -690,6 +702,7 @@ cons.add(Players.PlayerAdded, function(player)
 			wait()
 			do_exec(message, player)
 		end)
+		LogChatMessage(player, message)
 	end)
 end)
 
@@ -1241,6 +1254,36 @@ end)
 AddCommand("unlowercasedcommandbar", "unlowercasedcommandbar", "Undoes lowercasedcommandbar.", {}, {"Core"}, 2, function()
 	Config.LoweredText = false
 	UpdateConfig()
+end)
+
+AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
+	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
+	local Section = Container:AddSection("Section")
+	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+		local os = os.date("*t")
+		local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
+		local name = gsub(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name, "[*\\?:<>|]+", "")
+		local data = format("Chatlogs for \"%s\"\n\n\n\n", name)
+		for _, v in next, ChatHistory do
+			data = data .. format("[%s]: %s\n", v.Name, v.Message)
+		end
+		local success, result = pcall(function()
+			writefile(format("dark-admin/logs/%s - %s.txt", name, date), data)
+		end)
+		if success then
+			Notify("successfully saved chatlogs")
+		else
+			warn("Save Error:", result)
+			Notify("failed to save chatlogs, check console for more info")
+		end
+	end})
+	spawn(function()
+		for _, v in next, ChatHistory do
+			local log = format("[%s]: %s", v.Name, v.Message)
+			Section:AddItem("Button", {Text = log, Function = function() toexecutorclipboard(log) end})
+		end
+	end)
+	env[1] = {UI = Container, Section = Section}
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2120,8 +2163,6 @@ AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "v
 	end
 end)
 
-Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
-
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
@@ -2139,3 +2180,5 @@ for i, v in next, MiscConfig.Permissions do
 	end
 end
 UpdateMiscConfig()
+
+Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
