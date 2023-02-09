@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/9/23",
+        "+ notifyposition, copyposition, serverhop [min / max]"
+    ],
+    [
         "Update 2/8/23",
         "+ teleportwalk [number], unteleportwalk, f3x, swim, unswim"
     ],
