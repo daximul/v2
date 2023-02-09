@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/9/23",
-        "+ notifyposition, copyposition, serverhop [min / max], dex, keepadmin"
+        "+ notifyposition, copyposition, serverhop [min / max], dex, keepadmin, settime [number]"
     ],
     [
         "Update 2/8/23",
