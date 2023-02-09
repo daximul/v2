@@ -1592,10 +1592,8 @@ AddCommand("car", "car [speed]", "Become some form of a car. The car's speed is 
 end)
 
 AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part. Tap [E] to push the part away. Tap [Q] to bring the part closer.", {"gravgun", "telekinesis", "tel"}, {"Fun"}, 2, function()
-	pcall(function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
-	end)
 	ExecuteCommand("net")
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 end)
 
 AddCommand("tweenspeed", "tweenspeed [number]", "Change the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
@@ -2304,6 +2302,10 @@ AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optio
 	else
 		Notify("your exploit does not support this common. missing http request")
 	end
+end)
+
+AddCommand("dex", "dex", "Opens an explorer similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
