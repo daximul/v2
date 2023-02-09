@@ -40,6 +40,8 @@ lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
 local getconnections = getconnections or get_signal_cons
+local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+local queue_on_teleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 local creatingInstance = Instance.new
 local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 local OldGravity = workspace.Gravity
@@ -626,7 +628,7 @@ ExecuteCommand = function(cmdStr, speaker, store)
                             local validfunc = cmd.Func()
                             if validfunc then
 						        local success, err = pcall(function() validfunc(args, speaker, cmd.Env) end)
-						        if not success and Admin.Debug then warn("Command Error:", cmdName, err) end
+						        if not success and Admin.Debug then warn("Command Error:", cmdName .. " -", err) end
                             end
                         end
                     end
@@ -899,6 +901,9 @@ LoadPlugin = function(path, force)
 						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, v)
 							return type(v) == "number"
 						end)[1])
+						local CustomArgs = filterthrough(Requirements, function(_, v)
+							return type(v) == "table"
+						end)[1]
 						if Category == nil then
 							if v.Category and type(v.Category) == "string" then
 								v.Category = CapitalizeFirstCharacter(v.Category)
@@ -913,6 +918,9 @@ LoadPlugin = function(path, force)
 							else
 								insert(Requirements, 0)
 							end
+						end
+						if CustomArgs == nil and v.CustomArgs ~= nil and type(v.CustomArgs) == "table" then
+							insert(Requirements, v.CustomArgs)
 						end
 						AddCommand(v.Name, v.Usage or v.Name, v.Description or "No description provided.", v.Aliases or {}, Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
 					end
@@ -1437,7 +1445,7 @@ AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Utility"}, 2, funct
 	end
 end)
 
-AddCommand("clearerrors", "clearerrors", "Remove the annoying box and blur that happens when a game kicks you.", {"clearerror"}, {}, 2, function()
+AddCommand("clearerrors", "clearerrors", "Remove the annoying box and blur that happens when a game kicks you.", {}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
@@ -1539,7 +1547,7 @@ AddCommand("fakeout", "fakeout", "Teleport into the void and then teleport back 
 	end
 end)
 
-AddCommand("car", "car [number]", "Become some form of a car. The car's speed is [number]. [number] is an optional argument.", {}, {"Fun"}, 2, function(args)
+AddCommand("car", "car [speed]", "Become some form of a car. The car's speed is [speed]. [speed] is an optional argument.", {}, {"Fun"}, 2, function(args)
 	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
 	if character and humanoid and animate then
 		local speed = 70
@@ -1941,7 +1949,7 @@ AddCommand("reach", "reach [number]", "Change the distance your tool can reach t
 		local handle = tool.Handle
 		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
-			insert(env, {Tool = tool, Size = handle.Size, Box = box})
+			insert(env, {Tool = tool, Handle = handle, Size = handle.Size, Box = box})
 			handle.Size = Vector3.new(handle.Size.X, handle.Size.Y, distance)
 			handle.Massless = true
 		end
@@ -1955,7 +1963,7 @@ AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can r
 		local handle = tool.Handle
 		if tool and handle then
 			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
-			insert(env, {Tool = tool, Size = handle.Size, Box = box})
+			insert(env, {Tool = tool, Handle = handle, Size = handle.Size, Box = box})
 			handle.Size = Vector3.new(distance, distance, distance)
 			handle.Massless = true
 		end
@@ -1967,8 +1975,8 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 	if reach and boxreach then
 		local modified = merge_table(reach.Env, boxreach.Env)
 		for _, data in next, modified do
-			if data.Tool and data.Tool.Handle then
-				data.Tool.Handle.Size = data.Size
+			if data.Tool and data.Handle then
+				data.Handle.Size = data.Size
 			end
 			if data.Box then
 				data.Box:Destroy()
@@ -2182,7 +2190,7 @@ AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "v
 	end
 end)
 
-AddCommand("teleportwalk", "teleportwalk [number]", "Teleport to your move direction. [number] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
+AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direction. [speed] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
 	ExecuteCommand("unteleportwalk")
 	local character, humanoid = GetCharacter(), GetHumanoid()
 	if character and humanoid then
@@ -2210,10 +2218,10 @@ AddCommand("unteleportwalk", "unteleportwalk", "Stop teleport walk.", {"untpwalk
 end)
 
 AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {}, {"Fun"}, 2, function()
-	loadstring(game:GetObjects("rbxassetid://6695644299")[1].Source)()
+	loadstring(Services.InsertService:LoadLocalAsset("rbxassetid://6695644299"):Clone().Source)()
 end)
 
-AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we need to talk about among us.", {}, {"Utility"}, 2, function(_, _, env)
+AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we need to talk about among us.", {}, {"Utility"}, 2, function(_, speaker, env)
 	ExecuteCommand("unswim")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if character and humanoid and root then
@@ -2226,7 +2234,7 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 		cons.add("swim", heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
-			root.Velocity = ((moving or UserInputService:IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, UserInputService:IsKeyDown(Enum.KeyCode.Space) and 1 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
+			root.Velocity = ((moving or UserInputService:IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, UserInputService:IsKeyDown(Enum.KeyCode.Space) and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
 			env[1] = nil
@@ -2239,6 +2247,9 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 				end
 			end
 		end
+		speaker.CharacterAdded:Wait()
+		heartbeat:Wait()
+		ExecuteCommand("unswim")
 	end
 end)
 
@@ -2246,6 +2257,47 @@ AddCommand("unswim", "unswim", "Stop swimming.", {}, {"Utility"}, 2, function()
 	local env = GetEnvironment("swim")[1]
 	if env then
 		env()
+	end
+end)
+
+AddCommand("notifyposition", "notifyposition", "Notify yourself your character's current position (x, y, z).", {"notifypos"}, {"Utility"}, 2, function()
+	local root = GetRoot()
+	if root then
+		local pos = root.Position
+		Notify(format("%s, %s, %s", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
+	end
+end)
+
+AddCommand("copyposition", "copyposition", "Copy your character's current position (x, y, z).", {"copypos"}, {"Utility"}, 2, function()
+	local root = GetRoot()
+	if root then
+		local pos = root.Position
+		toexecutorclipboard(format("%s, %s, %s", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
+	end
+end)
+
+AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optional argument of min or max, max is the default.", {"shop"}, {"Utility", {"min", "max"}}, 2, function(args)
+	if httprequest then
+		local order = lower(tostring(args[1]))
+		order = (order == "min" and "Asc") or (order == "max" and "Desc") or "Desc"
+		local servers = {}
+		local list = HttpService:JSONDecode(httprequest({Url = format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100", game.PlaceId, order)}).Body)
+		if list and list.data then
+			for _, server in next, list.data do
+				if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and server.maxPlayers > server.playing and server.id ~= game.JobId then
+					insert(servers, {current = server.playing, limit = server.maxPlayers, id = server.id})
+				end
+			end
+		end
+		if #servers ~= 0 then
+			local server = servers[math.random(1, #servers)]
+			Notify(format("joining server (%d/%d players)", server.current, server.limit))
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+		else
+			Notify("no servers available")
+		end
+	else
+		Notify("your exploit does not support this common. missing http request")
 	end
 end)
 
