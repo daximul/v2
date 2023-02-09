@@ -167,7 +167,7 @@ GetTool = function(player, requiresHandle)
 end
 
 local touchedcache = {}
-firerbxtouch = (getgenv and getgenv().firetouchinterest) or function(part, part2, value)
+firerbxtouch = (getgenv and type(getgenv) == "function" and getgenv().firetouchinterest) or function(part, part2, value)
 	if part and part2 then
 		if value == 0 then
 			touchedcache[1] = part.CFrame
@@ -1195,7 +1195,7 @@ AddCommand("commandinfo", "commandinfo [command]", "View more information about 
 			format("Usage: %s", command.Usage or command.Name),
 			format("This command requires %d argument(s)", command.ArgsNeeded or 0),
 			#command.Alias > 0 and {"Aliases", unpack(command.Alias)} or "This command has no aliases",
-			command.Description and {"Description", command.Description} or "No description provided",
+			(command.Description == "N/A" and "No description provided") or (command.Description and {"Description", command.Description}) or "No description provided",
 			{"Permission Index", "2 - Only you can run the command\n1 - Only you and whitelisted players can run the command\n0 - Everyone in the server can run the command"}
 		})
 	end
@@ -1449,6 +1449,10 @@ AddCommand("clearerrors", "clearerrors", "Remove the annoying box and blur that 
 	Services.GuiService:ClearError()
 end)
 
+AddCommand("net", "net", "N/A", {}, {}, 2, function()
+	LocalPlayer.MaximumSimulationRadius = math.huge
+end)
+
 AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
 	local success, esp = pcall(function()
@@ -1591,6 +1595,7 @@ AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. 
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 	end)
+	ExecuteCommand("net")
 end)
 
 AddCommand("tweenspeed", "tweenspeed [number]", "Change the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
@@ -2021,7 +2026,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 			if root and root2 then
 				local oldpos = root.CFrame
 				Attach(target)
-				wait(0.3)
+				wait(0.2)
 				repeat wait()
 					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
@@ -2102,7 +2107,7 @@ AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky an
 		if target and target.Character and root then
 			local oldpos = root.CFrame
 			root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
-			heartbeat:Wait()
+			wait(0.2)
 			Attach(target)
 			speaker.CharacterAdded:Wait()
 			heartbeat:Wait()
