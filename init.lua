@@ -1319,8 +1319,8 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 	end
 end)
 
-cons.add(LocalPlayer.OnTeleport, function(state)
-	if state == Enum.TeleportState.Started and Config.KeepAdmin and queue_on_teleport then
+cons.add(LocalPlayer.OnTeleport, function()
+	if Config.KeepAdmin and queue_on_teleport then
 		queue_on_teleport([[local success, result = pcall(function()
 	return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
 end)
