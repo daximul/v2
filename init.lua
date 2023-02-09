@@ -2313,7 +2313,7 @@ AddCommand("copyposition", "copyposition", "Copy your character's current positi
 	end
 end)
 
-AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optional argument of min or max, max is the default.", {"shop"}, {"Utility", {"min", "max"}}, 2, function(args)
+AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optional arguments of min or max, max is the default.", {"shop"}, {"Utility", {"min", "max"}}, 2, function(args)
 	if httprequest then
 		local order = lower(tostring(args[1]))
 		order = (order == "min" and "Asc") or (order == "max" and "Desc") or "Desc"
@@ -2340,6 +2340,15 @@ end)
 
 AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
+end)
+
+AddCommand("settime", "settime [number]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
+	if isNumber(args[1]) then
+		Services.Lighting.ClockTime = tonumber(args[1])
+	else
+		local opt = lower(tostring(args[1]))
+		Services.Lighting.ClockTime = (opt == "day" and 14) or (opt == "dawn" and 6) or (opt == "night" and 0) or 14
+	end
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
