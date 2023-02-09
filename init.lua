@@ -113,20 +113,23 @@ FindInTable = function(tbl, val)
 end
 
 GetCharacter = function(player)
-	return (player or LocalPlayer).Character
+	player = player or LocalPlayer
+	return player and player.Character
 end
 
 GetHumanoid = function(character)
-	return (character or GetCharacter()):FindFirstChildOfClass("Humanoid")
+	character = character or GetCharacter()
+	return character and character:FindFirstChildOfClass("Humanoid")
 end
 
 GetBackpack = function(player)
-	return (player or LocalPlayer):FindFirstChildOfClass("Backpack")
+	player = player or LocalPlayer
+	return player and player:FindFirstChildOfClass("Backpack")
 end
 
 GetRoot = function(character)
 	character = character or GetCharacter()
-	return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso"))
 end
 
 merge_table = function(...)
@@ -2093,11 +2096,14 @@ cons.add(LocalPlayer.CharacterAdded, function()
 		end
 	end)
 end)
-cons.add(GetHumanoid().Died, function()
-	local root = GetRoot()
-	if root then
-		lastdeath = root.CFrame
-	end
+spawn(function()
+	repeat wait(1) until GetHumanoid() ~= nil
+	cons.add(GetHumanoid().Died, function()
+		local root = GetRoot()
+		if root then
+			lastdeath = root.CFrame
+		end
+	end)
 end)
 AddCommand("diedtp", "diedtp", "Teleport to your last position before you died.", {"flashback"}, {"Utility"}, 2, function(_, speaker)
 	local root = GetRoot()
