@@ -1591,7 +1591,7 @@ AddCommand("car", "car [speed]", "Become some form of a car. The car's speed is 
 	end
 end)
 
-AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part.", {"gravgun", "telekinesis", "tel"}, {"Fun"}, 2, function()
+AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. Kind of cringe since it relies on your network ownership of a part. Tap [E] to push the part away. Tap [Q] to bring the part closer.", {"gravgun", "telekinesis", "tel"}, {"Fun"}, 2, function()
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 	end)
@@ -1892,11 +1892,11 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 	if target and character then
 		workspace.CurrentCamera.CameraSubject = character
 		cons.add("spectate1", target.CharacterAdded, function()
-			heartbeat:Wait()
+			wait(0.2)
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
 		cons.add("spectate2", LocalPlayer.CharacterAdded, function()
-			heartbeat:Wait()
+			wait(0.2)
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
 		env[1] = function()
@@ -1922,7 +1922,7 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 	if character and root then
 		local oldpos = root.CFrame
 		cons.add("refresh", LocalPlayer.CharacterAdded, function()
-			heartbeat:Wait()
+			wait(0.2)
 			root = GetRoot()
 			if root then
 				root.CFrame = oldpos
@@ -2031,7 +2031,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
 				LocalPlayer.CharacterAdded:Wait()
-				heartbeat:Wait()
+				wait(0.2)
 				root = GetRoot()
 				if root then
 					root.CFrame = oldpos
@@ -2048,7 +2048,7 @@ AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are curren
 		local saved, pos = root.CFrame, root.Position
 		Notify(format("set a spawn point at (%s, %s, %s)", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
 		cons.add("spawn point", speaker.CharacterAdded, function()
-			heartbeat:Wait()
+			wait(0.2)
 			root = GetRoot()
 			if root then
 				root.CFrame = saved
@@ -2110,7 +2110,7 @@ AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky an
 			wait(0.2)
 			Attach(target)
 			speaker.CharacterAdded:Wait()
-			heartbeat:Wait()
+			wait(0.2)
 			root = GetRoot()
 			if root then
 				root.CFrame = oldpos
