@@ -310,21 +310,21 @@ function ESP:Add(obj, options)
 
     box.Components["Quad"] = Draw("Quad", {
         Thickness = self.Thickness,
-        Color = color,
+        Color3 = color,
         Transparency = 1,
         Filled = false,
         Visible = self.Enabled and self.Boxes
     })
     box.Components["Name"] = Draw("Text", {
 		Text = box.Name,
-		Color = box.Color,
+		Color3 = box.Color,
 		Center = true,
 		Outline = true,
         Size = 19,
         Visible = self.Enabled and self.Names
 	})
 	box.Components["Distance"] = Draw("Text", {
-		Color = box.Color,
+		Color3 = box.Color,
 		Center = true,
 		Outline = true,
         Size = 19,
@@ -333,7 +333,7 @@ function ESP:Add(obj, options)
 
 	box.Components["Tracer"] = Draw("Line", {
 		Thickness = ESP.Thickness,
-		Color = box.Color,
+		Color3 = box.Color,
         Transparency = 1,
         Visible = self.Enabled and self.Tracers
     })
