@@ -271,7 +271,7 @@ local LogChatMessage = function(player, message)
 	local Container = GetEnvironment("chatlogs")[1]
 	if Container and Container.UI and Container.Section then
 		local log = format("[%s]: %s", GetLongUsername(player), message)
-		Container.Section:AddItem("Button", {Text = log, Function = function() toexecutorclipboard(log) end})
+		Container.Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
 	end
 end
 
