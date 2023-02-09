@@ -1,3 +1,7 @@
+while not game:IsLoaded() do
+	game.Loaded:Wait()
+end
+
 local LoadingTick = tick()
 
 Admin = {
@@ -827,7 +831,8 @@ local Config = {
 	Plugins = {},
 	LoweredText = false,
 	FlySpeed = 1,
-	TweenSpeed = 1
+	TweenSpeed = 1,
+	KeepAdmin = false
 }
 local MiscConfig = {Permissions = {}}
 local UpdateConfig, UpdateMiscConfig = function() end, function() end
@@ -1312,6 +1317,25 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 		warn("Save Error:", result)
 		Notify("failed to save chatlogs, check console for more info")
 	end
+end)
+
+cons.add(LocalPlayer.OnTeleport, function(state)
+	if state == Enum.TeleportState.Started and Config.KeepAdmin and queue_on_teleport then
+		queue_on_teleport([[local success, result = pcall(function()
+	return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
+end)
+local file, data = pcall(readfile, "dark-admin/init.lua")
+if file then
+	loadstring(data)()
+elseif success then
+	loadstring(result)()
+end]])
+	end
+end)
+AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle.", {"unkeepadmin"}, {"Core"}, 2, function()
+	Config.KeepAdmin = not Config.KeepAdmin
+	UpdateConfig()
+	Notify(format("keep admin has been %s", Config.KeepAdmin and "enabled\nthe script will execute when you teleport" or "disabled"))
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
