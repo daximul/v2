@@ -884,58 +884,62 @@ end
 -- Plugins
 PluginExtensions = {".luau", ".lua", ".txt", ".da"}
 
-LoadPlugin = function(path, force)
-	local success, result = pcall(readfile, format("dark-admin/plugins/%s", path))
-	if not success then
+LoadPlugin = function(path, ignore)
+	local Success, Plugin = pcall(function()
+		return loadstring(readfile(format("dark-admin/plugins/%s", path)))()
+	end)
+	if not Success then
 		Notify(format("plugin error for (%s)\nplease open console (F9) for the error", path))
 		for i, v in next, Config.Plugins do
 			if v == path then
-				remove(Config.Plugins, i)
+				Config.Plugins[i] = nil
 			end
 		end
 		UpdateConfig()
-		print("Plugin Error, Stack Traceback:", debug.traceback(result))
+		warn("Plugin Error", format("(%s) -", path), Plugin)
+		warn("Plugin Error", format("(%s) -", path), "Stack Traceback:", tostring(debug.traceback(Plugin)))
+		Plugin = nil
 		return
-	else
-		local Plugin = loadstring(result)()
+	end
+	if Plugin ~= nil then
 		spawn(function()
 			if Plugin.Commands and type(Plugin.Commands) == "table" then
 				for _, v in next, Plugin.Commands do
 					if v.Name then
-						local Requirements = v.Requirements or {}
-						local Category = filterthrough(Requirements, function(_, v)
-							return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
+						v.Requirements = v.Requirements or {}
+						local Category = filterthrough(v.Requirements, function(_, x)
+							return type(x) == "string" and (x == CapitalizeFirstCharacter(x))
 						end)[1]
-						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, v)
-							return type(v) == "number"
+						local ArgsNeeded = tonumber(filterthrough(v.Requirements, function(_, x)
+							return type(x) == "number"
 						end)[1])
-						local CustomArgs = filterthrough(Requirements, function(_, v)
-							return type(v) == "table"
+						local CustomArgs = filterthrough(v.Requirements, function(_, x)
+							return type(x) == "table"
 						end)[1]
 						if Category == nil then
 							if v.Category and type(v.Category) == "string" then
 								v.Category = CapitalizeFirstCharacter(v.Category)
-								insert(Requirements, v.Category)
+								insert(v.Requirements, v.Category)
 							else
-								insert(Requirements, "Misc")
+								insert(v.Requirements, "Misc")
 							end
 						end
 						if ArgsNeeded == nil then
 							if v.ArgsNeeded and type(v.ArgsNeeded) == "number" then
-								insert(Requirements, v.ArgsNeeded)
+								insert(v.Requirements, v.ArgsNeeded)
 							else
-								insert(Requirements, 0)
+								insert(v.Requirements, 0)
 							end
 						end
 						if CustomArgs == nil and v.CustomArgs ~= nil and type(v.CustomArgs) == "table" then
-							insert(Requirements, v.CustomArgs)
+							insert(v.Requirements, v.CustomArgs)
 						end
-						AddCommand(v.Name, v.Usage or v.Name, v.Description or "No description provided.", v.Aliases or {}, Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
+						AddCommand(v.Name, v.Usage or v.Name, v.Description or "N/A", v.Aliases or {}, v.Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
 					end
 				end
 			end
 		end)
-		if not force then
+		if ignore == false then
 			if Plugin.Description then
 				Notify((Plugin.Author and format("Author: %s\nName: %s\nDescription: %s", Plugin.Author, Plugin.Name, Plugin.Description)) or format("Name: %s\nDescription: %s", Plugin.Name, Plugin.Description), 10)
 			else
@@ -946,7 +950,7 @@ LoadPlugin = function(path, force)
 	end
 end
 
-InstallPlugin = function(name)
+InstallPlugin = function(name, ignore)
 	local file = false
 	for _, extension in next, PluginExtensions do
 		name = gsub(name, extension, "")
@@ -958,7 +962,7 @@ InstallPlugin = function(name)
 	if file then
 		if not FindInTable(Config.Plugins, file) then
 			insert(Config.Plugins, file)
-			LoadPlugin(file)
+			LoadPlugin(file, ignore)
 		else
 			Notify(format("plugin (%s) already loaded", file))
 		end
@@ -977,12 +981,12 @@ UninstallPlugin = function(name)
 	if file then
 		for i, v in next, Admin.Commands do
 			if v.Plugin and v.Plugin == file then
-				remove(Admin.Commands, i)
+				Admin.Commands[i] = nil
 			end
 		end
 		for i, v in next, Config.Plugins do
 			if v == file then
-				remove(Config.Plugins, i)
+				Config.Plugins[i] = nil
 				UpdateConfig()
 				Notify(format("plugin (%s) has been removed", file))
 			end
@@ -1174,7 +1178,7 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 end)
 
 AddCommand("addplugin", "addplugin [name]", "Add a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
-	InstallPlugin(getstring(1))
+	InstallPlugin(getstring(1), false)
 end)
 
 AddCommand("removeplugin", "removeplugin [name]", "Remove a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
