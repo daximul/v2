@@ -2304,7 +2304,7 @@ AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optio
 	end
 end)
 
-AddCommand("dex", "dex", "Opens an explorer similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
+AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
 end)
 
