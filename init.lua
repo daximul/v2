@@ -133,6 +133,10 @@ GetRoot = function(character)
 	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso"))
 end
 
+IsKeyDown = function(...)
+	return UserInputService:IsKeyDown(...)
+end
+
 merge_table = function(...)
 	local new = {}
 	for i, v in next, {...} do
@@ -1385,9 +1389,6 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	local BodyGyroName, BodyVelocityName, MaxSpeed = RandomString(), RandomString(), function()
 		return Config.FlySpeed * 50
 	end
-	local IsKeyDown = function(...)
-		return UserInputService:IsKeyDown(...)
-	end
 	local Controls = {Front = 0, Back = 0, Left = 0, Right = 0, Down = 0, Up = 0}
 	local Keys = {
 		[Enum.KeyCode.W] = function(t)
@@ -2284,7 +2285,7 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 		cons.add("swim", heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
-			root.Velocity = ((moving or UserInputService:IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, UserInputService:IsKeyDown(Enum.KeyCode.Space) and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
+			root.Velocity = ((moving or IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, IsKeyDown(Enum.KeyCode.Space) and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
 			env[1] = nil
@@ -2460,6 +2461,46 @@ end)
 
 AddCommand("nopurchaseprompts", "nopurchaseprompts", "Disables Roblox's purchase prompts.", {"noprompts", "nosales"}, {"Utility"}, 2, function()
 	CoreGui.PurchasePrompt.Enabled = false
+end)
+
+AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] to go up. Hold [Q] to go down.", {}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unfloat")
+	local character, root, humanoid = GetCharacter(), GetRoot(), GetHumanoid()
+	if character and root then
+		local obj = NewInstance("Part", {Name = RandomString(), CFrame = CFrame.new(0, -6942, 0), Parent = character, Transparency = 1, Size = Vector3.new(2, 0.2, 1.5), Anchored = true})
+		coroutine.wrap(function()
+			cons.add("float", heartbeat, function()
+				if not obj or not GetCharacter() or not GetRoot() then
+					ExecuteCommand("unfloat")
+				end
+				if IsKeyDown(Enum.KeyCode.E) then
+					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, 0.025, 0)
+				elseif IsKeyDown(Enum.KeyCode.Q) then
+					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, -0.025, 0)
+				end
+				obj.CFrame = GetRoot().CFrame * CFrame.new(0, -3.1, 0)
+			end)
+		end)()
+		if humanoid then
+			cons.add("float2", humanoid.Died, function()
+				ExecuteCommand("unfloat")
+			end)
+		end
+		env[1] = function()
+			env[1] = nil
+			cons.remove({"float", "float2"})
+			if obj then
+				obj:Destroy()
+			end
+		end
+	end
+end)
+
+AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function()
+	local env = GetEnvironment("float")[1]
+	if env then
+		env()
+	end
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
