@@ -1677,6 +1677,7 @@ AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of
 end)
 
 AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function()
+	ExecuteCommand("unfreecam")
 	ExecuteCommand("unview")
 	workspace.CurrentCamera:Remove()
 	wait(0.1)
@@ -2507,7 +2508,7 @@ AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function
 	end
 end)
 
-AddCommand("teleportposition", "teleportposition", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
+AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
 	local root = GetRoot()
 	if root and isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
 		root.CFrame = CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3]))
@@ -2536,6 +2537,229 @@ AddCommand("unspin", "unspin", "Disables spin.", {}, {"Utility"}, 2, function()
 	local env = GetEnvironment("spin")[1]
 	if env then
 		env()
+	end
+end)
+
+AddCommand("screenshot", "screenshot", "Takes a screenshot.", {}, {}, 2, function()
+	CoreGui:TakeScreenshot()
+end)
+
+AddCommand("record", "record", "Activates Roblox's recorder.", {}, {}, 2, function()
+	CoreGui:ToggleRecording()
+end)
+
+AddCommand("togglefullscreen", "togglefullscreen", "Toggles fullscreen.", {"fullscreen"}, {}, 2, function()
+	Services.GuiService:ToggleFullscreen()
+end)
+
+AddCommand("inspect", "inspect [player]", "Opens the player inspect menu for [player].", {}, {1}, 2, function(args, speaker)
+	local target = Players[getPlayer(args[1], speaker)[1]]
+	if target then
+		Services.GuiService:CloseInspectMenu()
+		Services.GuiService:InspectPlayerFromUserId(target.UserId)
+	end
+end)
+
+local Freecam = {Active = false}
+do
+	local Camera, NAV_KEYBOARD_SPEED, cameraRot, cameraPos, cameraFov = workspace.CurrentCamera, Vector3.new(1, 1, 1), Vector2.new(), Vector3.new(), nil
+	cons.add(workspace:GetPropertyChangedSignal("CurrentCamera"), function()
+		if workspace.CurrentCamera then Camera = workspace.CurrentCamera end
+	end)
+	local INPUT_PRIORITY = Enum.ContextActionPriority.High.Value
+	local Spring, Input, PlayerState = {}, {}, {}
+	Spring.__index = Spring
+	Spring.new = function(freq, pos)
+		local self = setmetatable({}, Spring)
+		self.f = freq
+		self.p = pos
+		self.v = pos * 0
+		return self
+	end
+	function Spring:Update(dt, goal)
+		local f = self.f * 2 * math.pi
+		local p0 = self.p
+		local v0 = self.v
+		local offset = goal - p0
+		local decay = math.exp(-f * dt)
+		local p1 = goal + (v0 * dt - offset * (f * dt + 1)) * decay
+		local v1 = (f * dt * (offset * f - v0) + v0) * decay
+		self.p = p1
+		self.v = v1
+		return p1
+	end
+	function Spring:Reset(pos)
+		self.p = pos
+		self.v = pos * 0
+	end
+	local velSpring, panSpring = Spring.new(5, Vector3.new()), Spring.new(5, Vector2.new())
+	local keyboard = {W = 0, A = 0, S = 0, D = 0, E = 0, Q = 0, Up = 0, Down = 0, LeftShift = 0}
+	local mouse = {Delta = Vector2.new()}
+	local PAN_MOUSE_SPEED = Vector2.new(1, 1) * (math.pi / 64)
+	local NAV_ADJ_SPEED, NAV_SHIFT_MUL, navSpeed = 0.75, 0.25, 1
+	Input.Vel = function(dt)
+		navSpeed = clamp(navSpeed + dt * (keyboard.Up - keyboard.Down) * NAV_ADJ_SPEED, 0.01, 4)
+		local kKeyboard = Vector3.new(keyboard.D - keyboard.A, keyboard.E - keyboard.Q, keyboard.S - keyboard.W) * NAV_KEYBOARD_SPEED
+		local shift = IsKeyDown(Enum.KeyCode.LeftShift)
+		return (kKeyboard) * (navSpeed * (shift and NAV_SHIFT_MUL or 1))
+	end
+	Input.Pan = function()
+		local kMouse = mouse.Delta * PAN_MOUSE_SPEED
+		mouse.Delta = Vector2.new()
+		return kMouse
+	end
+	local Keypress = function(action, state, input)
+		keyboard[input.KeyCode.Name] = state == Enum.UserInputState.Begin and 1 or 0
+		return Enum.ContextActionResult.Sink
+	end
+	local MousePan = function(action, state, input)
+		local delta = input.Delta
+		mouse.Delta = Vector2.new(-delta.y, -delta.x)
+		return Enum.ContextActionResult.Sink
+	end
+	local Zero = function(t)
+		for k, v in pairs(t) do
+			t[k] = v * 0
+		end
+	end
+	Input.StartCapture = function()
+		Services.ContextActionService:BindActionAtPriority("FreecamKeyboard", Keypress, false, INPUT_PRIORITY,
+			Enum.KeyCode.W,
+			Enum.KeyCode.A,
+			Enum.KeyCode.S,
+			Enum.KeyCode.D,
+			Enum.KeyCode.E,
+			Enum.KeyCode.Q,
+			Enum.KeyCode.Up,
+			Enum.KeyCode.Down
+		)
+		Services.ContextActionService:BindActionAtPriority("FreecamMousePan", MousePan, false, INPUT_PRIORITY, Enum.UserInputType.MouseMovement)
+	end
+	Input.StopCapture = function()
+		navSpeed = 1
+		Zero(keyboard)
+		Zero(mouse)
+		Services.ContextActionService:UnbindAction("FreecamKeyboard")
+		Services.ContextActionService:UnbindAction("FreecamMousePan")
+	end
+	local GetFocusDistance = function(cameraFrame)
+		local znear = 0.1
+		local viewport = Camera.ViewportSize
+		local projy = 2 * math.tan(cameraFov / 2)
+		local projx = viewport.x / viewport.y * projy
+		local fx = cameraFrame.rightVector
+		local fy = cameraFrame.upVector
+		local fz = cameraFrame.lookVector
+		local minVect = Vector3.new()
+		local minDist = 512
+		for x = 0, 1, 0.5 do
+			for y = 0, 1, 0.5 do
+				local cx = (x - 0.5) * projx
+				local cy = (y - 0.5) * projy
+				local offset = fx * cx - fy * cy + fz
+				local origin = cameraFrame.p + offset * znear
+				local _, hit = workspace:FindPartOnRay(Ray.new(origin, offset.unit * minDist))
+				local dist = (hit - origin).magnitude
+				if minDist > dist then
+					minDist = dist
+					minVect = offset.unit
+				end
+			end
+		end
+		return fz:Dot(minVect) * minDist
+	end
+	local StepFreecam = function(dt)
+		local vel = velSpring:Update(dt, Input.Vel(dt))
+		local pan = panSpring:Update(dt, Input.Pan())
+		local zoomFactor = math.sqrt(math.tan(math.rad(70 / 2)) / math.tan(math.rad(cameraFov / 2)))
+		cameraRot = cameraRot + pan * Vector2.new(0.75, 1) * 8 * (dt / zoomFactor)
+		cameraRot = Vector2.new(clamp(cameraRot.x, -math.rad(90), math.rad(90)), cameraRot.y%(2 * math.pi))
+		local cameraCFrame = CFrame.new(cameraPos) * CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0) * CFrame.new(vel * Vector3.new(1, 1, 1) * 64 * dt)
+		cameraPos = cameraCFrame.p
+		Camera.CFrame = cameraCFrame
+		Camera.Focus = cameraCFrame * CFrame.new(0, 0, -GetFocusDistance(cameraCFrame))
+		Camera.FieldOfView = cameraFov
+	end
+	local mouseBehavior, mouseIconEnabled, cameraType, cameraFocus, cameraCFrame, cameraFieldOfView = "", "", "", "", "", ""
+	PlayerState.Push = function()
+		cameraFieldOfView = Camera.FieldOfView
+		Camera.FieldOfView = 70
+		cameraType = Camera.CameraType
+		Camera.CameraType = Enum.CameraType.Custom
+		cameraCFrame = Camera.CFrame
+		cameraFocus = Camera.Focus
+		mouseIconEnabled = UserInputService.MouseIconEnabled
+		UserInputService.MouseIconEnabled = true
+		mouseBehavior = UserInputService.MouseBehavior
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+	end
+	PlayerState.Pop = function()
+		Camera.FieldOfView = 70
+		Camera.CameraType = cameraType
+		cameraType = nil
+		Camera.CFrame = cameraCFrame
+		cameraCFrame = nil
+		Camera.Focus = cameraFocus
+		cameraFocus = nil
+		UserInputService.MouseIconEnabled = mouseIconEnabled
+		mouseIconEnabled = nil
+		UserInputService.MouseBehavior = mouseBehavior
+		mouseBehavior = nil
+	end
+	Freecam.Stop = function()
+		if not Freecam.Active then return end
+		Input.StopCapture()
+		RunService:UnbindFromRenderStep("Freecam")
+		PlayerState.Pop()
+		Camera.FieldOfView = 70
+		Freecam.Active = false
+	end
+	Freecam.Start = function(pos)
+		if Freecam.Active then
+			Freecam.Stop()
+		end
+		local cameraCFrame = pos and pos or Camera.CFrame
+		cameraRot, cameraPos, cameraFov = Vector2.new(), cameraCFrame.p, Camera.FieldOfView
+		velSpring:Reset(Vector3.new())
+		panSpring:Reset(Vector2.new())
+		PlayerState.Push()
+		RunService:BindToRenderStep("Freecam", Enum.RenderPriority.Camera.Value, StepFreecam)
+		Input.StartCapture()
+		Freecam.Active = true
+	end
+	Freecam.Adjust = function(sp)
+		NAV_KEYBOARD_SPEED = Vector3.new(sp, sp, sp)
+	end
+end
+
+AddCommand("freecam", "freecam", "Allows you to move your camera freely in the game.", {"fc"}, {"Utility"}, 2, function()
+	Freecam.Start()
+end)
+
+AddCommand("unfreecam", "unfreecam", "Disables freecam.", {"unfc"}, {"Utility"}, 2, function()
+	Freecam.Stop()
+end)
+
+AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].", {"fcgoto"}, {"Utility", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
+			Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
+		end
+	end
+end)
+
+AddCommand("freecamspeed", "freecamspeed [speed]", "Sets the freecam speed to [speed]. [speed] is an optional argument.", {"fcspeed"}, {"Utility"}, 2, function(args, speaker)
+	local speed = 1
+	if args[1] and isNumber(args[1]) then
+		speed = tonumber(args[1])
+	end
+	Freecam.Adjust(speed)
+end)
+
+AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at the provided coordinates.", {"fcpos"}, {"Utility", 3}, 2, function(args, speaker)
+	if isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
+		Freecam.Start(CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3])))
 	end
 end)
 
