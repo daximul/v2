@@ -2769,6 +2769,10 @@ AddCommand("replicationlag", "replicationlag [number]", "Sets IncomingReplicatio
 	UserSettings():GetService("NetworkSettings").IncomingReplicationLag = num
 end)
 
+AddCommand("breakloops", "breakloops", "'Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
+	lastBreakTime = tick()
+end)
+
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
