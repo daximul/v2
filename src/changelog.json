@@ -2,7 +2,8 @@
     "Month / Day / Year",
     [
         "Update 2/10/23",
-        "+ fullbright, unfullbright, widebar, enable, disable, invisiblecamera, uninvisiblecamera, volume [number], age [player], purchaseprompts, nopurchaseprompts"
+        "+ fullbright, unfullbright, widebar, enable, disable, invisiblecamera, uninvisiblecamera",
+        "+ volume [number], age [player], purchaseprompts, nopurchaseprompts, float, unfloat"
     ],
     [
         "Update 2/9/23",
