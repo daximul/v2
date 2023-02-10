@@ -2741,15 +2741,13 @@ AddCommand("unfreecam", "unfreecam", "Disables freecam.", {"unfc"}, {"Utility"},
 end)
 
 AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].", {"fcgoto"}, {"Utility", 1}, 2, function(args, speaker)
-	for _, available in next, getPlayer(args[1], speaker) do
-		local target = Players[available]
-		if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
-			Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
-		end
+	local target = Players[getPlayer(args[1], speaker)[1]]
+	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
+		Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
 	end
 end)
 
-AddCommand("freecamspeed", "freecamspeed [speed]", "Sets the freecam speed to [speed]. [speed] is an optional argument.", {"fcspeed"}, {"Utility"}, 2, function(args, speaker)
+AddCommand("freecamspeed", "freecamspeed [speed]", "Sets the freecam speed to [speed]. [speed] is an optional argument.", {"fcspeed"}, {"Utility"}, 2, function(args)
 	local speed = 1
 	if args[1] and isNumber(args[1]) then
 		speed = tonumber(args[1])
@@ -2757,10 +2755,18 @@ AddCommand("freecamspeed", "freecamspeed [speed]", "Sets the freecam speed to [s
 	Freecam.Adjust(speed)
 end)
 
-AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at the provided coordinates.", {"fcpos"}, {"Utility", 3}, 2, function(args, speaker)
+AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at the provided coordinates.", {"fcpos"}, {"Utility", 3}, 2, function(args)
 	if isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
 		Freecam.Start(CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3])))
 	end
+end)
+
+AddCommand("replicationlag", "replicationlag [number]", "Sets IncomingReplicationLag to [number]. [number] is an optional argument.", {"backtrack"}, {}, 2, function(args)
+	local num = 0
+	if args[1] and isNumber(args[1]) then
+		num = tonumber(args[1])
+	end
+	UserSettings():GetService("NetworkSettings").IncomingReplicationLag = num
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
