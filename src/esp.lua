@@ -1,3 +1,7 @@
+-- moved to https://github.com/daximul/asurion/blob/main/init.lua
+
+do return end
+
 assert(Drawing, "missing dependency: drawing")
 
 local format, floor, wrap, newCFrame = string.format, math.floor, coroutine.wrap, CFrame.new
