@@ -2416,6 +2416,25 @@ AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard 
 	end
 end)
 
+AddCommand("invisiblecamera", "invisiblecamera", "Makes it so you can put your camera through walls.", {"inviscamera", "inviscam"}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("uninvisiblecamera")
+	local OldCameraMaxZoomDistance, OldDevCameraOcclusionMode = LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode
+	LocalPlayer.CameraMaxZoomDistance = 600
+	LocalPlayer.DevCameraOcclusionMode = "Invisicam"
+	env[1] = function()
+		env[1] = nil
+		LocalPlayer.CameraMaxZoomDistance = OldCameraMaxZoomDistance
+		LocalPlayer.DevCameraOcclusionMode = OldDevCameraOcclusionMode
+	end
+end)
+
+AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera.", {"uninviscamera", "uninviscam"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("invisiblecamera")[1]
+	if env then
+		env()
+	end
+end)
+
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
