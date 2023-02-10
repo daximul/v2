@@ -40,6 +40,7 @@ UserInputService = Services.UserInputService
 RunService = Services.RunService
 TweenService = Services.TweenService
 TeleportService = Services.TeleportService
+Lighting = Services.Lighting
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
@@ -835,7 +836,8 @@ local Config = {
 	LoweredText = false,
 	FlySpeed = 1,
 	TweenSpeed = 1,
-	KeepAdmin = false
+	KeepAdmin = false,
+	Widebar = false
 }
 local MiscConfig = {Permissions = {}}
 local UpdateConfig, UpdateMiscConfig = function() end, function() end
@@ -1119,7 +1121,7 @@ cons.add(CommandBar.FocusLost, function(enterPressed)
 	if enterPressed then
 		local Command = gsub(CommandBar.Text, "^" .. "%" .. Config.Prefix, "")
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Position = UDim2.new(0.5, -100, 1, 5)
+			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
 		})
 		spawn(function() ExecuteCommand(Command, LocalPlayer, true) end)
 	end
@@ -1137,7 +1139,7 @@ cons.add(Mouse.KeyDown, function(Key)
 			CommandBar.Text = ""
 		end)
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Position = UDim2.new(0.5, -100, 1, -60)
+			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, -110)
 		})
 	end
 end)
@@ -1339,10 +1341,21 @@ elseif success then
 end]])
 	end
 end)
-AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle.", {"unkeepadmin"}, {"Core"}, 2, function()
+AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle and saves.", {"unkeepadmin"}, {"Core"}, 2, function()
 	Config.KeepAdmin = not Config.KeepAdmin
 	UpdateConfig()
 	Notify(format("keep admin has been %s", Config.KeepAdmin and "enabled\nthe script will execute when you teleport" or "disabled"))
+end)
+
+AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and saves.", {"unwidebar"}, {"Core"}, 2, function()
+	Config.Widebar = not Config.Widebar
+	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
+		Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
+	})
+	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
+		Size = UDim2.new(0, Config.Widebar and 400 or 200, 0, 35)
+	})
+	UpdateConfig()
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2344,10 +2357,42 @@ end)
 
 AddCommand("settime", "settime [number]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
 	if isNumber(args[1]) then
-		Services.Lighting.ClockTime = tonumber(args[1])
+		Lighting.ClockTime = tonumber(args[1])
 	else
 		local opt = lower(tostring(args[1]))
-		Services.Lighting.ClockTime = (opt == "day" and 14) or (opt == "dawn" and 6) or (opt == "night" and 0) or 14
+		Lighting.ClockTime = (opt == "day" and 14) or (opt == "dawn" and 6) or (opt == "night" and 0) or 14
+	end
+end)
+
+AddCommand("fullbright", "fullbright", "Makes everything brighter.", {"fb"}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unfullbright")
+	local modified, OldGlobalShadows = {}, Lighting.GlobalShadows
+	Lighting.GlobalShadows = false
+	for _, v in next, game:GetDescendants() do
+		if v:IsA("SpotLight") or v:IsA("PointLight") or v:IsA("SurfaceLight") then
+			insert(modified, {Object = v, Range = v.Range, Shadows = v.Shadows, Enabled = v.Enabled})
+			v.Range = math.huge
+			v.Shadows = false
+			v.Enabled = true
+		end
+	end
+	env[1] = function()
+		env[1] = nil
+		Lighting.GlobalShadows = OldGlobalShadows
+		for _, v in next, modified do
+			if v.Object then
+				v.Object.Range = v.Range
+				v.Object.Shadows = v.Shadows
+				v.Object.Enabled = v.Enabled
+			end
+		end
+	end
+end)
+
+AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"Utility"}, 2, function()
+	local env = GetEnvironment("fullbright")[1]
+	if env then
+		env()
 	end
 end)
 
