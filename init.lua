@@ -2396,9 +2396,9 @@ AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"U
 	end
 end)
 
-AddCommand("enable", "enable [inventory / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
 	local opt = lower(tostring(args[1]))
-	local coretypes = {inventory = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, all = Enum.CoreGuiType.All}
+	local coretypes = {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", true)
 	elseif coretypes[opt] then
@@ -2406,9 +2406,9 @@ AddCommand("enable", "enable [inventory / playerlist / leaderboard / chat / rese
 	end
 end)
 
-AddCommand("disable", "disable [inventory / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
 	local opt = lower(tostring(args[1]))
-	local coretypes = {inventory = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, all = Enum.CoreGuiType.All}
+	local coretypes = {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", false)
 	elseif coretypes[opt] then
