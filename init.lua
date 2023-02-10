@@ -908,35 +908,35 @@ LoadPlugin = function(path, ignore)
 			if Plugin.Commands and type(Plugin.Commands) == "table" then
 				for _, v in next, Plugin.Commands do
 					if v.Name then
-						v.Requirements = v.Requirements or {}
-						local Category = filterthrough(v.Requirements, function(_, x)
+						local Requirements = v.Requirements or {}
+						local Category = filterthrough(Requirements, function(_, x)
 							return type(x) == "string" and (x == CapitalizeFirstCharacter(x))
 						end)[1]
-						local ArgsNeeded = tonumber(filterthrough(v.Requirements, function(_, x)
+						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, x)
 							return type(x) == "number"
 						end)[1])
-						local CustomArgs = filterthrough(v.Requirements, function(_, x)
+						local CustomArgs = filterthrough(Requirements, function(_, x)
 							return type(x) == "table"
 						end)[1]
 						if Category == nil then
 							if v.Category and type(v.Category) == "string" then
 								v.Category = CapitalizeFirstCharacter(v.Category)
-								insert(v.Requirements, v.Category)
+								insert(Requirements, v.Category)
 							else
-								insert(v.Requirements, "Misc")
+								insert(Requirements, "Misc")
 							end
 						end
 						if ArgsNeeded == nil then
 							if v.ArgsNeeded and type(v.ArgsNeeded) == "number" then
-								insert(v.Requirements, v.ArgsNeeded)
+								insert(Requirements, v.ArgsNeeded)
 							else
-								insert(v.Requirements, 0)
+								insert(Requirements, 0)
 							end
 						end
 						if CustomArgs == nil and v.CustomArgs ~= nil and type(v.CustomArgs) == "table" then
-							insert(v.Requirements, v.CustomArgs)
+							insert(Requirements, v.CustomArgs)
 						end
-						AddCommand(v.Name, v.Usage or v.Name, v.Description or "N/A", v.Aliases or {}, v.Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
+						AddCommand(v.Name, v.Usage or v.Name, v.Description or "N/A", v.Aliases or {}, Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
 					end
 				end
 			end
@@ -1046,13 +1046,13 @@ cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
 	if InputText == "" then return end
 	for _, v in next, Admin.Commands do
 		local FoundAlias = false
-		if MatchSearch(InputText, v.Name) then
+		if MatchSearch(Args[1], v.Name) then
 			Prediction.Text = v.Name
 			Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
 			break
 		end
 		for _, v2 in next, v.Alias do
-			if MatchSearch(InputText, v2) then
+			if MatchSearch(Args[1], v2) then
 				FoundAlias = true
 				Prediction.Text = v2
 				Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
@@ -2355,7 +2355,7 @@ AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio."
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
 end)
 
-AddCommand("settime", "settime [number]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
+AddCommand("settime", "settime [number / day / dawn / night]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
 	if isNumber(args[1]) then
 		Lighting.ClockTime = tonumber(args[1])
 	else
@@ -2393,6 +2393,26 @@ AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"U
 	local env = GetEnvironment("fullbright")[1]
 	if env then
 		env()
+	end
+end)
+
+AddCommand("enable", "enable [inventory / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+	local opt = lower(tostring(args[1]))
+	local coretypes = {inventory = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, all = Enum.CoreGuiType.All}
+	if opt == "reset" then
+		Services.StarterGui:SetCore("ResetButtonCallback", true)
+	elseif coretypes[opt] then
+		Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], true)
+	end
+end)
+
+AddCommand("disable", "disable [inventory / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+	local opt = lower(tostring(args[1]))
+	local coretypes = {inventory = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, all = Enum.CoreGuiType.All}
+	if opt == "reset" then
+		Services.StarterGui:SetCore("ResetButtonCallback", false)
+	elseif coretypes[opt] then
+		Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], false)
 	end
 end)
 
