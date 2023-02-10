@@ -836,7 +836,7 @@ local Config = {
 	LoweredText = false,
 	FlySpeed = 1,
 	TweenSpeed = 1,
-	KeepAdmin = false,
+	KeepAdmin = true,
 	Widebar = false
 }
 local MiscConfig = {Permissions = {}}
@@ -1341,13 +1341,13 @@ elseif success then
 end]])
 	end
 end)
-AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle and saves.", {"unkeepadmin"}, {"Core"}, 2, function()
+AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle and saves.", {}, {"Core"}, 2, function()
 	Config.KeepAdmin = not Config.KeepAdmin
 	UpdateConfig()
 	Notify(format("keep admin has been %s", Config.KeepAdmin and "enabled\nthe script will execute when you teleport" or "disabled"))
 end)
 
-AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and saves.", {"unwidebar"}, {"Core"}, 2, function()
+AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and saves.", {}, {"Core"}, 2, function()
 	Config.Widebar = not Config.Widebar
 	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
 		Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
@@ -2433,6 +2433,33 @@ AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera."
 	if env then
 		env()
 	end
+end)
+
+AddCommand("volume", "volume [number]", "Set your volume to [number].", {}, {1}, 2, function(args)
+	if isNumber(args[1]) then
+		UserSettings():GetService("UserGameSettings").MasterVolume = tonumber(args[1])
+	end
+end)
+
+AddCommand("age", "age [player]", "Checks the account age of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target then
+			local age = tonumber(target.AccountAge)
+			local t =  os.date("*t", os.time())
+			t.day = t.day - age
+			local creation = os.date("%m/%d/%y", os.time(t))
+			Notify(format("%s's age is %d days (%s)", GetLongUsername(target), age, creation), 10)
+		end
+	end
+end)
+
+AddCommand("purchaseprompts", "purchaseprompts", "Enables Roblox's purchase prompts.", {"prompts", "sales"}, {"Utility"}, 2, function()
+	CoreGui.PurchasePrompt.Enabled = true
+end)
+
+AddCommand("nopurchaseprompts", "nopurchaseprompts", "Disables Roblox's purchase prompts.", {"noprompts", "nosales"}, {"Utility"}, 2, function()
+	CoreGui.PurchasePrompt.Enabled = false
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
