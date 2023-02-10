@@ -1509,6 +1509,7 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 		end)
 		local Section = Container:AddSection("Section")
 		Section:AddItem("Toggle", {Text = "ESP", Default = true, Function = function(callback) esp:Toggle(callback) end})
+		Section:AddItem("Toggle", {Text = "Players", Default = true, Function = function(callback) esp.Players = callback end})
 		Section:AddItem("Toggle", {Text = "Distance", Default = true, Function = function(callback) esp.Distance = callback end})
 		Section:AddItem("Toggle", {Text = "Names", Default = true, Function = function(callback) esp.Names = callback end})
 		Section:AddItem("Toggle", {Text = "Boxes", Function = function(callback) esp.Boxes = callback end})
