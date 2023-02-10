@@ -2507,6 +2507,38 @@ AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function
 	end
 end)
 
+AddCommand("teleportposition", "teleportposition", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
+	local root = GetRoot()
+	if root and isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
+		root.CFrame = CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3]))
+	end
+end)
+
+AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]. [speed] is an optional argument.", {}, {"Utility"}, 2, function(args, _, env)
+	ExecuteCommand("unspin")
+	local root = GetRoot()
+	if root then
+		local speed = 20
+		if args[1] and isNumber(args[1]) then
+			speed = tonumber(args[1])
+		end
+		local obj = NewInstance("BodyAngularVelocity", {Name = RandomString(), Parent = root, MaxTorque = Vector3.new(0, math.huge, 0), AngularVelocity = Vector3.new(0, speed, 0)})
+		env[1] = function()
+			env[1] = nil
+			if obj then
+				obj:Destroy()
+			end
+		end
+	end
+end)
+
+AddCommand("unspin", "unspin", "Disables spin.", {}, {"Utility"}, 2, function()
+	local env = GetEnvironment("spin")[1]
+	if env then
+		env()
+	end
+end)
+
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
