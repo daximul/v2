@@ -3,7 +3,9 @@
     [
         "Update 2/10/23",
         "+ fullbright, unfullbright, widebar, enable, disable, invisiblecamera, uninvisiblecamera, volume [number], age [player]",
-        "+ purchaseprompts, nopurchaseprompts, float, unfloat, teleportposition [x, y, z], spin [speed], unspin"
+        "+ purchaseprompts, nopurchaseprompts, float, unfloat, teleportposition [x, y, z], spin [speed], unspin",
+        "+ screenshot, record, togglefullscreen, inspect [player]",
+        "+ freecam, unfreecam, freecamgoto [player], freecamspeed [speed], freecamposition [x, y, z]"
     ],
     [
         "Update 2/9/23",
