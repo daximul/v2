@@ -50,6 +50,7 @@ local queue_on_teleport = (syn and syn.queue_on_teleport) or queue_on_teleport o
 local creatingInstance = Instance.new
 local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 local OldGravity = workspace.Gravity
+local OldLightingProperties = {Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, FogEnd = Lighting.FogEnd, FogStart = Lighting.FogStart, GlobalShadows = Lighting.GlobalShadows}
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
 
@@ -940,7 +941,7 @@ LoadPlugin = function(path, ignore)
 						if CustomArgs == nil and v.CustomArgs ~= nil and type(v.CustomArgs) == "table" then
 							insert(Requirements, v.CustomArgs)
 						end
-						AddCommand(v.Name, v.Usage or v.Name, v.Description or "N/A", v.Aliases or {}, Requirements, v.PermissionIndex or 2, v.Function or v.Func or function() end, path)
+						AddCommand(v.Name, v.Usage or v.Name, v.Description or "N/A", v.Aliases or {}, Requirements, v.PermissionIndex or v.Permission or v.Perm or 2, v.Function or v.Func or function() end, path)
 					end
 				end
 			end
@@ -1149,13 +1150,19 @@ cons.add(Mouse.KeyDown, function(Key)
 end)
 
 -- Commands
-AddCommand("debug", "debug", "Enable the admin's debug mode.", {}, {"Core"}, 2, function(args, speaker)
+AddCommand("debug", "debug", "Toggle the script's debug mode for commands.", {}, {"Core"}, 2, function(args, speaker)
 	Admin.Debug = not Admin.Debug
 end)
 
 AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {"Core"}, 2, function(args, speaker)
 	cons.wipe()
 	Gui.BaseObject:Destroy()
+	for _, command in next, Admin.Commands do
+		local undo = command.Env[1]
+		if undo and type(undo) == "function" then
+			spawn(pcall, undo)
+		end
+	end
 end)
 
 AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
@@ -1360,6 +1367,10 @@ AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and sa
 		Size = UDim2.new(0, Config.Widebar and 400 or 200, 0, 35)
 	})
 	UpdateConfig()
+end)
+
+AddCommand("breakloops", "breakloops", "'Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
+	lastBreakTime = tick()
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2372,7 +2383,7 @@ end)
 
 AddCommand("fullbright", "fullbright", "Makes everything brighter.", {"fb"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unfullbright")
-	local modified, OldGlobalShadows = {}, Lighting.GlobalShadows
+	local modified = {}
 	Lighting.GlobalShadows = false
 	for _, v in next, game:GetDescendants() do
 		if v:IsA("SpotLight") or v:IsA("PointLight") or v:IsA("SurfaceLight") then
@@ -2384,7 +2395,7 @@ AddCommand("fullbright", "fullbright", "Makes everything brighter.", {"fb"}, {"U
 	end
 	env[1] = function()
 		env[1] = nil
-		Lighting.GlobalShadows = OldGlobalShadows
+		Lighting.GlobalShadows = OldLightingProperties.GlobalShadows
 		for _, v in next, modified do
 			if v.Object then
 				v.Object.Range = v.Range
@@ -2732,17 +2743,30 @@ do
 	end
 end
 
-AddCommand("freecam", "freecam", "Allows you to move your camera freely in the game.", {"fc"}, {"Utility"}, 2, function()
+AddCommand("freecam", "freecam", "Allows you to move your camera freely in the game.", {"fc"}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unfreecam")
 	Freecam.Start()
+	env[1] = function()
+		env[1] = nil
+		Freecam.Stop()
+	end
 end)
 
 AddCommand("unfreecam", "unfreecam", "Disables freecam.", {"unfc"}, {"Utility"}, 2, function()
-	Freecam.Stop()
+	local env = GetEnvironment("freecam")[1]
+	if env then
+		env()
+	end
 end)
 
 AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].", {"fcgoto"}, {"Utility", 1}, 2, function(args, speaker)
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
+		ExecuteCommand("unfreecam")
+		FindCommand("freecam").Env[1] = function()
+			FindCommand("freecam").Env[1] = nil
+			Freecam.Stop()
+		end
 		Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
 	end
 end)
@@ -2757,6 +2781,11 @@ end)
 
 AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at the provided coordinates.", {"fcpos"}, {"Utility", 3}, 2, function(args)
 	if isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
+		ExecuteCommand("unfreecam")
+		FindCommand("freecam").Env[1] = function()
+			FindCommand("freecam").Env[1] = nil
+			Freecam.Stop()
+		end
 		Freecam.Start(CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3])))
 	end
 end)
@@ -2769,8 +2798,35 @@ AddCommand("replicationlag", "replicationlag [number]", "Sets IncomingReplicatio
 	UserSettings():GetService("NetworkSettings").IncomingReplicationLag = num
 end)
 
-AddCommand("breakloops", "breakloops", "'Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
-	lastBreakTime = tick()
+AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 2, function(_, _, env)
+	local modified = {}
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("Part") and v.Transparency <= 0.3 then
+			insert(modified, {Part = v, Transparency = v.Transparency})
+			v.Transparency = 0.3
+		end
+	end
+	env[1] = function()
+		env[1] = nil
+		for _, v in next, modified do
+			if v.Part and v.Transparency then
+				v.Part.Transparency = v.Transparency
+			end
+		end
+	end
+end)
+
+AddCommand("unxray", "unxray", "Disables xray.", {}, {"Utility"}, 2, function()
+	local env = GetEnvironment("xray")[1]
+	if env then
+		env()
+	end
+end)
+
+AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
+	for i, v in next, OldLightingProperties do
+		Lighting[i] = v
+	end
 end)
 
 if Config.Plugins and type(Config.Plugins) == "table" then
