@@ -2879,6 +2879,32 @@ AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].",
 	end
 end)
 
+AddCommand("equiptools", "equiptools", "Equips all your tools.", {}, {"Utility"}, 2, function()
+	local character, backpack = GetCharacter(), GetBackpack()
+	if character and backpack then
+		for _, v in next, backpack:GetChildren() do
+			if v:IsA("Tool") then
+				v.Parent = character
+			end
+		end
+	end
+end)
+
+AddCommand("activatetools", "activatetools", "Equips and activates all your tools.", {}, {"Utility"}, 2, function()
+	local character = GetCharacter()
+	if character then
+		ExecuteCommand("equiptools")
+		local activated = 0
+		for _, v in next, character:GetChildren() do
+			if v:IsA("Tool") then
+				activated = activated + 1
+				v:Activate()
+			end
+		end
+		Services.VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, activated)
+	end
+end)
+
 if Config.Plugins and type(Config.Plugins) == "table" then
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
