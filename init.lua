@@ -2842,10 +2842,6 @@ AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility",
 		if target and target.Character and LocalPlayer and character then
 			local root, root2, humanoid2, tool = GetRoot(), GetRoot(GetCharacter(target)), GetHumanoid(GetCharacter(target)), GetTool(LocalPlayer, true)
 			if root and root2 and humanoid2 and not humanoid2.Sit and tool then
-				local animate = character:FindFirstChild("Animate")
-				if animate and animate:IsA("LocalScript") then
-					animate.Disabled = true
-				end
 				ReplaceHumanoid()
 				tool.Parent = character
 				tool.Handle.Size = Vector3.new(4, 4, 4)
