@@ -2824,8 +2824,8 @@ AddCommand("unxray", "unxray", "Disables xray.", {}, {"Utility"}, 2, function()
 end)
 
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
-	for i, v in next, OldLightingProperties do
-		Lighting[i] = v
+	for name, property in next, OldLightingProperties do
+		Lighting[name] = property
 	end
 end)
 
