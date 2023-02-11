@@ -845,6 +845,7 @@ end)()
 local Config = {
 	Prefix = ";",
 	Plugins = {},
+	DisabledPlugins = {},
 	LoweredText = false,
 	FlySpeed = 1,
 	TweenSpeed = 1,
@@ -975,6 +976,11 @@ InstallPlugin = function(name, ignore)
 	end
 	if file then
 		if not FindInTable(Config.Plugins, file) then
+			for i, v in next, Config.DisabledPlugins do
+				if v == file then
+					Config.DisabledPlugins[i] = nil
+				end
+			end
 			insert(Config.Plugins, file)
 			LoadPlugin(file, ignore)
 		else
@@ -1001,6 +1007,7 @@ UninstallPlugin = function(name)
 		for i, v in next, Config.Plugins do
 			if v == file then
 				Config.Plugins[i] = nil
+				insert(Config.DisabledPlugins, file)
 				UpdateConfig()
 				Notify(format("plugin (%s) has been removed", file))
 			end
@@ -2905,7 +2912,19 @@ AddCommand("activatetools", "activatetools", "Equips and activates all your tool
 	end
 end)
 
-if Config.Plugins and type(Config.Plugins) == "table" then
+if listfiles then
+	local valid = {}
+	for _, v in next, listfiles("dark-admin/plugins") do
+		if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then
+			insert(valid, tostring(split(v, "\\")[2]))
+		end
+	end
+	for _, v in next, valid do
+		if not FindInTable(Config.DisabledPlugins, v) then
+			InstallPlugin(v, true)
+		end
+	end
+else
 	for _, v in pairs(Config.Plugins) do
 		LoadPlugin(v, true)
 	end
