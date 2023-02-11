@@ -164,8 +164,8 @@ end
 
 GetTool = function(player, requiresHandle)
 	player = player or LocalPlayer
-	if HasTool(player) then
-		local character, backpack = GetCharacter(player), GetBackpack(player)
+	local character, backpack = GetCharacter(player), GetBackpack(player)
+	if character and backpack and HasTool(player) then
 		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
 		if requiresHandle then
 			local handle = tool:FindFirstChild("Handle")
@@ -222,16 +222,23 @@ WhitelistInfo = function(player)
 	return {Player = player, Value = false}
 end
 
+ReplaceHumanoid = function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		local new = humanoid:Clone()
+		new.Parent = humanoid.Parent
+		new.Name = humanoid.Name
+		humanoid:Destroy()
+	end
+end
+
 Attach = function(target)
 	if HasTool(LocalPlayer) and target then
 		local tool, character, tcharacter = GetTool(LocalPlayer, true), GetCharacter(), GetCharacter(target)
 		if tool and character and tcharacter then
 			local humanoid, root, root2 = GetHumanoid(), GetRoot(), GetRoot(tcharacter)
 			if humanoid and root and root2 then
-				local new = humanoid:Clone()
-				new.Parent = humanoid.Parent
-				new.Name = humanoid.Name
-				humanoid:Destroy()
+				ReplaceHumanoid()
 				workspace.CurrentCamera.CameraSubject = character
 				humanoid.DisplayDistanceType = "None"
 				tool.Parent = character
@@ -2826,6 +2833,34 @@ end)
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
 	for name, property in next, OldLightingProperties do
 		Lighting[name] = property
+	end
+end)
+
+AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target, character = Players[available], GetCharacter()
+		if target and target.Character and LocalPlayer and character then
+			local root, root2, humanoid2, tool = GetRoot(), GetRoot(GetCharacter(target)), GetHumanoid(GetCharacter(target)), GetTool(LocalPlayer, true)
+			if root and root2 and humanoid2 and not humanoid2.Sit and tool then
+				local animate = character:FindFirstChild("Animate")
+				if animate and animate:IsA("LocalScript") then
+					animate.Disabled = true
+				end
+				ReplaceHumanoid()
+				tool.Parent = character
+				tool.Handle.Size = Vector3.new(4, 4, 4)
+				local arm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightLowerArm")
+				local pos = arm.CFrame * CFrame.new(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0)
+				tool.Grip = CFrame.new().Inverse(CFrame.new().toObjectSpace(pos, root.CFrame + Vector3.new(3, 1, 0)))
+				for _ = 1, 3 do
+					firerbxtouch(root2, tool.Handle, 0)
+					wait()
+					firerbxtouch(root2, tool.Handle, 1)
+				end
+				wait(0.2)
+				ExecuteCommand("refresh")
+			end
+		end
 	end
 end)
 
