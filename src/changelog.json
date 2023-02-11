@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/11/23",
-        "+ bring [player], switchteam [name]"
+        "+ bring [player], switchteam [name], equiptools, activatetools"
     ],
     [
         "Update 2/10/23",
