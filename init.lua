@@ -2280,7 +2280,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
         root.CFrame = CFrame.new(9e9, 9e9, 9e9)
 	wait()
 
-        cons.add("toolinvisible", RunService.Heartbeat, function()
+        cons.add("tool invisible", heartbeat, function()
             local old = character.Head.Size
             character.Head.Size = Vector3.new(0, 0, 0)
             RunService.RenderStepped:Wait()
@@ -2291,7 +2291,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 
     env[1] = function()
         env[1] = nil
-	cons.remove("toolinvisible")
+	cons.remove("tool invisible")
     end
 end)
 
