@@ -2272,7 +2272,7 @@ AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "v
 end)
 
 AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players and be able to use tools.", {"toolinvis", "tinvis"}, {"Utility", "spawned"}, 2, function(_, _, env)
-    ExecuteCommand("untoolinvisible")
+    ExecuteCommand("uninvisible")
     local character, root = GetCharacter(), GetRoot()
 
     if character and root then
@@ -2280,7 +2280,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
         root.CFrame = CFrame.new(9e9, 9e9, 9e9)
 	wait()
 
-        con = RunService.Heartbeat:Connect(function()
+        cons.add("toolinvisible", RunService.Heartbeat, function()
             local old = character.Head.Size
             character.Head.Size = Vector3.new(0, 0, 0)
             RunService.RenderStepped:Wait()
@@ -2291,7 +2291,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 
     env[1] = function()
         env[1] = nil
-	con = con:Disconnect()
+	cons.remove("toolinvisible")
     end
 end)
 
