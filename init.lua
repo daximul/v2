@@ -1,4 +1,4 @@
-while not game:IsLoaded() do
+if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
 
@@ -2265,10 +2265,34 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 end)
 
 AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("invisible")[1]
+	local env = GetEnvironment("invisible")[1] or GetEnvironment("toolinvisible")[1]
 	if env then
 		env()
 	end
+end)
+
+AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players and be able to use tools.", {"toolinvis", "tinvis"}, {"Utility", "spawned"}, 2, function(_, _, env)
+    ExecuteCommand("untoolinvisible")
+    local character, root = GetCharacter(), GetRoot()
+
+    if character and root then
+        local oldpos = root.CFrame
+        root.CFrame = CFrame.new(9e9, 9e9, 9e9)
+	wait()
+
+        con = RunService.Heartbeat:Connect(function()
+            local old = character.Head.Size
+            character.Head.Size = Vector3.new(0, 0, 0)
+            RunService.RenderStepped:Wait()
+            character.Head.Size = old
+        end)
+        root.CFrame = oldpos
+    end
+
+    env[1] = function()
+        env[1] = nil
+	con = con:Disconnect()
+    end
 end)
 
 AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direction. [speed] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
