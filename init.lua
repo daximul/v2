@@ -620,8 +620,9 @@ getPlayer = function(list, speaker)
 	return foundNames
 end
 
-lastCmds = {}
-lastBreakTime = 0
+LastCommands = {}
+HistoryCount = 0
+LastBreakTime = 0
 ExecuteCommand = function(cmdStr, speaker, store)
 	cmdStr = gsub(cmdStr, "%s+$", "")
 	spawn(function()
@@ -658,7 +659,7 @@ ExecuteCommand = function(cmdStr, speaker, store)
 			num = tonumber(num or 1)
 			if sub(v, 1, 1) == "!" then
 				local chunks = SplitString(sub(v, 2), " ")
-				if chunks[1] and lastCmds[chunks[1]] then v = lastCmds[chunks[1]] end
+				if chunks[1] and LastCommands[chunks[1]] then v = LastCommands[chunks[1]] end
 			end
 			local args = SplitString(v, " ")
 			local cmdName = args[1]
@@ -675,7 +676,7 @@ ExecuteCommand = function(cmdStr, speaker, store)
 							end
 						end
 						if #Admin.History > 30 then remove(Admin.History) end
-						lastCmds[cmdName] = v
+						LastCommands[cmdName] = v
 					end
                     local runCommand = function()
                         if #args < cmd.ArgsNeeded then
@@ -693,13 +694,13 @@ ExecuteCommand = function(cmdStr, speaker, store)
 					if speaker == LocalPlayer then
 						local cmdStartTime = tick()
 						if infTimes then
-							while lastBreakTime < cmdStartTime do
+							while LastBreakTime < cmdStartTime do
 								runCommand()
 								wait(cmdDelay)
 							end
 						else
 							for _ = 1, num do
-								if lastBreakTime > cmdStartTime then break end
+								if LastBreakTime > cmdStartTime then break end
 								runCommand()
 								if cmdDelay ~= 0 then wait(cmdDelay) end
 							end
@@ -1210,6 +1211,24 @@ cons.add(Mouse.KeyDown, function(Key)
 	end
 end)
 
+cons.add(UserInputService.InputBegan, function(input, processed)
+	if CommandBar:IsFocused() and processed then
+		if input.KeyCode == Enum.KeyCode.Up then
+			HistoryCount = HistoryCount + 1
+			if HistoryCount > #Admin.History then HistoryCount = #Admin.History end
+			local command = Admin.History[HistoryCount]
+			CommandBar.Text = (command and command .. " ") or ""
+			CommandBar.CursorPosition = #CommandBar.Text + 2
+		elseif input.KeyCode == Enum.KeyCode.Down then
+			HistoryCount = HistoryCount - 1
+			if HistoryCount < 0 then HistoryCount = 0 end
+			local command = Admin.History[HistoryCount]
+			CommandBar.Text = (command and command .. " ") or ""
+			CommandBar.CursorPosition = #CommandBar.Text + 2
+		end
+	end
+end)
+
 -- Commands
 AddCommand("debug", "debug", "Toggle the script's debug mode for commands.", {}, {"Core"}, 2, function(args, speaker)
 	Admin.Debug = not Admin.Debug
@@ -1427,7 +1446,7 @@ AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and sa
 end)
 
 AddCommand("breakloops", "breakloops", "Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
-	lastBreakTime = tick()
+	LastBreakTime = tick()
 end)
 
 AddCommand("pluginlist", "pluginlist", "View a list of your plugins.", {"plugins"}, {"Core"}, 2, function()
