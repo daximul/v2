@@ -762,16 +762,23 @@ cons.add(Players.PlayerAdded, function(player)
 	end)
 end)
 
-filterthrough = function(tbl, ret)
-	if type(tbl) == "table" then
-		local new = {}
-		for i, v in next, tbl do
-			if ret(i, v) then
-				new[#new + 1] = v
-			end
+filterthrough = function(tbl, func)
+	local new = {}
+	for i, v in next, tbl do
+		if func(i, v) then
+			new[#new + 1] = v
 		end
-		return new
 	end
+	return new
+end
+
+new_table = function(tbl, func)
+	local new = {}
+	for i, v in next, tbl do
+		local k, x = func(i, v)
+		new[x or #new + 1] = k
+	end
+	return new
 end
 
 Admin.CommandRequirements = {
@@ -791,7 +798,9 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 		Name = lower(tostring(name)),
 		Usage = usage,
 		Description = description,
-		Alias = alias or {},
+		Alias = new_table(alias or {}, function(_, v)
+			return lower(tostring(v))
+		end),
 		Requirements = reqs or {},
 		PermissionIndex = perm or 2,
 		ArgsNeeded = tonumber(filterthrough(reqs, function(_, v)
@@ -2449,9 +2458,8 @@ AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"U
 	RunCommandFunctions("fullbright")
 end)
 
-AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
-	local opt = lower(tostring(args[1]))
-	local coretypes = {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
+AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1, {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", true)
 	elseif coretypes[opt] then
@@ -2460,8 +2468,7 @@ AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / 
 end)
 
 AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
-	local opt = lower(tostring(args[1]))
-	local coretypes = {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
+	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", false)
 	elseif coretypes[opt] then
@@ -2472,11 +2479,9 @@ end)
 AddCommand("invisiblecamera", "invisiblecamera", "Makes it so you can put your camera through walls.", {"inviscamera", "inviscam"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninvisiblecamera")
 	local OldCameraMaxZoomDistance, OldDevCameraOcclusionMode = LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode
-	LocalPlayer.CameraMaxZoomDistance = 600
-	LocalPlayer.DevCameraOcclusionMode = "Invisicam"
+	LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode = 600, "Invisicam"
 	env[1] = function()
-		LocalPlayer.CameraMaxZoomDistance = OldCameraMaxZoomDistance
-		LocalPlayer.DevCameraOcclusionMode = OldDevCameraOcclusionMode
+		LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode = OldCameraMaxZoomDistance, OldDevCameraOcclusionMode
 	end
 end)
 
@@ -2868,9 +2873,8 @@ AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility",
 	end
 end)
 
-local switchteam = {}
-filterthrough(Services.Teams:GetChildren(), function(_, v)
-	insert(switchteam, lower(tostring(v.Name)))
+local switchteam = new_table(Services.Teams:GetChildren(), function(_, v)
+	return lower(tostring(v.Name))
 end)
 AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", switchteam, 1}, 2, function()
 	local root, team = GetRoot(), filterthrough(Services.Teams:GetChildren(), function(_, v)
