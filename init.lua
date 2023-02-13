@@ -1426,8 +1426,41 @@ AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and sa
 	UpdateConfig()
 end)
 
-AddCommand("breakloops", "breakloops", "'Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
+AddCommand("breakloops", "breakloops", "Stops all command loops (inf^1^kill).", {}, {"Core"}, 2, function()
 	lastBreakTime = tick()
+end)
+
+AddCommand("pluginlist", "pluginlist", "View a list of your plugins.", {"plugins"}, {"Core"}, 2, function()
+	local Container = Gui.New("Plugins")
+	local Section = Container:AddSection("Section")
+	local Open = function(name)
+		Container.Close()
+		Container = Gui.New("Plugin Info")
+		Section = Container:AddSection("Section")
+		Section:AddItem("Button", {Text = "Back to Plugins", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+			Container.Close()
+			ExecuteCommand("pluginlist")
+		end})
+		Section:AddItem("Text", {Text = format("Name: %s", name)})
+		Section:AddItem("Button", {Text = "Enable Plugin", Function = function() InstallPlugin(name, false) end})
+		Section:AddItem("Button", {Text = "Disable Plugin", Function = function() UninstallPlugin(name) end})
+	end
+	Section:AddItem("Text", {Text = "Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	if #Config.Plugins > 0 then
+		for _, v in next, Config.Plugins do
+			Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end})
+		end
+	else
+		Section:AddItem("Text", {Text = "None"})
+	end
+	Section:AddItem("Text", {Text = "Disabled Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	if #Config.DisabledPlugins > 0 then
+		for _, v in next, Config.DisabledPlugins do
+			Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end})
+		end
+	else
+		Section:AddItem("Text", {Text = "None"})
+	end
 end)
 
 AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2919,6 +2952,11 @@ if listfiles and type(listfiles) == "function" then
 	for _, v in next, listfiles("dark-admin/plugins") do
 		if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then
 			insert(valid, tostring(split(v, "\\")[2]))
+		end
+	end
+	for i, v in next, Config.DisabledPlugins do
+		if not FindInTable(valid, v) then
+			Config.DisabledPlugins[i] = nil
 		end
 	end
 	for _, v in next, valid do
