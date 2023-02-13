@@ -671,7 +671,7 @@ ExecuteCommand = function(cmdStr, speaker, store)
 					Admin.CommandArgs = args
 					if store then
 						if speaker == LocalPlayer then
-							if Admin.History[1] ~= rawCmdStr and sub(rawCmdStr, 1, 11) ~= "lastcommand" and sub(rawCmdStr, 1, 7) ~= "lastcmd" then
+							if Admin.History[1] ~= rawCmdStr and sub(rawCmdStr, 1, 11) ~= "lastcommand" then
 								insert(Admin.History, 1, rawCmdStr)
 							end
 						end
@@ -2967,9 +2967,9 @@ AddCommand("activatetools", "activatetools", "Equips and activates all your tool
 end)
 
 AddCommand("lastcommand", "lastcommand", "Runs the previous command.", {}, {}, 2, function()
-	local command = Admin.History[1]
-	if command then
-		ExecuteCommand(lower(tostring(command)))
+	local recent = Admin.History[1]
+	if recent then
+		ExecuteCommand(lower(tostring(recent)))
 	end
 end)
 
