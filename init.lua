@@ -258,16 +258,28 @@ FindCommand = function(cmd)
 	end
 end
 
-GetEnvironment = function(...)
-	local command = FindCommand(...)
-	return command and command.Env or {}
-end
-
 RemoveCommand = function(cmd)
 	cmd = lower(tostring(cmd))
 	for i, v in pairs(Admin.Commands) do
 		if lower(tostring(v.Name)) == cmd or FindInTable(v.Alias, cmd) then
 			remove(Admin.Commands, i)
+		end
+	end
+end
+
+GetEnvironment = function(cmd)
+	local command = FindCommand(lower(tostring(cmd)))
+	return command and command.Env or {}
+end
+
+RunCommandFunctions = function(cmd, ignore)
+	for _, v in next, GetEnvironment(cmd) do
+		if v and type(v) == "function" then
+			if ignore then
+				spawn(pcall, v)
+			else
+				v()
+			end
 		end
 	end
 end
@@ -1172,10 +1184,7 @@ AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {
 	cons.wipe()
 	Gui.BaseObject:Destroy()
 	for _, command in next, Admin.Commands do
-		local undo = command.Env[1]
-		if undo and type(undo) == "function" then
-			spawn(pcall, undo)
-		end
+		RunCommandFunctions(command.Name)
 	end
 end)
 
