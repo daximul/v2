@@ -98,8 +98,6 @@ cons.wipe = function()
 	cons.loaded = false
 end
 
-isNumber = function(str) if tonumber(str) ~= nil or str == "inf" then return true end end
-
 NewInstance = function(class, props)
 	local inst = creatingInstance(class)
 	for prop, value in pairs(props) do
@@ -1288,9 +1286,8 @@ AddCommand("changelogs", "changelogs", "View the changelogs.", {"changelog"}, {"
 end)
 
 AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
-	local command = FindCommand(lower(tostring(args[1])))
-	if command and args[2] and isNumber(args[2]) then
-		local perm = tonumber(args[2])
+	local command, perm = FindCommand(lower(tostring(args[1]))), tonumber(args[1])
+	if command and perm then
 		if perm >= 2 then
 			perm = 2
 		end
@@ -1521,20 +1518,20 @@ AddCommand("unfly", "unfly", "Stop flying.", {}, {"Utility"}, 2, function()
 end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
-	if args[1] and isNumber(args[1]) then
+	if toumber(args[1]) then
 		Config.FlySpeed = tonumber(args[1])
 		UpdateConfig()
 	end
 end)
 
 AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
-	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
+	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().WalkSpeed = tonumber(args[1])
 	end
 end)
 
 AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
-	if args[1] and isNumber(args[1]) and GetCharacter() and GetHumanoid() then
+	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = tonumber(args[1])
 	end
 end)
@@ -1658,10 +1655,7 @@ end)
 AddCommand("car", "car [speed]", "Become some form of a car. The car's speed is [speed]. [speed] is an optional argument.", {}, {"Fun"}, 2, function(args)
 	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
 	if character and humanoid and animate then
-		local speed = 70
-		if args[1] and isNumber(args[1]) then
-			speed = tonumber(args[1])
-		end
+		local speed = tonumber(args[1]) or 70
 		humanoid.WalkSpeed = speed
 		humanoid.JumpPower = 15
 		if humanoid.RigType == Enum.HumanoidRigType.R6 then
@@ -1701,11 +1695,7 @@ AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. 
 end)
 
 AddCommand("tweenspeed", "tweenspeed [number]", "Change the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
-	local speed = 1
-	if args[1] and isNumber(args[1]) then
-		speed = tonumber(args[1])
-	end
-	Config.TweenSpeed = speed
+	Config.TweenSpeed = tonumber(args[1]) or 1
 	UpdateConfig()
 end)
 
@@ -1724,11 +1714,7 @@ AddCommand("tweengotocamera", "tweengotocamera", "Teleport to your camera.", {"t
 end)
 
 AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of view to [number]. [number] is an optional argument.", {"fov"}, {"Utility"}, 2, function(args)
-	local fov = 70
-	if args[1] and isNumber(args[1]) then
-		fov = tonumber(args[1])
-	end
-	workspace.CurrentCamera.FieldOfView = fov
+	workspace.CurrentCamera.FieldOfView = tonumber(args[1]) or 70
 end)
 
 AddCommand("fixcamera", "fixcamera", "Attempts to fix your player camera.", {"fixcam"}, {"Utility", "spawned"}, 2, function()
@@ -1762,13 +1748,13 @@ AddCommand("thirdperson", "thirdperson", "Allows your player camera to go into t
 end)
 
 AddCommand("minimumzoom", "minimumzoom [number]", "Changes your player camera minimum zoom distance to [number].", {"minzoom"}, {"Utility", 1}, 2, function(args)
-	if args[1] and isNumber(args[1]) then
+	if tonumber(args[1]) then
 		LocalPlayer.CameraMinZoomDistance = tonumber(args[1])
 	end
 end)
 
 AddCommand("maximumzoom", "maximumzoom [number]", "Changes your player camera maximum zoom distance to [number].", {"maxzoom"}, {"Utility", 1}, 2, function(args)
-	if args[1] and isNumber(args[1]) then
+	if tonumber(args[1]) then
 		LocalPlayer.CameraMaxZoomDistance = tonumber(args[1])
 	end
 end)
@@ -2047,8 +2033,8 @@ AddCommand("copyuserid", "copyuserid [player]", "Copy the user id of [player].",
 end)
 
 AddCommand("reach", "reach [number]", "Change the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
-	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
-	if isNumber(distance) and character and backpack then
+	local distance, character, backpack = tonumber(args[1]), GetCharacter(), GetBackpack()
+	if distance and character and backpack then
 		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
@@ -2061,8 +2047,8 @@ AddCommand("reach", "reach [number]", "Change the distance your tool can reach t
 end)
 
 AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
-	local distance, character, backpack = args[1], GetCharacter(), GetBackpack()
-	if isNumber(distance) and character and backpack then
+	local distance, character, backpack = tonumber(args[1]), GetCharacter(), GetBackpack()
+	if distance and character and backpack then
 		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
@@ -2323,7 +2309,7 @@ AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direct
 		while env[1] and character and humanoid do
 			local delta = heartbeat:Wait()
 			if humanoid.MoveDirection.Magnitude > 0 then
-				if args[1] and isNumber(args[1]) then
+				if tonumber(args[1]) then
 					character:TranslateBy(humanoid.MoveDirection * tonumber(args[1]) * delta * 10)
 				else
 					character:TranslateBy(humanoid.MoveDirection * delta * 10)
@@ -2422,7 +2408,7 @@ AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio."
 end)
 
 AddCommand("settime", "settime [number / day / dawn / night]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
-	if isNumber(args[1]) then
+	if tonumber(args[1]) then
 		Lighting.ClockTime = tonumber(args[1])
 	else
 		local opt = lower(tostring(args[1]))
@@ -2490,7 +2476,7 @@ AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera."
 end)
 
 AddCommand("volume", "volume [number]", "Set your volume to [number].", {}, {1}, 2, function(args)
-	if isNumber(args[1]) then
+	if tonumber(args[1]) then
 		UserSettings():GetService("UserGameSettings").MasterVolume = tonumber(args[1])
 	end
 end)
@@ -2553,9 +2539,9 @@ AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function
 end)
 
 AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
-	local root = GetRoot()
-	if root and isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
-		root.CFrame = CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3]))
+	local root, x, y, z = GetRoot(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
+	if root and x and y and z then
+		root.CFrame = CFrame.new(x, y, z)
 	end
 end)
 
@@ -2563,10 +2549,7 @@ AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]
 	ExecuteCommand("unspin")
 	local root = GetRoot()
 	if root then
-		local speed = 20
-		if args[1] and isNumber(args[1]) then
-			speed = tonumber(args[1])
-		end
+		local speed = tonumber(args[1]) or 20
 		local obj = NewInstance("BodyAngularVelocity", {Name = RandomString(), Parent = root, MaxTorque = Vector3.new(0, math.huge, 0), AngularVelocity = Vector3.new(0, speed, 0)})
 		env[1] = function()
 			if obj then
@@ -2796,30 +2779,23 @@ AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].",
 end)
 
 AddCommand("freecamspeed", "freecamspeed [speed]", "Sets the freecam speed to [speed]. [speed] is an optional argument.", {"fcspeed"}, {"Utility"}, 2, function(args)
-	local speed = 1
-	if args[1] and isNumber(args[1]) then
-		speed = tonumber(args[1])
-	end
-	Freecam.Adjust(speed)
+	Freecam.Adjust(tonumber(args[1]) or 1)
 end)
 
 AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at the provided coordinates.", {"fcpos"}, {"Utility", 3}, 2, function(args)
-	if isNumber(args[1]) and isNumber(args[2]) and isNumber(args[3]) then
+	local x, y, z = tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
+	if x and y and z then
 		ExecuteCommand("unfreecam")
 		FindCommand("freecam").Env[1] = function()
 			FindCommand("freecam").Env[1] = nil
 			Freecam.Stop()
 		end
-		Freecam.Start(CFrame.new(tonumber(args[1]), tonumber(args[2]), tonumber(args[3])))
+		Freecam.Start(CFrame.new(x, y, z))
 	end
 end)
 
 AddCommand("replicationlag", "replicationlag [number]", "Sets IncomingReplicationLag to [number]. [number] is an optional argument.", {"backtrack"}, {}, 2, function(args)
-	local num = 0
-	if args[1] and isNumber(args[1]) then
-		num = tonumber(args[1])
-	end
-	UserSettings():GetService("NetworkSettings").IncomingReplicationLag = num
+	UserSettings():GetService("NetworkSettings").IncomingReplicationLag = tonumber(args[1]) or 0
 end)
 
 AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 2, function(_, _, env)
