@@ -1184,7 +1184,7 @@ AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {
 	cons.wipe()
 	Gui.BaseObject:Destroy()
 	for _, command in next, Admin.Commands do
-		RunCommandFunctions(command.Name)
+		RunCommandFunctions(command.Name, true)
 	end
 end)
 
@@ -2962,7 +2962,7 @@ if listfiles then
 	end
 else
 	for _, v in pairs(Config.Plugins) do
-		LoadPlugin(v, true)
+		InstallPlugin(v, true)
 	end
 end
 
