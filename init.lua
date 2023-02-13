@@ -1839,7 +1839,7 @@ AddCommand("memory", "memory", "Notify yourself your memory usage.", {}, {"Utili
 	Notify("your memory usage is " .. round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
 end)
 
-AddCommand("infinitejump", "infinitejump", "Make your character able to infinitely jump with no cooldown.", {}, {"Utility"}, 2, function()
+AddCommand("infinitejump", "infinitejump", "Makes your character able to infinitely jump with no cooldown.", {}, {"Utility"}, 2, function()
 	ExecuteCommand("uninfinitejump")
 	cons.add("infinite jump", UserInputService.JumpRequest, function()
 		local humanoid = GetHumanoid()
