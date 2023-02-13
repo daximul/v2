@@ -2911,9 +2911,13 @@ filterthrough(Services.Teams:GetChildren(), function(_, v)
 	insert(switchteam, lower(tostring(v.Name)))
 end)
 AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", switchteam, 1}, 2, function()
-	local root, team = GetRoot(), filterthrough(Services.Teams:GetChildren(), function(_, v)
-		return lower(tostring(v.Name)) == lower(tostring(getstring(1)))
-	end)[1]
+	local root, team = false
+	for _, v in next, Services.Teams:GetChildren() do
+		if lower(tostring(v.Name)) == lower(tostring(getstring(1))) then
+			team = v
+			break
+		end
+	end
 	if root and team then
 		for _, v in next, workspace:GetDescendants() do
 			if v:IsA("SpawnLocation") and v.TeamColor == team.TeamColor then
