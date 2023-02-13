@@ -272,16 +272,33 @@ GetEnvironment = function(cmd)
 	return command and command.Env or {}
 end
 
-RunCommandFunctions = function(cmd, ignore)
-	local command = FindCommand(cmd)
-	command.Env = command.Env or {}
-	for i, v in next, command.Env do
-		if v and type(v) == "function" then
-			command.Env[1] = nil
-			if ignore then
-				spawn(pcall, v)
-			else
-				v()
+RunCommandFunctions = function(name, ignore)
+	if type(name) == "table" then
+		for _, x in next, name do
+			local command = FindCommand(x)
+			command.Env = command.Env or {}
+			for i, v in next, command.Env do
+				if v and type(v) == "function" then
+					command.Env[i] = nil
+					if ignore then
+						spawn(pcall, v)
+					else
+						v()
+					end
+				end
+			end
+		end
+	else
+		local command = FindCommand(name)
+		command.Env = command.Env or {}
+		for i, v in next, command.Env do
+			if v and type(v) == "function" then
+				command.Env[i] = nil
+				if ignore then
+					spawn(pcall, v)
+				else
+					v()
+				end
 			end
 		end
 	end
@@ -1459,7 +1476,6 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	local BodyVelocity = NewInstance("BodyVelocity", {Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root, Name = BodyVelocityName})
 
 	env[1] = function()
-		env[1] = nil
 		cons.remove({"fly", "unfly"})
 		if BodyGyro then
 			BodyGyro:Destroy()
@@ -1492,10 +1508,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 end)
 
 AddCommand("unfly", "unfly", "Stop flying.", {}, {"Utility"}, 2, function()
-	local env = GetEnvironment("fly")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("fly")
 end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
@@ -1557,7 +1570,6 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 		local gl, res2 = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/asurion/main/supported/%d.lua", game.GameId)) end)
 		if pl and res then loadstring(res)()(Container, Section, esp) elseif gl and res2 then loadstring(res2)()(Container, Section, esp) end
 		env[1] = function()
-			env[1] = nil
 			if Container and Container.Close then
 				Container.Close()
 			else
@@ -1568,10 +1580,7 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 end)
 
 AddCommand("unesp", "unesp", "Turns off esp.", {"untracers", "unchams"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("esp")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("esp")
 end)
 
 AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function()
@@ -1985,7 +1994,6 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
 		env[1] = function()
-			env[1] = nil
 			cons.remove({"spectate1", "spectate2"})
 			if GetCharacter() then
 				workspace.CurrentCamera.CameraSubject = GetCharacter()
@@ -1996,10 +2004,7 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 end)
 
 AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("view")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("view")
 end)
 
 AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function()
@@ -2257,7 +2262,6 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 			end
 		end
 		env[1] = function()
-			env[1] = nil
 			if weld then
 				weld.Part0 = nil
 				weld.Part1 = nil
@@ -2272,16 +2276,6 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 				end
 			end
 		end
-	end
-end)
-
-AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis"}, {"Utility"}, 2, function()
-	local env, env2 = GetEnvironment("invisible")[1], GetEnvironment("toolinvisible")[1]
-	if env then
-		env()
-	end
-	if env2 then
-		env2()
 	end
 end)
 
@@ -2304,18 +2298,19 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		root.CFrame = oldpos
 	end
 	env[1] = function()
-		env[1] = nil
 		cons.remove("tool invisible")
 	end
+end)
+
+AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis", "untoolinvisible", "untoolinvis", "untinvis"}, {"Utility"}, 2, function()
+	RunCommandFunctions({"invisible", "toolinvisible"})
 end)
 
 AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direction. [speed] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
 	ExecuteCommand("unteleportwalk")
 	local character, humanoid = GetCharacter(), GetHumanoid()
 	if character and humanoid then
-		env[1] = function()
-			env[1] = nil
-		end
+		env[1] = function() end
 		while env[1] and character and humanoid do
 			local delta = heartbeat:Wait()
 			if humanoid.MoveDirection.Magnitude > 0 then
@@ -2330,10 +2325,7 @@ AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direct
 end)
 
 AddCommand("unteleportwalk", "unteleportwalk", "Stop teleport walk.", {"untpwalk"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("teleportwalk")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("teleportwalk")
 end)
 
 AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {}, {"Fun"}, 2, function()
@@ -2356,7 +2348,6 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 			root.Velocity = ((moving or IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, IsKeyDown(Enum.KeyCode.Space) and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
-			env[1] = nil
 			cons.remove("swim")
 			workspace.Gravity = OldGravity
 			humanoid = GetHumanoid()
@@ -2373,10 +2364,7 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 end)
 
 AddCommand("unswim", "unswim", "Stop swimming.", {}, {"Utility"}, 2, function()
-	local env = GetEnvironment("swim")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("swim")
 end)
 
 AddCommand("notifyposition", "notifyposition", "Notify yourself your character's current position (x, y, z).", {"notifypos"}, {"Utility"}, 2, function()
@@ -2446,7 +2434,6 @@ AddCommand("fullbright", "fullbright", "Makes everything brighter.", {"fb"}, {"U
 		end
 	end
 	env[1] = function()
-		env[1] = nil
 		Lighting.GlobalShadows = OldLightingProperties.GlobalShadows
 		for _, v in next, modified do
 			if v.Object then
@@ -2459,10 +2446,7 @@ AddCommand("fullbright", "fullbright", "Makes everything brighter.", {"fb"}, {"U
 end)
 
 AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("fullbright")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("fullbright")
 end)
 
 AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
@@ -2491,17 +2475,13 @@ AddCommand("invisiblecamera", "invisiblecamera", "Makes it so you can put your c
 	LocalPlayer.CameraMaxZoomDistance = 600
 	LocalPlayer.DevCameraOcclusionMode = "Invisicam"
 	env[1] = function()
-		env[1] = nil
 		LocalPlayer.CameraMaxZoomDistance = OldCameraMaxZoomDistance
 		LocalPlayer.DevCameraOcclusionMode = OldDevCameraOcclusionMode
 	end
 end)
 
 AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera.", {"uninviscamera", "uninviscam"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("invisiblecamera")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("invisiblecamera")
 end)
 
 AddCommand("volume", "volume [number]", "Set your volume to [number].", {}, {1}, 2, function(args)
@@ -2555,7 +2535,6 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 			end)
 		end
 		env[1] = function()
-			env[1] = nil
 			cons.remove({"float", "float2"})
 			if obj then
 				obj:Destroy()
@@ -2565,10 +2544,7 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 end)
 
 AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function()
-	local env = GetEnvironment("float")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("float")
 end)
 
 AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
@@ -2588,7 +2564,6 @@ AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]
 		end
 		local obj = NewInstance("BodyAngularVelocity", {Name = RandomString(), Parent = root, MaxTorque = Vector3.new(0, math.huge, 0), AngularVelocity = Vector3.new(0, speed, 0)})
 		env[1] = function()
-			env[1] = nil
 			if obj then
 				obj:Destroy()
 			end
@@ -2597,10 +2572,7 @@ AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]
 end)
 
 AddCommand("unspin", "unspin", "Disables spin.", {}, {"Utility"}, 2, function()
-	local env = GetEnvironment("spin")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("spin")
 end)
 
 AddCommand("screenshot", "screenshot", "Takes a screenshot.", {}, {}, 2, function()
@@ -2799,16 +2771,12 @@ AddCommand("freecam", "freecam", "Allows you to move your camera freely in the g
 	ExecuteCommand("unfreecam")
 	Freecam.Start()
 	env[1] = function()
-		env[1] = nil
 		Freecam.Stop()
 	end
 end)
 
 AddCommand("unfreecam", "unfreecam", "Disables freecam.", {"unfc"}, {"Utility"}, 2, function()
-	local env = GetEnvironment("freecam")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("freecam")
 end)
 
 AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].", {"fcgoto"}, {"Utility", 1}, 2, function(args, speaker)
@@ -2816,7 +2784,6 @@ AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].",
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
 		ExecuteCommand("unfreecam")
 		FindCommand("freecam").Env[1] = function()
-			FindCommand("freecam").Env[1] = nil
 			Freecam.Stop()
 		end
 		Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
@@ -2859,7 +2826,6 @@ AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 
 		end
 	end
 	env[1] = function()
-		env[1] = nil
 		for _, v in next, modified do
 			if v.Part and v.Transparency then
 				v.Part.Transparency = v.Transparency
@@ -2869,10 +2835,7 @@ AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 
 end)
 
 AddCommand("unxray", "unxray", "Disables xray.", {}, {"Utility"}, 2, function()
-	local env = GetEnvironment("xray")[1]
-	if env then
-		env()
-	end
+	RunCommandFunctions("xray")
 end)
 
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
