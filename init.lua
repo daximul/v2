@@ -132,9 +132,17 @@ GetRoot = function(character)
 	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso"))
 end
 
-IsKeyDown = function(...)
-	return UserInputService:IsKeyDown(...)
-end
+IsKeyDown = {}
+cons.add(UserInputService.InputBegan, function(input, processed)
+	if not processed then
+		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = true
+	end
+end)
+cons.add(UserInputService.InputEnded, function(input, processed)
+	if not processed then
+		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = false
+	end
+end)
 
 merge_table = function(...)
 	local new = {}
@@ -1451,22 +1459,22 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	end
 	local Controls = {Front = 0, Back = 0, Left = 0, Right = 0, Down = 0, Up = 0}
 	local Keys = {
-		[Enum.KeyCode.W] = function(t)
+		W = function(t)
 			Controls.Front = clamp(Controls.Front + (t and 1 or -1), 0, MaxSpeed())
 		end,
-		[Enum.KeyCode.A] = function(t)
+		A = function(t)
 			Controls.Left = clamp(Controls.Left + (t and -1 or 1), -MaxSpeed(), 0)
 		end,
-		[Enum.KeyCode.S] = function(t)
+		S = function(t)
 			Controls.Back = clamp(Controls.Back + (t and -1 or 1), -MaxSpeed(), 0)
 		end,
-		[Enum.KeyCode.D] = function(t)
+		D = function(t)
 			Controls.Right = clamp(Controls.Right + (t and 1 or -1), 0, MaxSpeed())
 		end,
-		[Enum.KeyCode.Space] = function(t)
+		Space = function(t)
 			Controls.Up = clamp(Controls.Up + (t and 1 or -1), 0, MaxSpeed() * 2)
 		end,
-		[Enum.KeyCode.LeftControl] = function(t)
+		LeftControl = function(t)
 			Controls.Down = clamp(Controls.Down + (t and -1 or 1), -(MaxSpeed() * 2), 0)
 		end
 	}
@@ -1501,7 +1509,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 			end
 			humanoid.PlatformStand = true
 			for i, v in next, Keys do
-				v(IsKeyDown(i))
+				v(IsKeyDown[i])
 			end
 			BodyGyro.CFrame = BodyGyro.CFrame:lerp(workspace.CurrentCamera.CFrame, 0.095)
 			BodyVelocity.Velocity = ((workspace.CurrentCamera.CFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CFrame.Position)
@@ -2280,7 +2288,12 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 	if character and character:FindFirstChild("Head") and root then
 		local oldpos = root.CFrame
 		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
-		wait()
+		wait(0.2)
+		root.Anchored = true
+		local seat = NewInstance("Seat", {Name = RandomString(), Parent = workspace, CFrame = root.CFrame, Anchored = false, Transparency = 1, CanCollide = false})
+		local weld = NewInstance("Weld", {Name = RandomString(), Parent = seat, Part0 = seat, Part1 = root})
+		root.Anchored = false
+		seat.CFrame = oldpos
 		cons.add("tool invisible", heartbeat, function()
 			if not character or not character:FindFirstChild("Head") or not root then
 				ExecuteCommand("uninvisible")
@@ -2294,6 +2307,14 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 	end
 	env[1] = function()
 		cons.remove("tool invisible")
+		if weld then
+			weld.Part0 = nil
+			weld.Part1 = nil
+			weld:Destroy()
+		end
+		if seat then
+			seat:Destroy()
+		end
 	end
 end)
 
@@ -2340,7 +2361,7 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 		cons.add("swim", heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
-			root.Velocity = ((moving or IsKeyDown(Enum.KeyCode.Space)) and v3(moving and rootvelo.X or 0, IsKeyDown(Enum.KeyCode.Space) and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
+			root.Velocity = ((moving or IsKeyDown.Space) and v3(moving and rootvelo.X or 0, IsKeyDown.Space and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
 			cons.remove("swim")
@@ -2512,9 +2533,9 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 				if not obj or not GetCharacter() or not GetRoot() then
 					ExecuteCommand("unfloat")
 				end
-				if IsKeyDown(Enum.KeyCode.E) then
+				if IsKeyDown.E then
 					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, 0.025, 0)
-				elseif IsKeyDown(Enum.KeyCode.Q) then
+				elseif IsKeyDown.Q then
 					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, -0.025, 0)
 				end
 				obj.CFrame = GetRoot().CFrame * CFrame.new(0, -3.1, 0)
@@ -2623,7 +2644,7 @@ do
 	Input.Vel = function(dt)
 		navSpeed = clamp(navSpeed + dt * (keyboard.Up - keyboard.Down) * NAV_ADJ_SPEED, 0.01, 4)
 		local kKeyboard = Vector3.new(keyboard.D - keyboard.A, keyboard.E - keyboard.Q, keyboard.S - keyboard.W) * NAV_KEYBOARD_SPEED
-		local shift = IsKeyDown(Enum.KeyCode.LeftShift)
+		local shift = IsKeyDown.LeftShift
 		return (kKeyboard) * (navSpeed * (shift and NAV_SHIFT_MUL or 1))
 	end
 	Input.Pan = function()
