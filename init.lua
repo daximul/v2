@@ -273,8 +273,11 @@ GetEnvironment = function(cmd)
 end
 
 RunCommandFunctions = function(cmd, ignore)
-	for _, v in next, GetEnvironment(cmd) do
+	local command = FindCommand(cmd)
+	command.Env = command.Env or {}
+	for i, v in next, command.Env do
 		if v and type(v) == "function" then
+			command.Env[1] = nil
 			if ignore then
 				spawn(pcall, v)
 			else
