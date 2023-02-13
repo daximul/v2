@@ -2072,8 +2072,7 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 				data.Box:Destroy()
 			end
 		end
-		reach.Env = {}
-		boxreach.Env = {}
+		reach.Env, boxreach.Env = {}, {}
 	end
 end)
 
@@ -2113,7 +2112,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 				Attach(target)
 				wait(0.2)
 				repeat wait()
-					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
+				root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
 				LocalPlayer.CharacterAdded:Wait()
 				wait(0.2)
