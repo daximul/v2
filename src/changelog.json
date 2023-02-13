@@ -3,6 +3,7 @@
     [
         "Update 2/13/23",
         "fixed plugins",
+        "when focused on the command bar, you can use the UP and DOWN arrow keys to switch between recently used commands (resets at 30)",
         "+ pluginlist"
     ],
     [
