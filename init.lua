@@ -2966,6 +2966,13 @@ AddCommand("activatetools", "activatetools", "Equips and activates all your tool
 	end
 end)
 
+AddCommand("lastcommand", "lastcommand", "Runs the previous command.", {}, {}, 2, function()
+	local command = Admin.History[1]
+	if command then
+		ExecuteCommand(lower(tostring(command)))
+	end
+end)
+
 if listfiles and type(listfiles) == "function" then
 	local valid = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
