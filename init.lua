@@ -2914,7 +2914,7 @@ AddCommand("activatetools", "activatetools", "Equips and activates all your tool
 	end
 end)
 
-if listfiles then
+if listfiles and type(listfiles) == "function" then
 	local valid = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
 		if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then
