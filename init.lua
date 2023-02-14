@@ -3006,7 +3006,7 @@ AddCommand("unclientantikick", "unclientantikick", "Disables clientantikick.", {
 	RunCommandFunctions("clientantikick")
 end)
 
-AddCommand("remotespy", "remotespy", "Run a penetration testing tool.", {"simplespy"}, {"Utility"}, 2, function()
+AddCommand("remotespy", "remotespy", "Run a penetration testing tool.", {"simplespy", "rspy"}, {"Utility"}, 2, function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/SimpleSpyV3/main.lua"))()
 end)
 
