@@ -2984,6 +2984,28 @@ AddCommand("uninstantproximityprompts", "uninstantproximityprompts", "Disables i
 	cons.remove("instantproximityprompts")
 end)
 
+AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from kicking you.", {"antikick"}, {"Utility"}, 2, function(_, _, env)
+	RunCommandFunctions("clientantikick")
+	env[1] = function() end
+	local old, old2, getnamecallmethod = nil, nil, getnamecallmethod or function() return "" end
+	old = hookmetamethod(game, "__index", function(self, method)
+		if env[1] and self == LocalPlayer and lower(method) == "kick" then
+			return error("Expected ':' not '.' calling member function Kick", 2)
+		end
+		return old(self, method)
+	end)
+	old2 = hookmetamethod(game, "__namecall", function(self, ...)
+		if env[1] and self == LocalPlayer and lower(getnamecallmethod()) == "kick" then
+			return
+		end
+		return old2(self, ...)
+	end)
+end)
+
+AddCommand("unclientantikick", "unclientantikick", "Disables clientantikick.", {"unantikick"}, {"Utility"}, 2, function(_, _, env)
+	RunCommandFunctions("clientantikick")
+end)
+
 if listfiles and type(listfiles) == "function" then
 	local valid = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
