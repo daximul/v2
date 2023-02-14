@@ -2072,11 +2072,11 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 		local oldpos = root.CFrame
 		cons.add("refresh", LocalPlayer.CharacterAdded, function()
 			wait(0.2)
+			cons.remove("refresh")
 			root = GetRoot()
 			if root then
 				root.CFrame = oldpos
 			end
-			cons.remove("refresh")
 		end)
 		character:ClearAllChildren()
 	end
@@ -2209,9 +2209,9 @@ AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {}
 	cons.remove("spawn point")
 end)
 
-local lastdeath = nil
+local lastdeath = false
 cons.add(LocalPlayer.CharacterAdded, function()
-	repeat wait() until GetHumanoid() ~= nil
+	repeat wait(1) until GetHumanoid() ~= nil
 	cons.add(GetHumanoid().Died, function()
 		local root = GetRoot()
 		if root then
@@ -2230,7 +2230,7 @@ spawn(function()
 end)
 AddCommand("diedtp", "diedtp", "Teleport to your last position before you died.", {"flashback"}, {"Utility"}, 2, function(_, speaker)
 	local root = GetRoot()
-	if lastdeath ~= nil and root then
+	if root and lastdeath then
 		root.CFrame = lastdeath
 	end
 end)
