@@ -2446,27 +2446,23 @@ AddCommand("copyposition", "copyposition", "Copy your character's current positi
 end)
 
 AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optional arguments of min or max, max is the default.", {"shop"}, {"Utility", {"min", "max"}}, 2, function(args)
-	if httprequest then
-		local order = lower(tostring(args[1]))
-		order = (order == "min" and "Asc") or (order == "max" and "Desc") or "Desc"
-		local servers = {}
-		local list = HttpService:JSONDecode(httprequest({Url = format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100", game.PlaceId, order)}).Body)
-		if list and list.data then
-			for _, server in next, list.data do
-				if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and server.maxPlayers > server.playing and server.id ~= game.JobId then
-					insert(servers, {current = server.playing, limit = server.maxPlayers, id = server.id})
-				end
+	local opt = lower(tostring(args[1]))
+	opt = (opt == "min" and "Asc") or (opt == "max" and "Desc") or "Desc"
+	local servers = {}
+	local list = HttpService:JSONDecode(httprequest({Url = format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100", game.PlaceId, opt)}).Body)
+	if list and list.data then
+		for _, server in next, list.data do
+			if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and server.maxPlayers > server.playing and server.id ~= game.JobId then
+				insert(servers, {current = server.playing, limit = server.maxPlayers, id = server.id})
 			end
 		end
-		if #servers ~= 0 then
-			local server = servers[math.random(1, #servers)]
-			Notify(format("joining server (%d/%d players)", server.current, server.limit))
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
-		else
-			Notify("no servers available")
-		end
+	end
+	if #servers ~= 0 then
+		local server = servers[math.random(1, #servers)]
+		Notify(format("joining server (%d/%d players)", server.current, server.limit))
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
 	else
-		Notify("your exploit does not support this common. missing http request")
+		Notify("no servers available")
 	end
 end)
 
