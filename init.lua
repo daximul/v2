@@ -130,7 +130,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 end)
 cons.add(UserInputService.InputEnded, function(input, processed)
 	if not processed then
-		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = false
+		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = nil
 	end
 end)
 
@@ -349,13 +349,9 @@ end
 SpecialPlayerCases = {
 	all = function(speaker) return Players:GetPlayers() end,
 	others = function(speaker)
-		local plrs = {}
-		for _, v in pairs(Players:GetPlayers()) do
-			if v ~= speaker then
-				insert(plrs, v)
-			end
-		end
-		return plrs
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker
+		end)
 	end,
 	me = function(speaker) return {speaker} end,
 	["#(%d+)"] = function(speaker, args, currentList)
@@ -371,106 +367,63 @@ SpecialPlayerCases = {
 		return returns
 	end,
 	random = function(speaker, args, currentList)
-        local players = Players:GetPlayers()
-		remove(players, tfind(players, LocalPlayer))
+        local players = filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker
+		end)
 		return {players[random(1, #players)]}
 	end,
 	["%%(.+)"] = function(speaker, args)
-		local returns = {}
-		local team = args[1]
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Team and sub(lower(plr.Team.Name), 1, #team) == lower(team) then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v.Team and sub(lower(v.Team.Name), 1, #args[1]) == lower(args[1])
+		end)
 	end,
 	allies = function(speaker)
-		local returns = {}
-		local team = speaker.Team
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Team == team then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.Team and v.Team == speaker.Team
+		end)
 	end,
 	enemies = function(speaker)
-		local returns = {}
-		local team = speaker.Team
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Team ~= team then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.Team and v.Team ~= speaker.Team
+		end)
 	end,
 	team = function(speaker)
-		local returns = {}
-		local team = speaker.Team
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Team == team then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.Team and v.Team == speaker.Team
+		end)
 	end,
 	nonteam = function(speaker)
-		local returns = {}
-		local team = speaker.Team
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Team ~= team then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.Team and v.Team ~= speaker.Team
+		end)
 	end,
 	friends = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr:IsFriendsWith(speaker.UserId) and plr ~= speaker then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v:IsFriendsWith(speaker.UserId)
+		end)
 	end,
 	nonfriends = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if not plr:IsFriendsWith(speaker.UserId) and plr ~= speaker then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and not v:IsFriendsWith(speaker.UserId)
+		end)
 	end,
 	guests = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Guest then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.Guest
+		end)
 	end,
 	bacons = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Character:FindFirstChild("Pal Hair") or plr.Character:FindFirstChild("Kate Hair") then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			local character = GetCharacter(v)
+			return v ~= speaker and character and (character:FindFirstChild("Pal Hair") or character:FindFirstChild("Kate Hair"))
+		end)
 	end,
 	["age(%d+)"] = function(speaker, args)
-		local returns = {}
 		local age = tonumber(args[1])
-		if not age then return end
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.AccountAge <= age then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		if not age then return {} end
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v.AccountAge <= age
+		end)
 	end,
 	nearest = function(speaker, args, currentList)
 		local speakerChar = speaker.Character
@@ -505,45 +458,32 @@ SpecialPlayerCases = {
 		return Farthest
 	end,
 	["group(%d+)"] = function(speaker, args)
-		local returns = {}
-		local groupID = tonumber(args[1])
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr:IsInGroup(groupID) then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		local group = tonumber(args[1])
+		if not group then return {} end
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			return v ~= speaker and v:IsInGroup(group)
+		end)
 	end,
 	alive = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") and plr.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			local humanoid = GetHumanoid(GetCharacter(v))
+			return v ~= speaker and humanoid and humanoid.Health > 0
+		end)
 	end,
 	dead = function(speaker, args)
-		local returns = {}
-		for _, plr in pairs(Players:GetPlayers()) do
-			if (not plr.Character or not plr.Character:FindFirstChildOfClass("Humanoid")) or plr.Character:FindFirstChildOfClass("Humanoid").Health <= 0 then
-				insert(returns, plr)
-			end
-		end
-		return returns
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			local humanoid = GetHumanoid(GetCharacter(v))
+			return v ~= speaker and humanoid and humanoid.Health <= 0
+		end)
 	end,
 	["rad(%d+)"] = function(speaker, args)
-		local returns = {}
-		local radius = tonumber(args[1])
-		local speakerChar = speaker.Character
-		if not speakerChar or not GetRoot(speakerChar) then return end
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Character and GetRoot(plr.Character) then
-				local magnitude = (GetRoot(plr.Character).Position - GetRoot(speakerChar).Position).magnitude
-				if magnitude <= radius then insert(returns, plr) end
-			end
-		end
-		return returns
+		local radius, speakerchar, speakerroot = tonumber(args[1]), GetCharacter(speaker), GetRoot(GetCharacter(speaker))
+		if not radius or not speakerchar or not speakerroot then return {} end
+		return filterthrough(Players:GetPlayers(), function(_, v)
+			local root = GetRoot(GetCharacter(v))
+			local magnitude = (root and (root.Position - speakerroot.Position).magnitude) or false
+			return v ~= speaker and magnitude and magnitude <= radius
+		end)
 	end
 }
 
@@ -1272,7 +1212,7 @@ AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"},
 		if not new[category] then
 			new[category] = {}
 		end
-		new[category][command.Name] = lower(command.Usage)
+		new[category][command.Name] = lower(tostring(command.Usage))
 	end
 	Gui.DisplayTable("Commands", new)
 end)
@@ -1305,9 +1245,7 @@ end)
 AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
 	local command, perm = FindCommand(lower(tostring(args[1]))), tonumber(args[1])
 	if command and perm then
-		if perm >= 2 then
-			perm = 2
-		end
+		if perm >= 2 then perm = 2 end
 		command.PermissionIndex = perm
 		MiscConfig.Permissions[command.Name] = perm
 		UpdateMiscConfig()
@@ -1336,14 +1274,13 @@ AddCommand("unwhitelist", "unwhitelist [player]", "Unwhitelist a [player] to use
 end)
 
 AddCommand("whitelisted", "whitelisted", "View a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
-	local new = {}
-	for _, v in next, Admin.Whitelisted do
-		insert(new, GetLongUsername(v.Player))
-	end
-	if #new == 0 then
+	local list = new_table(Admin.Whitelisted, function(_, v)
+		return GetLongUsername(v.Player)
+	end)
+	if #list == 0 then
 		Notify("no players are currently whitelisted")
 	else
-		Gui.DisplayTable("Whitelisted", new)
+		Gui.DisplayTable("Whitelisted", list)
 	end
 end)
 
@@ -2961,6 +2898,90 @@ AddCommand("lastcommand", "lastcommand", "Runs the previous command.", {}, {}, 2
 	if recent then
 		ExecuteCommand(lower(tostring(recent)))
 	end
+end)
+
+AddCommand("noclickdetectorlimits", "noclickdetectorlimits", "Removes the distance limit on all click detectors.", {"nocdlimits"}, {"Utility"}, 2, function(_, _, v)
+	ExecuteCommand("clickdetectorlimits")
+	local modified = {}
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("ClickDetector") and v.MaxActivationDistance ~= math.huge then
+			insert(modified, {Object = v, Distance = v.MaxActivationDistance})
+			v.MaxActivationDistance = math.huge
+		end
+	end
+	env[1] = function()
+		for _, v in next, modified do
+			if v.Object and v.Distance then
+				v.Object.MaxActivationDistance = v.Distance
+			end
+		end
+	end
+end)
+
+AddCommand("clickdetectorlimits", "clickdetectorlimits", "Adds back the distance limit to all click detectors affected by the noclickdetectorlimits command.", {"cdlimits"}, {"Utility"}, 2, function()
+	RunCommandFunctions("noclickdetectorlimits")
+end)
+
+AddCommand("fireclickdetectors", "fireclickdetectors", "Activates all click detectors.", {"firecds"}, {"Utility"}, 2, function()
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("ClickDetector") then
+			fireclickdetector(v)
+		end
+	end
+end)
+
+AddCommand("firetouchinterests", "firetouchinterests", "Activates all touch interests.", {}, {"Utility"}, 2, function()
+	local root = GetRoot()
+	if root then
+		for _, v in next, workspace:GetDescendants() do
+			if v:IsA("TouchTransmitter") then
+				firerbxtouch(root, v.Parent, 0)
+				wait()
+				firerbxtouch(root, v.Parent, 1)
+			end
+		end
+	end
+end)
+
+AddCommand("noproximitypromptlimits", "noproximitypromptlimits", "Removes the distance limit on all proximity prompts.", {"nopplimits"}, {"Utility"}, 2, function(_, _, v)
+	ExecuteCommand("proximitypromptlimits")
+	local modified = {}
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("ProximityPrompt") and v.MaxActivationDistance ~= math.huge then
+			insert(modified, {Object = v, Distance = v.MaxActivationDistance})
+			v.MaxActivationDistance = math.huge
+		end
+	end
+	env[1] = function()
+		for _, v in next, modified do
+			if v.Object and v.Distance then
+				v.Object.MaxActivationDistance = v.Distance
+			end
+		end
+	end
+end)
+
+AddCommand("proximitypromptlimits", "proximitypromptlimits", "Adds back the distance limit to all proximity prompts affected by the noproximitypromptlimits command.", {"pplimits"}, {"Utility"}, 2, function()
+	RunCommandFunctions("noproximitypromptlimits")
+end)
+
+AddCommand("fireproximityprompts", "fireproximityprompts", "Activates all proximity prompts.", {}, {"Utility"}, 2, function()
+	for _, v in next, workspace:GetDescendants() do
+		if v:IsA("ProximityPrompt") then
+			fireproximityprompt(v)
+		end
+	end
+end)
+
+AddCommand("instantproximityprompts", "instantproximityprompts", "Removes the cooldown for all proximity prompts.", {}, {"Utility"}, 2, function()
+	ExecuteCommand("uninstantproximityprompts")
+	cons.add("instantproximityprompts", Services.ProximityPromptService.PromptButtonHoldBegan, function(prompt)
+		fireproximityprompt(prompt)
+	end)
+end)
+
+AddCommand("uninstantproximityprompts", "uninstantproximityprompts", "Disables instantproximityprompts.", {"noinstantproximityprompts"}, {"Utility"}, 2, function()
+	cons.remove("instantproximityprompts")
 end)
 
 if listfiles and type(listfiles) == "function" then
