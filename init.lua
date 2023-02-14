@@ -16,6 +16,18 @@ Admin = {
 	Prefix = ";"
 }
 
+local Config = {
+	Prefix = ";",
+	Plugins = {},
+	DisabledPlugins = {},
+	LoweredText = false,
+	FlySpeed = 1,
+	TweenSpeed = 1,
+	KeepAdmin = true,
+	Widebar = false
+}
+local MiscConfig = {Permissions = {}, CustomAlias = {}}
+
 local cloneref = cloneref or function(...) return ... end
 local Services = {}
 setmetatable(Services, {
@@ -269,6 +281,11 @@ FindCommand = function(cmd)
 	for _, v in pairs(Admin.Commands) do
 		if lower(tostring(v.Name)) == cmd or FindInTable(v.Alias, cmd) then
 			return v
+		end
+	end
+	for _, v in next, MiscConfig.CustomAlias do
+		if v.Alias == cmd then
+			return FindCommand(v.Name)
 		end
 	end
 end
@@ -820,17 +837,6 @@ local fakeRequire = (function()
 end)()
 
 -- Filesystem
-local Config = {
-	Prefix = ";",
-	Plugins = {},
-	DisabledPlugins = {},
-	LoweredText = false,
-	FlySpeed = 1,
-	TweenSpeed = 1,
-	KeepAdmin = true,
-	Widebar = false
-}
-local MiscConfig = {Permissions = {}}
 local UpdateConfig, UpdateMiscConfig = function() end, function() end
 do
 	if not isfolder("dark-admin") then
@@ -1052,6 +1058,15 @@ cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
 			if MatchSearch(Args[1], v2) then
 				FoundAlias = true
 				Prediction.Text = v2
+				Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
+				break
+			end
+			if FoundAlias then break end
+		end
+		for _, v2 in next, MiscConfig.CustomAlias do
+			if MatchSearch(Args[1], v2.Alias) then
+				FoundAlias = true
+				Prediction.Text = v2.Alias
 				Admin.CommandArgs = #v.CustomArgs ~= 0 and v.CustomArgs or {}
 				break
 			end
@@ -1410,6 +1425,44 @@ AddCommand("pluginlist", "pluginlist", "View a list of your plugins.", {"plugins
 		end
 	else
 		Section:AddItem("Text", {Text = "None"})
+	end
+end)
+
+AddCommand("addalias", "addalias [command] [alias]", "Makes [alias] an alias of [command].", {}, {"Core", 2}, 2, function(args)
+	local command, alias = FindCommand(args[1]), lower(tostring(args[2]))
+	if command and alias then
+		insert(MiscConfig.CustomAlias, {Name = command.Name, Alias = alias})
+		UpdateMiscConfig()
+		Notify(format("added alias (%s) to command (%s)", alias, command.Name))
+	else
+		Notify("command does not exist")
+	end
+end)
+
+AddCommand("removealias", "removealias [alias]", "Removes the custom alias [alias].", {}, {"Core", 1}, 2, function(args)
+	local alias = lower(tostring(args[1]))
+	for i, v in next, MiscConfig.CustomAlias do
+		if v.Alias == alias then
+			MiscConfig.CustomAlias[i] = nil
+			Notify(format("removed alias (%s) from command (%s)", alias, v.Name))
+		end
+	end
+	UpdateMiscConfig()
+end)
+
+AddCommand("customaliases", "customaliases", "View a list of your custom alaises.", {"aliases"}, {"Core"}, 2, function()
+	if #MiscConfig.CustomAlias == 0 then
+		Notify("you have no custom aliases")
+	else
+		local new = {}
+		for _, v in next, MiscConfig.CustomAlias do
+			local tab = v.Name
+			if not new[tab] then
+				new[tab] = {}
+			end
+			new[tab][v.Alias] = v.Alias
+		end
+		Gui.DisplayTable("Custom Aliases", new)
 	end
 end)
 
