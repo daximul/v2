@@ -48,20 +48,10 @@ local getconnections = getconnections or get_signal_cons
 local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 local queue_on_teleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 local creatingInstance = Instance.new
-local OldFallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
-local OldGravity = workspace.Gravity
-local OldLightingProperties = {Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, FogEnd = Lighting.FogEnd, FogStart = Lighting.FogStart, GlobalShadows = Lighting.GlobalShadows}
+local OldGravity, OldFallenPartsDestroyHeight = workspace.Gravity, workspace.FallenPartsDestroyHeight
+local OldLightingProperties = {Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, FogStart = Lighting.FogStart, FogEnd = Lighting.FogEnd, GlobalShadows = Lighting.GlobalShadows}
 
 RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
-
---[[
-Prote = (function()
-	local success, result = pcall(function()
-		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/prote.lua")
-	end)
-	return success and loadstring(result)() or {ProtectObject = function() end, SpoofObject = function() end, SpoofProperty = function() end, UnSpoofObject = function() end, FocusedBox = function() end, Hook = function() end}
-end)()
-]]
 
 cons = {connections = {}, loaded = true}
 cons.add = function(name, con, func)
@@ -98,12 +88,12 @@ cons.wipe = function()
 	cons.loaded = false
 end
 
-NewInstance = function(class, props)
-	local inst = creatingInstance(class)
-	for prop, value in pairs(props) do
-		inst[prop] = value
+NewInstance = function(class, properties)
+	local new = creatingInstance(class)
+	for property, value in pairs(properties) do
+		new[property] = value
 	end
-	return inst
+	return new
 end
 
 FindInTable = function(tbl, val)
@@ -150,6 +140,25 @@ merge_table = function(...)
 		for _, v2 in next, v do
 			new[i] = v2
 		end
+	end
+	return new
+end
+
+filterthrough = function(tbl, func)
+	local new = {}
+	for i, v in next, tbl do
+		if func(i, v) then
+			new[#new + 1] = v
+		end
+	end
+	return new
+end
+
+new_table = function(tbl, func)
+	local new = {}
+	for i, v in next, tbl do
+		local k, x = func(i, v)
+		new[x or #new + 1] = k
 	end
 	return new
 end
@@ -768,25 +777,6 @@ cons.add(Players.PlayerAdded, function(player)
 		LogChatMessage(player, message)
 	end)
 end)
-
-filterthrough = function(tbl, func)
-	local new = {}
-	for i, v in next, tbl do
-		if func(i, v) then
-			new[#new + 1] = v
-		end
-	end
-	return new
-end
-
-new_table = function(tbl, func)
-	local new = {}
-	for i, v in next, tbl do
-		local k, x = func(i, v)
-		new[x or #new + 1] = k
-	end
-	return new
-end
 
 Admin.CommandRequirements = {
 	spawned = {
