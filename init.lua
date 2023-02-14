@@ -319,10 +319,10 @@ end
 local ChatHistory = {}
 local LogChatMessage = function(player, message)
 	insert(ChatHistory, {Player = player, Name = GetLongUsername(player), Message = message})
-	local Container = GetEnvironment("chatlogs")[1]
-	if Container and Container.UI and Container.Section then
+	local Loaded = GetEnvironment("chatlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then
 		local log = format("[%s]: %s", GetLongUsername(player), message)
-		Container.Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
+		Loaded.Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
 	end
 end
 
@@ -1378,6 +1378,10 @@ AddCommand("unlowercasedcommandbar", "unlowercasedcommandbar", "Undoes lowercase
 end)
 
 AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
+	local Loaded = GetEnvironment("chatlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then
+		Loaded.Close()
+	end
 	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
 	local Section = Container:AddSection("Section")
 	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
@@ -1389,7 +1393,7 @@ AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core
 			Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
 		end
 	end)
-	env[1] = {UI = Container, Section = Section}
+	env[1] = {Container = Container, Section = Section}
 end)
 
 AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in the chatlogs to save it, this exists.", {}, {"Core"}, 2, function()
