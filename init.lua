@@ -3002,8 +3002,12 @@ AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from k
 	end)
 end)
 
-AddCommand("unclientantikick", "unclientantikick", "Disables clientantikick.", {"unantikick"}, {"Utility"}, 2, function(_, _, env)
+AddCommand("unclientantikick", "unclientantikick", "Disables clientantikick.", {"unantikick"}, {"Utility"}, 2, function()
 	RunCommandFunctions("clientantikick")
+end)
+
+AddCommand("remotespy", "remotespy", "Run a penetration testing tool.", {"simplespy"}, {"Utility"}, 2, function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/SimpleSpyV3/main.lua"))()
 end)
 
 if listfiles and type(listfiles) == "function" then
