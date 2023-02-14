@@ -4,7 +4,7 @@
         "Update 2/14/23",
         "+ noclickdetectorlimits, clickdetectorlimits, fireclickdetectors, firetouchinterests, noproximitypromptlimits",
         "+ proximitypromptlimits, fireproximityprompts, instantproximityprompts, uninstantproximityprompts",
-        "+ clientantikick, unclientantikick"
+        "+ clientantikick, unclientantikick, remotespy"
     ],
     [
         "Update 2/13/23",
