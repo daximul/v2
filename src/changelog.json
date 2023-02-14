@@ -4,7 +4,8 @@
         "Update 2/14/23",
         "+ noclickdetectorlimits, clickdetectorlimits, fireclickdetectors, firetouchinterests, noproximitypromptlimits",
         "+ proximitypromptlimits, fireproximityprompts, instantproximityprompts, uninstantproximityprompts",
-        "+ clientantikick, unclientantikick, remotespy, addalias [command] [alias], removealias [alias], customaliases"
+        "+ clientantikick, unclientantikick, remotespy, addalias [command] [alias], removealias [alias], customaliases",
+        "+ breadcrumbs, nobreadcrumbs"
     ],
     [
         "Update 2/13/23",
