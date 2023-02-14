@@ -3063,6 +3063,42 @@ AddCommand("remotespy", "remotespy", "Run a penetration testing tool.", {"simple
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/SimpleSpyV3/main.lua"))()
 end)
 
+AddCommand("breadcrumbs", "breadcrumbs", "Leaves a trail behind you.", {}, {}, 2, function(_, _, env)
+	ExecuteCommand("nobreadcrumbs")
+	local attachment = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, 0.07 - 2.7, 0)})
+	local attachment2 = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, -0.07 - 2.7, 0)})
+	local trail = NewInstance("Trail", {Name = RandomString(), Attachment0 = attachment, Attachment1 = attachment2, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1), Color3.new(1, 1, 1)), FaceCamera = true, Lifetime = math.huge, Enabled = true})
+	cons.add("breadcrumbs", heartbeat, function()
+		local root, camera = GetRoot(), workspace.CurrentCamera
+		if root and camera then
+			local success, _ = pcall(function()
+				attachment.Parent = root
+				attachment2.Parent = root
+				trail.Parent = camera
+			end)
+			if not success then
+				ExecuteCommand("nobreadcrumbs")
+			end
+		end
+	end)
+	env[1] = function()
+		cons.remove("breadcrumbs")
+		if attachment then
+			attachment:Destroy()
+		end
+		if attachment2 then
+			attachment2:Destroy()
+		end
+		if trail then
+			trail:Destroy()
+		end
+	end
+end)
+
+AddCommand("nobreadcrumbs", "nobreadcrumbs", "Disables breadcrumbs.", {"unbreadcrumbs"}, {}, 2, function()
+	RunCommandFunctions("breadcrumbs")
+end)
+
 if listfiles and type(listfiles) == "function" then
 	local valid = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
