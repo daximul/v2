@@ -395,7 +395,7 @@ SpecialPlayerCases = {
 	end,
 	["%%(.+)"] = function(speaker, args)
 		return filterthrough(Players:GetPlayers(), function(_, v)
-			return v.Team and sub(lower(v.Team.Name), 1, #args[1]) == lower(args[1])
+			return v ~= speaker and v.Team and sub(lower(v.Team.Name), 1, #args[1]) == lower(args[1])
 		end)
 	end,
 	allies = function(speaker)
