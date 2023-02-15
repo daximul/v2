@@ -29,7 +29,7 @@ local Config = {
 local MiscConfig = {Permissions = {}, CustomAlias = {}}
 
 local cloneref = cloneref or function(...) return ... end
-local Services = {}
+Services = {}
 setmetatable(Services, {
 	__index = function(tbl, prop)
 		local success, service = pcall(function() return game:GetService(prop) end)
