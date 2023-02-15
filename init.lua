@@ -342,6 +342,10 @@ SendChatMessage = function(str, channel)
 	end
 end
 
+CleanSpecials = function(...)
+	return gsub(..., "[*\\?:<>|']+", "")
+end
+
 local ChatHistory = {}
 local LogChatMessage = function(player, message)
 	insert(ChatHistory, {Player = player, Name = GetLongUsername(player), Message = message})
@@ -845,6 +849,9 @@ do
 	if not isfolder("dark-admin/plugins") then
 		makefolder("dark-admin/plugins")
 	end
+	if not isfolder("dark-admin/plugins/browser") then
+		makefolder("dark-admin/plugins/browser")
+	end
 	if not isfolder("dark-admin/logs") then
 		makefolder("dark-admin/logs")
 	end
@@ -1336,6 +1343,8 @@ AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core
 		end
 	end)
 	env[1] = {Container = Container, Section = Section}
+	wait()
+	Container.SectionContainer.CanvasPosition = Vector2.new(0, Container.SectionContainer.CanvasSize.Y.Offset + 1000)
 end)
 
 AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in the chatlogs to save it, this exists.", {}, {"Core"}, 2, function()
@@ -1345,7 +1354,7 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 	end
 	local os = os.date("*t")
 	local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
-	local name = gsub(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name, "[*\\?:<>|]+", "")
+	local name = CleanSpecials(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name)
 	local data = format("Chatlogs for \"%s\"\n\n\n\n", name)
 	for _, v in next, ChatHistory do
 		data = data .. format("[%s]: %s\n", v.Name, v.Message)
@@ -1463,6 +1472,53 @@ AddCommand("customaliases", "customaliases", "View a list of your custom alaises
 			new[tab][v.Alias] = v.Alias
 		end
 		Gui.DisplayTable("Custom Aliases", new)
+	end
+end)
+
+AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {"Core"}, 2, function()
+	local success, list = pcall(function()
+		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/browser-plugins.json")
+	end)
+	if success then
+		list = HttpService:JSONDecode(list)
+		local Container = Gui.New("Plugin Browser")
+		local Section = Container:AddSection("Section")
+		local View = function(name, description, url)
+			Container.Close()
+			Container = Gui.New("Plugin Info")
+			Section = Container:AddSection("Section")
+			Section:AddItem("Button", {Text = "Back to Browser", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+				Container.Close()
+				ExecuteCommand("browser")
+			end})
+			local file = gsub(CleanSpecials(lower(tostring(name))), " ", "") .. ".lua"
+			Section:AddItem("Text", {Text = format("Name: %s", name)})
+			Section:AddItem("Button", {Text = "Enable Plugin", Function = function()
+				local exists = pcall(readfile, format("dark-admin/plugins/browser/%s", file))
+				if exists then
+					InstallPlugin(format("browser/%s", file), false)
+				else
+					writefile(format("dark-admin/plugins/browser/%s", file), format("return loadstring(game:HttpGet(\"https://raw.githubusercontent.com/daximul/v2/main/src/browser/%s\"))()", url))
+					wait(0.1)
+					InstallPlugin(format("browser/%s", file), false)
+				end
+			end})
+			Section:AddItem("Button", {Text = "Disable Plugin", Function = function()
+				UninstallPlugin(format("browser/%s", file))
+				wait(0.1)
+				pcall(delfile, format("dark-admin/plugins/browser/%s", file))
+			end})
+			if description then
+				Container:AddSection("Description", "Dropdown"):AddElement(nil, description)
+			else
+				Section:AddItem("Text", {Text = "No description provided"})
+			end
+		end
+		for _, v in next, list do
+			Section:AddItem("ButtonText", {Text = v.Name, Function = function()
+				View(v.Name, v.Description, v.Url)
+			end})
+		end
 	end
 end)
 
