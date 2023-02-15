@@ -18,7 +18,6 @@ Admin = {
 
 local Config = {
 	Prefix = ";",
-	Plugins = {},
 	DisabledPlugins = {},
 	LoweredText = false,
 	FlySpeed = 1,
@@ -849,9 +848,6 @@ do
 	if not isfolder("dark-admin/plugins") then
 		makefolder("dark-admin/plugins")
 	end
-	if not isfolder("dark-admin/plugins/browser") then
-		makefolder("dark-admin/plugins/browser")
-	end
 	if not isfolder("dark-admin/logs") then
 		makefolder("dark-admin/logs")
 	end
@@ -888,6 +884,7 @@ do
 end
 
 -- Plugins
+local LoadedPlugins = {}
 PluginExtensions = {".luau", ".lua", ".txt", ".da"}
 
 LoadPlugin = function(path, ignore)
@@ -896,9 +893,9 @@ LoadPlugin = function(path, ignore)
 	end)
 	if not Success then
 		Notify(format("plugin error for (%s)\nplease open console (F9) for the error", path))
-		for i, v in next, Config.Plugins do
+		for i, v in next, LoadedPlugins do
 			if v == path then
-				Config.Plugins[i] = nil
+				LoadedPlugins[i] = nil
 			end
 		end
 		UpdateConfig()
@@ -966,13 +963,13 @@ InstallPlugin = function(name, ignore)
 		end
 	end
 	if file then
-		if not FindInTable(Config.Plugins, file) then
+		if not FindInTable(LoadedPlugins, file) then
 			for i, v in next, Config.DisabledPlugins do
 				if v == file then
 					Config.DisabledPlugins[i] = nil
 				end
 			end
-			insert(Config.Plugins, file)
+			insert(LoadedPlugins, file)
 			LoadPlugin(file, ignore)
 		else
 			Notify(format("plugin (%s) already loaded", file))
@@ -995,9 +992,9 @@ UninstallPlugin = function(name)
 				Admin.Commands[i] = nil
 			end
 		end
-		for i, v in next, Config.Plugins do
+		for i, v in next, LoadedPlugins do
 			if v == file then
-				Config.Plugins[i] = nil
+				LoadedPlugins[i] = nil
 				insert(Config.DisabledPlugins, file)
 				UpdateConfig()
 				Notify(format("plugin (%s) has been removed", file))
@@ -1420,8 +1417,8 @@ AddCommand("pluginlist", "pluginlist", "View a list of your plugins.", {"plugins
 		Section:AddItem("Button", {Text = "Disable Plugin", Function = function() UninstallPlugin(name) end})
 	end
 	Section:AddItem("Text", {Text = "Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
-	if #Config.Plugins > 0 then
-		for _, v in next, Config.Plugins do
+	if #LoadedPlugins > 0 then
+		for _, v in next, LoadedPlugins do
 			Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end})
 		end
 	else
@@ -1491,22 +1488,28 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 				Container.Close()
 				ExecuteCommand("browser")
 			end})
-			local file = gsub(CleanSpecials(lower(tostring(name))), " ", "") .. ".lua"
+			local file = format("browser-%s.lua", gsub(CleanSpecials(lower(tostring(name))), " ", ""))
 			Section:AddItem("Text", {Text = format("Name: %s", name)})
 			Section:AddItem("Button", {Text = "Enable Plugin", Function = function()
 				local exists = pcall(readfile, format("dark-admin/plugins/browser/%s", file))
 				if exists then
-					InstallPlugin(format("browser/%s", file), false)
+					InstallPlugin(file, false)
 				else
-					writefile(format("dark-admin/plugins/browser/%s", file), format("return loadstring(game:HttpGet(\"https://raw.githubusercontent.com/daximul/v2/main/src/browser/%s\"))()", url))
+					writefile(format("dark-admin/plugins/%s", file), format("return loadstring(game:HttpGet(\"https://raw.githubusercontent.com/daximul/v2/main/src/browser/%s\"))()", url))
 					wait(0.1)
-					InstallPlugin(format("browser/%s", file), false)
+					InstallPlugin(file, false)
 				end
 			end})
 			Section:AddItem("Button", {Text = "Disable Plugin", Function = function()
-				UninstallPlugin(format("browser/%s", file))
+				UninstallPlugin(file)
 				wait(0.1)
-				pcall(delfile, format("dark-admin/plugins/browser/%s", file))
+				pcall(delfile, format("dark-admin/plugins/%s", file))
+				for i, v in next, Config.DisabledPlugins do
+					if v == file then
+						Config.DisabledPlugins[i] = nil
+					end
+				end
+				UpdateConfig()
 			end})
 			if description then
 				Container:AddSection("Description", "Dropdown"):AddElement(nil, description)
@@ -3134,25 +3137,16 @@ AddCommand("nobreadcrumbs", "nobreadcrumbs", "Disables breadcrumbs.", {"unbreadc
 end)
 
 if listfiles and type(listfiles) == "function" then
-	local valid = {}
+	local Plugins = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
 		if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then
-			insert(valid, tostring(split(v, "\\")[2]))
+			insert(Plugins, tostring(split(v, "\\")[2]))
 		end
 	end
-	for i, v in next, Config.DisabledPlugins do
-		if not FindInTable(valid, v) then
-			Config.DisabledPlugins[i] = nil
-		end
-	end
-	for _, v in next, valid do
+	for _, v in next, Plugins do
 		if not FindInTable(Config.DisabledPlugins, v) then
 			InstallPlugin(v, true)
 		end
-	end
-else
-	for _, v in pairs(Config.Plugins) do
-		InstallPlugin(v, true)
 	end
 end
 
