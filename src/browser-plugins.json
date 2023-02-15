@@ -3,5 +3,10 @@
         "Name": "Shader Mod",
         "Description": "Adds shaders to your game (best with max graphics). The command is toggleshader.",
         "Url": "shadermod.lua"
+    },
+    {
+        "Name": "Cyclically's Btools",
+        "Description": "Better btools with Undo & Identify. The command is cycbtools.",
+        "Url": "cyclicallysbtools.lua"
     }
 ]
