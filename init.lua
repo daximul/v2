@@ -884,7 +884,7 @@ do
 end
 
 -- Plugins
-local LoadedPlugins = {}
+LoadedPlugins = {}
 PluginExtensions = {".luau", ".lua", ".txt", ".da"}
 
 LoadPlugin = function(path, ignore)
