@@ -5,7 +5,7 @@ return {
 	Commands = {
 		{
 			Name = "toggleshader",
-			Description = "Toggles shaders."
+			Description = "Toggles shaders.",
 			Function = function()
 				Blur.Enabled, Depth.Enabled = not Blur.Enabled, not Depth.Enabled
 			end
