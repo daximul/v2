@@ -3,10 +3,5 @@
         "Name": "Shader Mod",
         "Description": "Toggle Shaders in your Roblox game (best with max graphics)",
         "Url": "shadermod.lua"
-    },
-    {
-        "Name": "Shaders Mod",
-        "Description": null,
-        "Url": "shadermod.lua"
     }
 ]
