@@ -1,6 +1,11 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/15/23",
+        "fixed plugins (again)",
+        "fixed browser"
+    ],
+    [
         "Update 2/14/23",
         "+ noclickdetectorlimits, clickdetectorlimits, fireclickdetectors, firetouchinterests, noproximitypromptlimits",
         "+ proximitypromptlimits, fireproximityprompts, instantproximityprompts, uninstantproximityprompts",
