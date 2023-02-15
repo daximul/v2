@@ -1542,13 +1542,8 @@ end)
 AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
-	if not character or not humanoid or not root then
-		return
-	end
-
-	local BodyGyroName, BodyVelocityName, MaxSpeed = RandomString(), RandomString(), function()
-		return Config.FlySpeed * 50
-	end
+	if not character or not humanoid or not root then return end
+	local BodyGyroName, BodyVelocityName, MaxSpeed = RandomString(), RandomString(), function() return Config.FlySpeed * 50 end
 	local Controls = {Front = 0, Back = 0, Left = 0, Right = 0, Down = 0, Up = 0}
 	local Keys = {
 		W = function(t)
@@ -1570,19 +1565,16 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 			Controls.Down = clamp(Controls.Down + (t and -1 or 1), -(MaxSpeed() * 2), 0)
 		end
 	}
-
 	if root:FindFirstChild(BodyGyroName) then
 		root:FindFirstChild(BodyGyroName):Destroy()
 	end
 	if root:FindFirstChild(BodyVelocityName) then
 		root:FindFirstChild(BodyVelocityName):Destroy()
 	end
-
-	local BodyGyro = NewInstance("BodyGyro", {P = 9e4, MaxTorque = Vector3.new(9e9,9e9,9e9), CFrame = root.CFrame, Parent = root, Name = BodyGyroName})
-	local BodyVelocity = NewInstance("BodyVelocity", {Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root, Name = BodyVelocityName})
-
+	local BodyGyro = NewInstance("BodyGyro", {Name = BodyGyroName, P = 9e4, MaxTorque = Vector3.new(9e9,9e9,9e9), CFrame = root.CFrame, Parent = root})
+	local BodyVelocity = NewInstance("BodyVelocity", {Name = BodyVelocityName, Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root})
 	env[1] = function()
-		cons.remove({"fly", "unfly"})
+		cons.remove({"fly", "fly2"})
 		if BodyGyro then
 			BodyGyro:Destroy()
 		end
@@ -1593,7 +1585,6 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 			GetHumanoid().PlatformStand = false
 		end
 	end
-
 	coroutine.wrap(function()
 		cons.add("fly", RunService.Stepped, function()
 			if not GetCharacter() or not GetHumanoid() then
@@ -1607,8 +1598,7 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 			BodyVelocity.Velocity = ((workspace.CurrentCamera.CFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CFrame.Position)
 		end)
 	end)()
-
-	cons.add("unfly", humanoid.Died, function()
+	cons.add("fly2", humanoid.Died, function()
 		ExecuteCommand("unfly")
 	end)
 end)
