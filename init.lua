@@ -3136,6 +3136,9 @@ AddCommand("nobreadcrumbs", "nobreadcrumbs", "Disables breadcrumbs.", {"unbreadc
 	RunCommandFunctions("breadcrumbs")
 end)
 
+-- inaccurate loading time because funny
+Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
+
 if listfiles and type(listfiles) == "function" then
 	local Plugins = {}
 	for _, v in next, listfiles("dark-admin/plugins") do
@@ -3161,5 +3164,3 @@ for name, permission in next, MiscConfig.Permissions do
 	end
 end
 UpdateMiscConfig()
-
-Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
