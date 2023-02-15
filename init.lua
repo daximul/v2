@@ -388,7 +388,7 @@ SpecialPlayerCases = {
 		return returns
 	end,
 	random = function(speaker, args, currentList)
-        local players = filterthrough(Players:GetPlayers(), function(_, v)
+		local players = filterthrough(Players:GetPlayers(), function(_, v)
 			return v ~= speaker
 		end)
 		return {players[random(1, #players)]}
