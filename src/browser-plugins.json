@@ -1,7 +1,7 @@
 [
     {
         "Name": "Shader Mod",
-        "Description": "Toggle Shaders in your Roblox game (best with max graphics)",
+        "Description": "Adds shaders to your game (best with max graphics). The command is toggleshader.",
         "Url": "shadermod.lua"
     }
 ]
