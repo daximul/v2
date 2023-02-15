@@ -15,7 +15,6 @@ return {
                         local movedetect, movingpart, movetransparency = false, nil, 0
                         local editedparts, parentfix, positionfix = {}, {}, {}
                         cons.add(Move.Activated, function()
-                            Notify(format("Move Tool: %s", Mouse.Target.Name))
                             movingpart = Mouse.Target
                             movedetect = true
                             movingpart.CanCollide = false
@@ -32,21 +31,18 @@ return {
                             until movedetect == false
                         end)
                         cons.add(Move.Deactivated, function()
-                            Notify(format("Move Tool: %s", Mouse.Target.Name))
                             movingpart.CanCollide = true
                             movedetect = false
                             Mouse.TargetFilter = nil
                             movingpart.Transparency = movetransparency
                         end)
                         cons.add(Delete.Activated, function()
-                            Notify(format("Delete Tool: %s", Mouse.Target.Name))
                             insert(editedparts, Mouse.Target)
                             insert(parentfix, Mouse.Target.Parent)
                             insert(positionfix, Mouse.Target.CFrame)
                             Mouse.Target.Parent = nil
                         end)
                         cons.add(Undo.Activated, function()
-                            Notify(format("Undo Tool: %s", editedparts[#editedparts].Name))
                             editedparts[#editedparts].Parent = parentfix[#parentfix]
                             editedparts[#editedparts].CFrame = positionfix[#positionfix]
                             remove(positionfix, #positionfix)
@@ -54,7 +50,7 @@ return {
                             remove(parentfix, #parentfix)
                         end)
                         cons.add(Identify.Activated, function()
-                            Notify(format("Identify Tool\nInstance: %s\nName: %s", Mouse.Target.ClassName, Mouse.Target.Name))
+                            Notify(format("Identify Tool\nInstance: %s\nName: %s\nPath: %s", Mouse.Target.ClassName, Mouse.Target.Name, Mouse.Target:GetFullName()))
                         end)
                     end
                 end)
