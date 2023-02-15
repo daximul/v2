@@ -2381,11 +2381,6 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		local oldpos = root.CFrame
 		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
 		wait(0.2)
-		root.Anchored = true
-		local seat = NewInstance("Seat", {Name = RandomString(), Parent = workspace, CFrame = root.CFrame, Anchored = false, Transparency = 1, CanCollide = false})
-		local weld = NewInstance("Weld", {Name = RandomString(), Parent = seat, Part0 = seat, Part1 = root})
-		root.Anchored = false
-		seat.CFrame = oldpos
 		cons.add("tool invisible", heartbeat, function()
 			if not character or not character:FindFirstChild("Head") or not root then
 				ExecuteCommand("uninvisible")
@@ -2395,18 +2390,11 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 			RunService.RenderStepped:Wait()
 			character.Head.Size = old
 		end)
+		wait(0.2)
 		root.CFrame = oldpos
 	end
 	env[1] = function()
 		cons.remove("tool invisible")
-		if weld then
-			weld.Part0 = nil
-			weld.Part1 = nil
-			weld:Destroy()
-		end
-		if seat then
-			seat:Destroy()
-		end
 	end
 end)
 
