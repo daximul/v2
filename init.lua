@@ -904,7 +904,7 @@ LoadPlugin = function(path, ignore)
 		Plugin = nil
 		return
 	end
-	if Plugin ~= nil then
+	if Plugin ~= nil and type(Plugin) == "table" then
 		spawn(function()
 			if Plugin.Commands and type(Plugin.Commands) == "table" then
 				for _, v in next, Plugin.Commands do
@@ -1955,117 +1955,6 @@ AddCommand("antiafk", "antiafk", "Prevent yourself from being kicked after being
 		end)
 	end
 end)
-
---[[
-AddCommand("fling", "fling [player]", "Fling [player].", {}, {"Fun", 1}, 2, function(args, speaker)
-	for _, available in next, getPlayer(args[1], speaker) do
-		local target = Players[available]
-		if target then
-			local character, humanoid, root = GetCharacter(target), GetHumanoid(GetCharacter(target)), GetRoot(GetCharacter(target))
-			local mycharacter, myhumanoid, myroot = GetCharacter(), GetHumanoid(), GetRoot()
-			if mycharacter and myhumanoid and myroot then
-				local head, accessory = character:FindFirstChild("Head"), character:FindFirstChildWhichIsA("Accessory")
-				local handle = accessory:FindFirstChild("Handle")
-				local oldpos = false
-				if myroot.Velocity.Magnitude < 50 then
-					oldpos = myroot.CFrame
-				end
-				if humanoid and humanoid.Sit then
-					return
-				end
-				if not character:FindFirstChildWhichIsA("BasePart") then
-					return
-				end
-				local foreach, new, angles, rad, v3 = table.foreach, CFrame.new, CFrame.Angles, math.rad, Vector3.new
-				local fpos = function(part, position, angle)
-					myroot.CFrame = new(part.Position) * position * angle
-					mycharacter:SetPrimaryPartCFrame(new(part.Position) * position * angle)
-					myroot.Velocity = v3(9e7, 9e7 * 10, 9e7)
-					myroot.RotVelocity = v3(9e8, 9e8, 9e8)
-				end
-				local sfpart = function(part)
-					local TimeToWait, Time, Angle = 2, os.clock(), 0
-					repeat
-						if myroot and humanoid then
-							if part.Velocity.Magnitude < 50 then
-								Angle = Angle + 100
-								fpos(part, new(0, 1.5, 0) + humanoid.MoveDirection * part.Velocity.Magnitude / 1.25, angles(rad(Angle), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0) + humanoid.MoveDirection * part.Velocity.Magnitude / 1.25, angles(rad(Angle), 0, 0))
-								wait()
-								fpos(part, new(2.25, 1.5, -2.25) + humanoid.MoveDirection * part.Velocity.Magnitude / 1.25, angles(rad(Angle), 0, 0))
-								wait()
-								fpos(part, new(-2.25, -1.5, 2.25) + humanoid.MoveDirection * part.Velocity.Magnitude / 1.25, angles(rad(Angle), 0, 0))
-								wait()
-								fpos(part, new(0, 1.5, 0) + humanoid.MoveDirection, angles(rad(Angle), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0) + humanoid.MoveDirection, angles(rad(Angle), 0, 0))
-								wait()
-							else
-								fpos(part, new(0, 1.5, humanoid.WalkSpeed), angles(rad(90), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, -humanoid.WalkSpeed), angles(0, 0, 0))
-								wait()
-								fpos(part, new(0, 1.5, humanoid.WalkSpeed), angles(rad(90), 0, 0))
-								wait()
-								fpos(part, new(0, 1.5, root.Velocity.Magnitude / 1.25), angles(rad(90), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, -root.Velocity.Magnitude / 1.25), angles(0, 0, 0))
-								wait()
-								fpos(part, new(0, 1.5, root.Velocity.Magnitude / 1.25), angles(rad(90), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0), angles(rad(90), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0), angles(0, 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0), angles(rad(-90), 0, 0))
-								wait()
-								fpos(part, new(0, -1.5, 0), angles(0, 0, 0))
-								wait()
-							end
-						else
-							break
-						end
-					until part.Velocity.Magnitude > 500 or GetCharacter(target) == nil or part.Parent ~= character or target.Parent ~= Players or humanoid.Sit or myhumanoid.Health <= 0 or os.clock() > Time + TimeToWait
-				end
-				ExecuteCommand("antivoid")
-				local bv = NewInstance("BodyVelocity", {Parent = myroot, Name = RandomString(), Velocity = v3(9e8, 9e8, 9e8), MaxForce = v3(1 / 0, 1 / 0, 1 / 0)})
-				myhumanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-				if root and head then
-					if (root.CFrame.p - head.CFrame.p).Magnitude > 5 then
-						sfpart(head)
-					else
-						sfpart(root)
-					end
-				elseif root and not head then
-					sfpart(root)
-				elseif not root and head then
-					sfpart(head)
-				elseif not root and not head and accessory and handle then
-					sfpart(handle)
-				else
-					return
-				end
-				bv:Destroy()
-				myhumanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-				repeat
-					myroot.CFrame = oldpos * new(0, 0.5, 0)
-					mycharacter:SetPrimaryPartCFrame(oldpos * new(0, 0.5, 0))
-					myhumanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-					foreach(mycharacter:GetChildren(), function(_, v)
-						if v:IsA("BasePart") then
-							v.Velocity, v.RotVelocity = v3(), v3()
-						end
-					end)
-					wait()
-				until (myroot.Position - oldpos.p).Magnitude < 25
-			else
-				return
-			end
-		end
-	end
-end)
-]]
 
 AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unview")
