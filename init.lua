@@ -3140,7 +3140,13 @@ AddCommand("crosshair", "crosshair", "Enables and changes your mouse icon.", {},
 	ExecuteCommand("nocrosshair")
 	local OldMouseIconEnabled, OldMouseIcon = UserInputService.MouseIconEnabled, Mouse.Icon
 	UserInputService.MouseIconEnabled, Mouse.Icon = true, "rbxassetid://10674399936"
-	env[1] = function() UserInputService.MouseIconEnabled, Mouse.Icon = OldMouseIconEnabled, OldMouseIcon end
+	cons.add("crosshair", heartbeat, function()
+		UserInputService.MouseIconEnabled, Mouse.Icon = true, "rbxassetid://10674399936"
+	end)
+	env[1] = function()
+		cons.remove("crosshair")
+		UserInputService.MouseIconEnabled, Mouse.Icon = OldMouseIconEnabled, OldMouseIcon
+	end
 end)
 
 AddCommand("nocrosshair", "nocrosshair", "Disables crosshair.", {"uncrosshair"}, {}, 2, function()
