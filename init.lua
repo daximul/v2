@@ -1326,7 +1326,7 @@ end)
 AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
-		Loaded.Close()
+		Loaded.Container.Close()
 	end
 	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
 	local Section = Container:AddSection("Section")
