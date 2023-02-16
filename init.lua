@@ -3136,6 +3136,17 @@ AddCommand("nobreadcrumbs", "nobreadcrumbs", "Disables breadcrumbs.", {"unbreadc
 	RunCommandFunctions("breadcrumbs")
 end)
 
+AddCommand("crosshair", "crosshair", "Enables and changes your mouse icon.", {}, {}, 2, function(_, _, env)
+	ExecuteCommand("nocrosshair")
+	local OldMouseIconEnabled, OldMouseIcon = UserInputService.MouseIconEnabled, Mouse.Icon
+	UserInputService.MouseIconEnabled, Mouse.Icon = true, "rbxassetid://10674399936"
+	env[1] = function() UserInputService.MouseIconEnabled, Mouse.Icon = OldMouseIconEnabled, OldMouseIcon end
+end)
+
+AddCommand("nocrosshair", "nocrosshair", "Disables crosshair.", {"uncrosshair"}, {}, 2, function()
+	RunCommandFunctions("crosshair")
+end)
+
 -- inaccurate loading time because funny
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
