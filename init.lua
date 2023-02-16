@@ -3139,6 +3139,7 @@ end)
 AddCommand("crosshair", "crosshair", "Enables and changes your mouse icon.", {}, {}, 2, function(_, _, env)
 	ExecuteCommand("nocrosshair")
 	local OldMouseIconEnabled, Icon, u2 = UserInputService.MouseIconEnabled, Gui.BaseObject.Crosshair, UDim2.new
+	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	cons.add("crosshair", heartbeat, function()
 		UserInputService.MouseIconEnabled, Icon.Position, Icon.Visible = false, u2(0, Mouse.X, 0, Mouse.Y), true
 	end)
