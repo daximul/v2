@@ -708,13 +708,38 @@ local do_exec = function(str, plr)
 	end
 end
 
-cons.add(LocalPlayer.Chatted, function(message)
-	spawn(function()
-		wait()
-		do_exec(tostring(message), LocalPlayer)
-	end)
-	LogChatMessage(LocalPlayer, message)
-end)
+do
+	local got = false
+	local MainChat = LocalPlayer:FindFirstChildWhichIsA("PlayerGui") and LocalPlayer:FindFirstChildWhichIsA("PlayerGui"):FindFirstChild("Chat")
+	if MainChat then
+		if MainChat:FindFirstChild("Frame") and MainChat.Frame:FindFirstChild("ChatBarParentFrame") then
+			local ChatbarFrame = MainChat.Frame.ChatBarParentFrame
+			if ChatbarFrame:FindFirstChild("Frame") and ChatbarFrame.Frame:FindFirstChild("BoxFrame") and ChatbarFrame.Frame.BoxFrame:FindFirstChild("Frame") and ChatbarFrame.Frame.BoxFrame.Frame:FindFirstChild("ChatBar") then
+				got = true
+				local chatbar = ChatbarFrame.Frame.BoxFrame.Frame.ChatBar
+				cons.add(chatbar.FocusLost, function()
+					local text = chatbar.Text
+					if text ~= "" then
+						spawn(function()
+							wait()
+							do_exec(text, LocalPlayer)
+						end)
+						LogChatMessage(LocalPlayer, text)
+					end
+				end)
+			end
+		end
+	end
+	if not got then
+		cons.add(LocalPlayer.Chatted, function(message)
+			spawn(function()
+				wait()
+				do_exec(message, LocalPlayer)
+			end)
+			LogChatMessage(LocalPlayer, message)
+		end)
+	end
+end
 
 for _, player in next, Players:GetPlayers() do
 	if player ~= LocalPlayer then
@@ -1333,6 +1358,9 @@ AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core
 	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
 		ExecuteCommand("savechatlogs")
 	end})
+	Section:AddItem("Button", {Text = "Clear Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+		ExecuteCommand("clearchatlogs")
+	end})
 	spawn(function()
 		for _, v in next, ChatHistory do
 			local log = format("[%s]: %s", v.Name, v.Message)
@@ -1364,6 +1392,17 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 	else
 		warn("Save Error:", result)
 		Notify("failed to save chatlogs, check console for more info")
+	end
+end)
+
+AddCommand("clearchatlogs", "clearchatlogs", "Clear the chatlogs.", {}, {"Core"}, 2, function()
+	for i, _ in next, ChatHistory do
+		ChatHistory[i] = nil
+	end
+	local Loaded = GetEnvironment("chatlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then
+		Loaded.Container.Close()
+		ExecuteCommand("chatlogs")
 	end
 end)
 
