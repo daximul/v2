@@ -3081,6 +3081,10 @@ AddCommand("nocrosshair", "nocrosshair", "Disables crosshair.", {"uncrosshair"},
 	RunCommandFunctions("crosshair")
 end)
 
+AddCommand("chat", "chat [message]", "Makes you say [message].", {"say"}, {1}, 2, function()
+	SendChatMessage(getstring(1))
+end)
+
 -- inaccurate loading time because funny
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
 
