@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/17/23",
+        "+ clearchatlogs"
+    ],
+    [
         "Update 2/15/23",
         "fixed plugins (again)",
         "fixed browser",
