@@ -345,8 +345,8 @@ CleanSpecials = function(...)
 	return gsub(..., "[*\\?:<>|']+", "")
 end
 
-local ChatHistory = {}
-local LogChatMessage = function(player, message)
+ChatHistory = {}
+LogChatMessage = function(player, message)
 	insert(ChatHistory, {Player = player, Name = GetLongUsername(player), Message = message})
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
@@ -355,7 +355,7 @@ local LogChatMessage = function(player, message)
 	end
 end
 
-local CapitalizeFirstCharacter = function(str)
+CapitalizeFirstCharacter = function(str)
 	return gsub(str, "%S+", gsub(str, "^%l", upper))
 end
 
