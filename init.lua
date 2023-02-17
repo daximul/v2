@@ -4,6 +4,10 @@ end
 
 local LoadingTick = tick()
 
+if getgenv().dxrkj and type(getgenv().dxrkj) == "function" then
+	return getgenv().dxrkj("script already loaded\nrun 'killscript' to kill the script")
+end
+
 Admin = {
 	Debug = false,
 	Commands = {},
@@ -206,7 +210,7 @@ GetTool = function(player, requiresHandle)
 end
 
 local touchedcache = {}
-firerbxtouch = (getgenv and type(getgenv) == "function" and getgenv().firetouchinterest) or function(part, part2, value)
+firerbxtouch = getgenv().firetouchinterest or function(part, part2, value)
 	if part and part2 then
 		if value == 0 then
 			touchedcache[1] = part.CFrame
@@ -1211,6 +1215,7 @@ end)
 AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {"Core"}, 2, function(args, speaker)
 	cons.wipe()
 	Gui.BaseObject:Destroy()
+	getgenv().dxrkj = nil
 	for _, command in next, Admin.Commands do
 		RunCommandFunctions(command.Name, true)
 	end
@@ -3084,6 +3089,8 @@ end)
 AddCommand("chat", "chat [message]", "Makes you say [message].", {"say"}, {1}, 2, function()
 	SendChatMessage(getstring(1))
 end)
+
+getgenv().dxrkj = Notify
 
 -- inaccurate loading time because funny
 Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
