@@ -134,7 +134,7 @@ end
 
 GetRoot = function(character)
 	character = character or GetCharacter()
-	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso"))
+	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("LowerTorso"))
 end
 
 IsKeyDown = {}
@@ -1750,7 +1750,7 @@ AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2,
 	cons.remove({"noclip", "noclip2"})
 end)
 
-AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"Utility", 1}, 2, function(args, speaker)
+AddCommand("goto", "goto [player] [distance]", "Teleport yourself to [player]. [distance] is an optional argument.", {"to"}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target and target.Character then
@@ -1760,7 +1760,7 @@ AddCommand("goto", "goto [player]", "Teleport yourself to [player].", {"to"}, {"
 					humanoid.Sit = false
 					wait(0.1)
 				end
-				root.CFrame = root2.CFrame + Vector3.new(3, 1, 0)
+				root.CFrame = root2.CFrame + Vector3.new(tonumber(args[2]) or 3, 1, 0)
 			end
 		end
 	end
@@ -3126,6 +3126,49 @@ AddCommand("unstrengthen", "unstrengthen", "description.", {"unweaken"}, {"Utili
 			end
 		end
 	end
+end)
+
+AddCommand("bang", "bang [player] [speed]", "Bangs [player] with a speed of [speed]. [speed] is an optional argument.\n\n\"Prank 'em John.\" - CalebCity", {}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unbang")
+	local humanoid = GetHumanoid()
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target and target.Character and GetRoot(GetCharacter(target)) and GetRoot() and humanoid then
+			local id = NewInstance("Animation", {AnimationId = (humanoid.RigType == Enum.HumanoidRigType.R15 and "rbxassetid://5918726674") or "rbxassetid://148840371"})
+			local anim = humanoid:LoadAnimation(id)
+			anim:Play(0.1, 1, 1)
+			anim:AdjustSpeed(tonumber(args[2]) or 3)
+			cons.add("bang", RunService.Stepped, function()
+				pcall(function()
+					GetRoot().CFrame = GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 0, 1.1)
+				end)
+			end)
+			cons.add("bang2", humanoid.Died, function()
+				ExecuteCommand("unbang")
+			end)
+			env[1] = function()
+				cons.remove({"bang", "bang2"})
+				anim:Stop()
+				id:Destroy()
+			end
+		end
+	end
+end)
+
+AddCommand("unbang", "unbang", "Stop being sus in a lego game.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("bang")
+end)
+
+AddCommand("loopgoto", "loopgoto [player] [distance]", "Loop goto [player]. [distance] is an optional argument.", {}, {"Utility", "spawned", 1}, 2, function(args, _, env)
+	ExecuteCommand("unloopgoto")
+	env[1] = function() end
+	repeat heartbeat:Wait()
+		ExecuteCommand(format("goto %s %d", args[1], tonumber(args[2]) or 5.8))
+	until not env[1]
+end)
+
+AddCommand("unloopgoto", "unloopgoto", "Disables loopgoto.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("loopgoto")
 end)
 
 getgenv().dxrkj = Notify
