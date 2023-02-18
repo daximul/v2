@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/18/23",
+        "+ bang [player] [speed], unbang, loopgoto [player] [distance], unloopgoto"
+    ],
+    [
         "Update 2/17/23",
         "+ clearchatlogs, chat [message], trip, strengthen [number], weaken [number], unstrengthen"
     ],
