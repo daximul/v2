@@ -3090,6 +3090,44 @@ AddCommand("chat", "chat [message]", "Makes you say [message].", {"say"}, {1}, 2
 	SendChatMessage(getstring(1))
 end)
 
+AddCommand("trip", "trip", "Makes your character fall over.", {}, {}, 2, function()
+	local humanoid, root = GetHumanoid(), GetRoot()
+	if humanoid and root then
+		humanoid:ChangeState(Enum.HumanoidStateType.FallingDown)
+		root.Velocity = root.CFrame.LookVector * 30
+	end
+end)
+
+AddCommand("strengthen", "strengthen [number]", "Makes your character more dense by setting CustomPhysicalProperties to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+	if GetCharacter() then
+		for _, v in next, GetCharacter():GetDescendants() do
+			if v:IsA("Part") then
+				v.CustomPhysicalProperties = PhysicalProperties.new(tonumber(args[1]) or 100, 0.3, 0.5)
+			end
+		end
+	end
+end)
+
+AddCommand("weaken", "weaken [number]", "Makes your character less dense by setting CustomPhysicalProperties to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+	if GetCharacter() then
+		for _, v in next, GetCharacter():GetDescendants() do
+			if v:IsA("Part") then
+				v.CustomPhysicalProperties = PhysicalProperties.new(-tonumber(args[1]) or 0, 0.3, 0.5)
+			end
+		end
+	end
+end)
+
+AddCommand("unstrengthen", "unstrengthen", "description.", {"unweaken"}, {"Utility"}, 2, function()
+	if GetCharacter() then
+		for _, v in next, GetCharacter():GetDescendants() do
+			if v:IsA("Part") then
+				v.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
+			end
+		end
+	end
+end)
+
 getgenv().dxrkj = Notify
 
 -- inaccurate loading time because funny
