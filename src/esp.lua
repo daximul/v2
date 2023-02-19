@@ -1,4 +1,4 @@
--- moved to https://github.com/daximul/asurion/blob/main/init.lua
+-- moved to https://github.com/daximul/sense/blob/main/init.lua
 
 assert(Drawing, "missing dependency: drawing")
 
