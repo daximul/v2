@@ -3186,6 +3186,28 @@ AddCommand("hidename", "hidename", "Removes billboards from your character.", {"
 	end
 end)
 
+AddCommand("loophidename", "loophidename", "Constantly removes billboards from your character.", {"loopnobillboardgui"}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unloophidename")
+	local character = GetCharacter()
+	if character then
+		for _, v in next, character:GetDescendants() do
+			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+				v:Destroy()
+			end
+		end
+		cons.add("loop hide name", character.DescendantAdded, function(v)
+			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+				v:Destroy()
+			end
+		end)
+		env[1] = function() cons.remove("loop hide name") end
+	end
+end)
+
+AddCommand("unloophidename", "unloophidename", "Disables loophidename.", {"unloopnobillboardgui"}, {"Utility"}, 2, function()
+	RunCommandFunctions("loophidename")
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s\nrun 'killscript' to kill the script", Config.Prefix), 10) end
 
 -- inaccurate loading time because funny
