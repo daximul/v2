@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 2/19/23",
-        "+ startupnotification, hidename"
+        "+ startupnotification, hidename, loophidename, unloophidename"
     ],
     [
         "Update 2/18/23",
