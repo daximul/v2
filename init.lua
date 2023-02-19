@@ -5,7 +5,7 @@ end
 local LoadingTick = tick()
 
 if getgenv().dxrkj and type(getgenv().dxrkj) == "function" then
-	return getgenv().dxrkj("script already loaded\nrun 'killscript' to kill the script")
+	return getgenv().dxrkj()
 end
 
 Admin = {
@@ -27,7 +27,8 @@ local Config = {
 	FlySpeed = 1,
 	TweenSpeed = 1,
 	KeepAdmin = true,
-	Widebar = false
+	StartupNotification = true,
+	Widebar = false,
 }
 local MiscConfig = {Permissions = {}, CustomAlias = {}}
 
@@ -1424,13 +1425,19 @@ elseif success then
 end]])
 	end
 end)
-AddCommand("keepadmin", "keepadmin", "Make it so the script re-executes upon teleporting. This is a toggle and saves.", {}, {"Core"}, 2, function()
+AddCommand("keepadmin", "keepadmin", "Makes it so the script re-executes upon teleporting. This is a toggle and saves.", {}, {"Core"}, 2, function()
 	Config.KeepAdmin = not Config.KeepAdmin
 	UpdateConfig()
 	Notify(format("keep admin has been %s", Config.KeepAdmin and "enabled\nthe script will execute when you teleport" or "disabled"))
 end)
 
-AddCommand("widebar", "widebar", "Widen the command bar. This is a toggle and saves.", {}, {"Core"}, 2, function()
+AddCommand("startupnotification", "startupnotification", "Toggles if the script does the loaded notification. This is a toggle and saves.", {}, {"Core"}, 2, function()
+	Config.StartupNotification = not Config.StartupNotification
+	UpdateConfig()
+	Notify(format("startup notification has been %s", Config.StartupNotification and "enabled" or "disabled"))
+end)
+
+AddCommand("widebar", "widebar", "Widens the command bar. This is a toggle and saves.", {}, {"Core"}, 2, function()
 	Config.Widebar = not Config.Widebar
 	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
 		Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
@@ -3171,10 +3178,12 @@ AddCommand("unloopgoto", "unloopgoto", "Disables loopgoto.", {}, {"Utility"}, 2,
 	RunCommandFunctions("loopgoto")
 end)
 
-getgenv().dxrkj = Notify
+getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s\nrun 'killscript' to kill the script", Config.Prefix), 10) end
 
 -- inaccurate loading time because funny
-Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
+if Config.StartupNotification then
+	Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
+end
 
 if listfiles and type(listfiles) == "function" then
 	local Plugins = {}
