@@ -1694,7 +1694,7 @@ end)
 AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
 	local success, esp = pcall(function()
-		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/asurion/main/init.lua"))()
+		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/sense/main/init.lua"))()
 	end)
 	if success then
 		local Container = Gui.New("Visuals", function()
@@ -1709,9 +1709,6 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
 		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
 		Section:AddItem("Toggle", {Text = "Chams", Function = function(callback) esp:Chams(callback) end})
-		local pl, res = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/asurion/main/supported/%d.lua", game.PlaceId)) end)
-		local gl, res2 = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/asurion/main/supported/%d.lua", game.GameId)) end)
-		if pl and res then loadstring(res)()(Container, Section, esp) elseif gl and res2 then loadstring(res2)()(Container, Section, esp) end
 		env[1] = function()
 			if Container and Container.Close then
 				Container.Close()
@@ -1719,6 +1716,10 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 				esp:Kill()
 			end
 		end
+		local PlaceExists, PlaceResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.PlaceId)) end)
+		local GameExists, GameResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.GameId)) end)
+		if PlaceExists then loadstring(PlaceResult)()(Container, Section, esp) end
+		if GameExists then loadstring(GameResult)()(Container, Section, esp) end
 	end
 end)
 
