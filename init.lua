@@ -1718,8 +1718,7 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 		end
 		local PlaceExists, PlaceResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.PlaceId)) end)
 		local GameExists, GameResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.GameId)) end)
-		if PlaceExists then loadstring(PlaceResult)()(Container, Section, esp) end
-		if GameExists then loadstring(GameResult)()(Container, Section, esp) end
+		if PlaceExists then loadstring(PlaceResult)()(Container, Section, esp) elseif GameExists then loadstring(GameResult)()(Container, Section, esp) end
 	end
 end)
 
