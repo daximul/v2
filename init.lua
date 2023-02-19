@@ -3178,6 +3178,14 @@ AddCommand("unloopgoto", "unloopgoto", "Disables loopgoto.", {}, {"Utility"}, 2,
 	RunCommandFunctions("loopgoto")
 end)
 
+AddCommand("hidename", "hidename", "Removes billboards from your character.", {"nobillboardgui"}, {"Utility"}, 2, function()
+	for _, v in next, GetCharacter():GetDescendants() do
+		if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+			v:Destroy()
+		end
+	end
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s\nrun 'killscript' to kill the script", Config.Prefix), 10) end
 
 -- inaccurate loading time because funny
