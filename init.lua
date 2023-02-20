@@ -1209,7 +1209,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 end)
 
 -- Commands
-AddCommand("debug", "debug", "Toggle the script's debug mode for commands.", {}, {"Core"}, 2, function(args, speaker)
+AddCommand("debug", "debug", "Toggles the script's debug mode for commands.", {}, {"Core"}, 2, function(args, speaker)
 	Admin.Debug = not Admin.Debug
 end)
 
@@ -1247,15 +1247,15 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 	Section:AddItem("Text", {Text = "Change 'name' to the name of the command you want to view."})
 end)
 
-AddCommand("addplugin", "addplugin [name]", "Add a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("addplugin", "addplugin [name]", "Adds a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
 	InstallPlugin(getstring(1), false)
 end)
 
-AddCommand("removeplugin", "removeplugin [name]", "Remove a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("removeplugin", "removeplugin [name]", "Removes a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
 	UninstallPlugin(getstring(1))
 end)
 
-AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"}, 2, function()
+AddCommand("commands", "commands", "Opens the command list.", {"cmds"}, {"Core"}, 2, function()
 	local new = {}
 	for _, command in next, Admin.Commands do
 		local category = command.Category or "Misc"
@@ -1267,7 +1267,7 @@ AddCommand("commands", "commands", "View the command list.", {"cmds"}, {"Core"},
 	Gui.DisplayTable("Commands", new)
 end)
 
-AddCommand("commandinfo", "commandinfo [command]", "View more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
+AddCommand("commandinfo", "commandinfo [command]", "Opens more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
 	local command = FindCommand(lower(tostring(args[1])))
 	if command then
 		Gui.DisplayTable("Command Info", {
@@ -1283,7 +1283,7 @@ AddCommand("commandinfo", "commandinfo [command]", "View more information about 
 	end
 end)
 
-AddCommand("changelogs", "changelogs", "View the changelogs.", {"changelog"}, {"Core"}, 2, function()
+AddCommand("changelogs", "changelogs", "Opens a list of the script changelogs.", {"changelog"}, {"Core"}, 2, function()
 	local success, result = pcall(function()
 		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
 	end)
@@ -1292,7 +1292,7 @@ AddCommand("changelogs", "changelogs", "View the changelogs.", {"changelog"}, {"
 	end
 end)
 
-AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
+AddCommand("editpermissions", "editpermissions [command] [number]", "Changes the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
 	local command, perm = FindCommand(lower(tostring(args[1]))), tonumber(args[1])
 	if command and perm then
 		if perm >= 2 then perm = 2 end
@@ -1303,7 +1303,7 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Modify the 
 	end
 end)
 
-AddCommand("whitelist", "whitelist [player]", "Whitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("whitelist", "whitelist [player]", "Whitelists a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1313,7 +1313,7 @@ AddCommand("whitelist", "whitelist [player]", "Whitelist a [player] to use permi
 	end
 end)
 
-AddCommand("unwhitelist", "unwhitelist [player]", "Unwhitelist a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelists a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1323,7 +1323,7 @@ AddCommand("unwhitelist", "unwhitelist [player]", "Unwhitelist a [player] to use
 	end
 end)
 
-AddCommand("whitelisted", "whitelisted", "View a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
+AddCommand("whitelisted", "whitelisted", "Opens a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
 	local list = new_table(Admin.Whitelisted, function(_, v)
 		return GetLongUsername(v.Player)
 	end)
@@ -1354,7 +1354,7 @@ AddCommand("unlowercasedcommandbar", "unlowercasedcommandbar", "Undoes lowercase
 	UpdateConfig()
 end)
 
-AddCommand("chatlogs", "chatlogs", "View the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
+AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
 		Loaded.Container.Close()
@@ -1401,7 +1401,7 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 	end
 end)
 
-AddCommand("clearchatlogs", "clearchatlogs", "Clear the chatlogs.", {}, {"Core"}, 2, function()
+AddCommand("clearchatlogs", "clearchatlogs", "Clears the chatlogs.", {}, {"Core"}, 2, function()
 	for i, _ in next, ChatHistory do
 		ChatHistory[i] = nil
 	end
@@ -1452,7 +1452,7 @@ AddCommand("breakloops", "breakloops", "Stops all command loops (inf^1^kill).", 
 	LastBreakTime = tick()
 end)
 
-AddCommand("pluginlist", "pluginlist", "View a list of your plugins.", {"plugins"}, {"Core"}, 2, function()
+AddCommand("pluginlist", "pluginlist", "Opens a list of your plugins.", {"plugins"}, {"Core"}, 2, function()
 	local Container = Gui.New("Plugins")
 	local Section = Container:AddSection("Section")
 	local Open = function(name)
@@ -1507,7 +1507,7 @@ AddCommand("removealias", "removealias [alias]", "Removes the custom alias [alia
 	UpdateMiscConfig()
 end)
 
-AddCommand("customaliases", "customaliases", "View a list of your custom alaises.", {"aliases"}, {"Core"}, 2, function()
+AddCommand("customaliases", "customaliases", "Opens a list of your custom alaises.", {"aliases"}, {"Core"}, 2, function()
 	if #MiscConfig.CustomAlias == 0 then
 		Notify("you have no custom aliases")
 	else
@@ -1576,7 +1576,7 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 	end
 end)
 
-AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
+AddCommand("viewtools", "viewtools [player]", "Views the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1593,7 +1593,7 @@ AddCommand("viewtools", "viewtools [player]", "View the tools of [player].", {},
 	end
 end)
 
-AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
+AddCommand("fly", "fly", "Makes your character able to fly.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if not character or not humanoid or not root then return end
@@ -1657,30 +1657,30 @@ AddCommand("fly", "fly", "Make your character able to fly.", {}, {"Utility", "sp
 	end)
 end)
 
-AddCommand("unfly", "unfly", "Stop flying.", {}, {"Utility"}, 2, function()
+AddCommand("unfly", "unfly", "Disable fly.", {}, {"Utility"}, 2, function()
 	RunCommandFunctions("fly")
 end)
 
-AddCommand("flyspeed", "flyspeed [number]", "Change your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
+AddCommand("flyspeed", "flyspeed [number]", "Changes your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
 	if toumber(args[1]) then
 		Config.FlySpeed = tonumber(args[1])
 		UpdateConfig()
 	end
 end)
 
-AddCommand("walkspeed", "walkspeed [number]", "Change your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
+AddCommand("walkspeed", "walkspeed [number]", "Changes your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
 	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().WalkSpeed = tonumber(args[1])
 	end
 end)
 
-AddCommand("jumppower", "jumppower [number]", "Change your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
+AddCommand("jumppower", "jumppower [number]", "Changes your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
 	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = tonumber(args[1])
 	end
 end)
 
-AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Utility"}, 2, function()
+AddCommand("rejoin", "rejoin", "Rejoins the game.", {"rj"}, {"Utility"}, 2, function()
 	if #Players:GetPlayers() <= 1 then
 		LocalPlayer:Kick("\nRejoining...")
 		wait()
@@ -1690,7 +1690,7 @@ AddCommand("rejoin", "rejoin", "Rejoin the game.", {"rj"}, {"Utility"}, 2, funct
 	end
 end)
 
-AddCommand("clearerrors", "clearerrors", "Remove the annoying box and blur that happens when a game kicks you.", {}, {}, 2, function()
+AddCommand("clearerrors", "clearerrors", "Removes the annoying box and blur that happens when a game kicks you.", {}, {}, 2, function()
 	Services.GuiService:ClearError()
 end)
 
@@ -1698,7 +1698,7 @@ AddCommand("net", "net", "N/A", {}, {}, 2, function()
 	LocalPlayer.MaximumSimulationRadius = math.huge
 end)
 
-AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
+AddCommand("esp", "esp", "Views all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
 	local success, esp = pcall(function()
 		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/sense/main/init.lua"))()
@@ -1729,7 +1729,7 @@ AddCommand("esp", "esp", "View all players in the server.", {"tracers", "chams"}
 	end
 end)
 
-AddCommand("unesp", "unesp", "Turns off esp.", {"untracers", "unchams"}, {"Utility"}, 2, function()
+AddCommand("unesp", "unesp", "Disables esp.", {"untracers", "unchams"}, {"Utility"}, 2, function()
 	RunCommandFunctions("esp")
 end)
 
@@ -1757,7 +1757,7 @@ AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2,
 	cons.remove({"noclip", "noclip2"})
 end)
 
-AddCommand("goto", "goto [player] [distance]", "Teleport yourself to [player]. [distance] is an optional argument.", {"to"}, {"Utility", 1}, 2, function(args, speaker)
+AddCommand("goto", "goto [player] [distance]", "Teleports your character to [player]. [distance] is an optional argument.", {"to"}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target and target.Character then
@@ -1781,7 +1781,7 @@ AddCommand("unantivoid", "unantivoid", "Sets the FallenPartsDestroyHeight back t
 	workspace.FallenPartsDestroyHeight = OldFallenPartsDestroyHeight
 end)
 
-AddCommand("fakeout", "fakeout", "Teleport into the void and then teleport back to your original position. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
+AddCommand("fakeout", "fakeout", "Teleports your character into the void and then back to your original position. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
 	local reset = workspace.FallenPartsDestroyHeight ~= OldFallenPartsDestroyHeight
 	ExecuteCommand("antivoid")
 	local root = GetRoot()
@@ -1796,7 +1796,7 @@ AddCommand("fakeout", "fakeout", "Teleport into the void and then teleport back 
 	end
 end)
 
-AddCommand("car", "car [speed]", "Become some form of a car. The car's speed is [speed]. [speed] is an optional argument.", {}, {"Fun"}, 2, function(args)
+AddCommand("car", "car [speed]", "Makes you some form of a car. The car's speed is [speed]. [speed] is an optional argument.", {}, {"Fun"}, 2, function(args)
 	local character, humanoid, animate = GetCharacter(), GetHumanoid(), GetCharacter():FindFirstChild("Animate")
 	if character and humanoid and animate then
 		local speed = tonumber(args[1]) or 70
@@ -1838,26 +1838,26 @@ AddCommand("gravitygun", "gravitygun", "Oh yeah, maximum trolling capabilities. 
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/gravitygun.lua"))()
 end)
 
-AddCommand("tweenspeed", "tweenspeed [number]", "Change the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+AddCommand("tweenspeed", "tweenspeed [number]", "Changes the number of how fast tween commands are to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
 	Config.TweenSpeed = tonumber(args[1]) or 1
 	UpdateConfig()
 end)
 
-AddCommand("gotocamera", "gotocamera", "Teleport to your camera.", {"tocamera", "gotocam", "tocam"}, {"Utility"}, 2, function()
+AddCommand("gotocamera", "gotocamera", "Teleports your character to your camera.", {"tocamera", "gotocam", "tocam"}, {"Utility"}, 2, function()
 	local root, camera = GetRoot(), workspace.CurrentCamera
 	if root and camera then
 		root.CFrame = camera.CFrame
 	end
 end)
 
-AddCommand("tweengotocamera", "tweengotocamera", "Teleport to your camera.", {"tweentocamera", "tweengotocam", "tweentocam"}, {"Utility"}, 2, function()
+AddCommand("tweengotocamera", "tweengotocamera", "Teleports your character to your camera.", {"tweentocamera", "tweengotocam", "tweentocam"}, {"Utility"}, 2, function()
 	local root, camera = GetRoot(), workspace.CurrentCamera
 	if root and camera then
 		TweenService:Create(root, TweenInfo.new(Config.TweenSpeed, Enum.EasingStyle.Linear), {CFrame = camera.CFrame}):Play()
 	end
 end)
 
-AddCommand("fieldofview", "fieldofview [number]", "Change your camera's field of view to [number]. [number] is an optional argument.", {"fov"}, {"Utility"}, 2, function(args)
+AddCommand("fieldofview", "fieldofview [number]", "Changes your camera's field of view to [number]. [number] is an optional argument.", {"fov"}, {"Utility"}, 2, function(args)
 	workspace.CurrentCamera.FieldOfView = tonumber(args[1]) or 70
 end)
 
@@ -1919,11 +1919,11 @@ AddCommand("lockworkspace", "lockworkspace", "Locks workspace.", {"lockws"}, {"U
 	end
 end)
 
-AddCommand("exitroblox", "exitroblox", "Close the Roblox program.", {"exit"}, {"Utility"}, 2, function()
+AddCommand("exitroblox", "exitroblox", "Closes the Roblox program.", {"exit"}, {"Utility"}, 2, function()
 	game:Shutdown()
 end)
 
-AddCommand("btools", "btools", "Give yourself basic building tools. Other players can not see what is done with this command since it is only visible on your client.", {}, {"Utility"}, 2, function()
+AddCommand("btools", "btools", "Gives yourself basic building tools. Other players can not see what is done with this command since it is only visible on your client.", {}, {"Utility"}, 2, function()
 	local backpack = GetBackpack()
 	if backpack then
 		for i = 1, 4 do
@@ -1967,11 +1967,11 @@ AddCommand("unstun", "unstun", "Disables PlatformStand.", {}, {"Utility"}, 2, fu
 	end
 end)
 
-AddCommand("ping", "ping", "Notify yourself your ping.", {}, {"Utility"}, 2, function(_, speaker)
+AddCommand("ping", "ping", "Notifies your ping.", {}, {"Utility"}, 2, function(_, speaker)
 	Notify("your ping is " .. round(speaker:GetNetworkPing() * 1000) .. "ms")
 end)
 
-AddCommand("memory", "memory", "Notify yourself your memory usage.", {}, {"Utility"}, 2, function()
+AddCommand("memory", "memory", "Notifies your memory usage.", {}, {"Utility"}, 2, function()
 	Notify("your memory usage is " .. round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
 end)
 
@@ -1989,7 +1989,7 @@ AddCommand("uninfinitejump", "uninfinitejump", "Disables infinitejump.", {}, {"U
 	cons.remove("infinite jump")
 end)
 
-AddCommand("antiafk", "antiafk", "Prevent yourself from being kicked after being idle for 20 minutes.", {"antiidle"}, {"Utility"}, 2, function()
+AddCommand("antiafk", "antiafk", "Prevents yourself from being kicked after being idle for 20 minutes.", {"antiidle"}, {"Utility"}, 2, function()
 	if getconnections then
 		for _, v in next, getconnections(LocalPlayer.Idled, true) do
 			if v["Disable"] then
@@ -2007,7 +2007,7 @@ AddCommand("antiafk", "antiafk", "Prevent yourself from being kicked after being
 	end
 end)
 
-AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
+AddCommand("view", "view [player]", "Views [player].", {"spectate"}, {"Utility", "spawned", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unview")
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	local character = GetCharacter(target)
@@ -2031,7 +2031,7 @@ AddCommand("view", "view [player]", "View [player].", {"spectate"}, {"Utility", 
 	end
 end)
 
-AddCommand("unview", "unview", "Stop viewing.", {"unspectate"}, {"Utility"}, 2, function()
+AddCommand("unview", "unview", "Disables view.", {"unspectate"}, {"Utility"}, 2, function()
 	RunCommandFunctions("view")
 end)
 
@@ -2051,21 +2051,21 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 	end
 end)
 
-AddCommand("copyusername", "copyusername [player]", "Copy the full username of [player].", {"copyname"}, {"Utility", 1}, 2, function(args, speaker)
+AddCommand("copyusername", "copyusername [player]", "Copies the full username of [player].", {"copyname"}, {"Utility", 1}, 2, function(args, speaker)
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	if target then
 		toexecutorclipboard(tostring(target.Name))
 	end
 end)
 
-AddCommand("copyuserid", "copyuserid [player]", "Copy the user id of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
+AddCommand("copyuserid", "copyuserid [player]", "Copies the user id of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	if target then
 		toexecutorclipboard(tostring(target.UserId))
 	end
 end)
 
-AddCommand("reach", "reach [number]", "Change the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("reach", "reach [number]", "Changes the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = tonumber(args[1]), GetCharacter(), GetBackpack()
 	if distance and character and backpack then
 		local tool = GetTool(LocalPlayer, true)
@@ -2079,7 +2079,7 @@ AddCommand("reach", "reach [number]", "Change the distance your tool can reach t
 	end
 end)
 
-AddCommand("boxreach", "boxreach [number]", "Change the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("boxreach", "boxreach [number]", "Changes the distance your tool can reach to [number] all around you.", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	local distance, character, backpack = tonumber(args[1]), GetCharacter(), GetBackpack()
 	if distance and character and backpack then
 		local tool = GetTool(LocalPlayer, true)
@@ -2437,7 +2437,7 @@ AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio."
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
 end)
 
-AddCommand("settime", "settime [number / day / dawn / night]", "Change the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
+AddCommand("settime", "settime [number / day / dawn / night]", "Changes the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
 	if tonumber(args[1]) then
 		Lighting.ClockTime = tonumber(args[1])
 	else
@@ -3206,6 +3206,10 @@ end)
 
 AddCommand("unloophidename", "unloophidename", "Disables loophidename.", {"unloopnobillboardgui"}, {"Utility"}, 2, function()
 	RunCommandFunctions("loophidename")
+end)
+
+AddCommand("gravity", "gravity [number]", "Changes the workspace gravity to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+	workspace.Gravity = tonumber(args[1]) or OldGravity
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s\nrun 'killscript' to kill the script", Config.Prefix), 10) end
