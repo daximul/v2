@@ -1307,7 +1307,7 @@ AddCommand("editpermissions", "editpermissions [command] [number]", "Changes the
 	end
 end)
 
-AddCommand("whitelist", "whitelist [player]", "Whitelists a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("whitelist", "whitelist [player]", "Whitelists [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
@@ -1317,7 +1317,7 @@ AddCommand("whitelist", "whitelist [player]", "Whitelists a [player] to use perm
 	end
 end)
 
-AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelists a [player] to use permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
+AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelists [player] from using permission index 1 commands.", {}, {"Core", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
