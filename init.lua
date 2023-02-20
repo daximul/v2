@@ -2472,7 +2472,7 @@ AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"U
 	RunCommandFunctions("fullbright")
 end)
 
-AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1, {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
 	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", true)
