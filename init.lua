@@ -31,7 +31,7 @@ local Config = {
 	StartupNotification = true,
 	Widebar = false,
 }
-local MiscConfig = {Permissions = {}, CustomAlias = {}}
+local MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}}
 
 local cloneref = cloneref or function(...) return ... end
 Services = {}
@@ -59,7 +59,7 @@ TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 Lighting = Services.Lighting
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
-remove, gmatch, match, tfind, wait, spawn = table.remove, string.gmatch, string.match, table.find, task.wait, task.spawn
+remove, gmatch, match, tfind, cwrap, wait, spawn = table.remove, string.gmatch, string.match, table.find, coroutine.wrap, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
 local getconnections = getconnections or get_signal_cons
 local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
@@ -150,12 +150,24 @@ GetStringFromKeyCode = function(input)
 end
 cons.add(UserInputService.InputBegan, function(input, processed)
 	if not processed then
-		IsKeyDown[LastKey(input.KeyCode)] = true
+		input = LastKey(input.KeyCode)
+		IsKeyDown[input] = true
+		for _, v in next, MiscConfig.Keybinds do
+			if FindInTable(v.Keys, input) then
+				if #v.Keys == 2 then
+					if IsKeyDown[v.Keys[1]] and IsKeyDown[v.Keys[2]] then
+						ExecuteCommand(v.Command)
+					end
+				else
+					ExecuteCommand(v.Command)
+				end
+			end
+		end
 	end
 end)
 cons.add(UserInputService.InputEnded, function(input, processed)
 	if not processed then
-		IsKeyDown[LastKey(input.KeyCode)] = nil
+		IsKeyDown[LastKey(input.KeyCode)] = false
 	end
 end)
 
@@ -1229,7 +1241,7 @@ end)
 
 AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
 	ExecuteCommand("killscript")
-	coroutine.wrap(function()
+	cwrap(function()
 		local success, result = pcall(function()
 			return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
 		end)
@@ -1278,6 +1290,7 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	Section:AddItem("Button", {Text = "Commands", Function = function() ExecuteCommand("commands") end})
 	Section:AddItem("Button", {Text = "Plugins", Function = function() ExecuteCommand("pluginlist") end})
 	Section:AddItem("Button", {Text = "Browser", Function = function() ExecuteCommand("browser") end})
+	Section:AddItem("Button", {Text = "Keybinds", Function = function() ExecuteCommand("keybinds") end})
 	Section:AddItem("Button", {Text = "Changelogs", Function = function() ExecuteCommand("changelogs") end})
 	Section:AddItem("Button", {Text = "Chatlogs", Function = function() ExecuteCommand("chatlogs") end})
 	Section:AddItem("Toggle", {Text = "Keep Admin", Default = Config.KeepAdmin, Function = function(callback)
@@ -1301,6 +1314,95 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	Section:AddItem("Toggle", {Text = "Startup Notification", Default = Config.StartupNotification, Function = function(callback)
 		Config.StartupNotification = callback
 		UpdateConfig()
+	end})
+end)
+
+AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to certain keys.", {}, {"Core"}, 2, function()
+	local Container = Gui.New("Keybinds")
+	local Section = Container:AddSection("Section")
+	local Current = {nil, nil}
+	local Command = Section:AddItem("InputBox", {Text = "Command"})
+	local Key = Section:AddItem("InputKey", {
+		Text = "Key",
+		Function = function(text, object)
+			local listen, OldShiftLock = nil, LocalPlayer.DevEnableMouseLock
+			LocalPlayer.DevEnableMouseLock = false
+			listen = cons.add(UserInputService.InputBegan, function(input, processed)
+				if not processed and input.UserInputType == Enum.UserInputType.Keyboard then
+					local input2, processed2 = nil, nil
+					cwrap(function()
+						input2, processed2 = UserInputService.InputBegan:Wait()
+					end)()
+					UserInputService.InputEnded:Wait()
+					if input2 and not processed2 then
+						object.Back.Input.Text = format("%s + %s", LastKey(input.KeyCode), LastKey(input2.KeyCode))
+						Current[1] = LastKey(input.KeyCode)
+						Current[2] = LastKey(input2.KeyCode)
+					else
+						object.Back.Input.Text = LastKey(input.KeyCode)
+						Current[1] = LastKey(input.KeyCode)
+						Current[2] = nil
+					end
+					listen:Disconnect()
+					LocalPlayer.DevEnableMouseLock = OldShiftLock
+				end
+			end)
+		end
+	})
+	Section:AddItem("Button", {Text = "Add Keybind", Function = function()
+		local input = Command.Object.Back.Input.Text
+		local command = FindCommand(split(input, " ")[1])
+		if command then
+			local key, key2 = Current[1], Current[2]
+			if key ~= nil then
+				insert(MiscConfig.Keybinds, {Command = input, Keys = {key, key2}})
+				UpdateMiscConfig()
+				if key2 ~= nil then
+					Notify(format("binded '%s' to (%s + %s)", command.Name, key, key2))
+				else
+					Notify(format("binded '%s' to (%s)", command.Name, key))
+				end
+			else
+				Notify("missing a key to bind for keybinds")
+			end
+		else
+			Notify("missing command for keybinds")
+		end
+	end})
+	Section:AddItem("Button", {Text = "Manage Keybinds", Function = function()
+		Container.Close()
+		Container = Gui.New("Manage Keybinds")
+		Section = Container:AddSection("Section")
+		Section:AddItem("Button", {Text = "Back to Keybinds", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+			Container.Close()
+			ExecuteCommand("keybinds")
+		end})
+		Section:AddItem("Text", {Text = "Click one of the following to delete it"})
+		for _, v in next, MiscConfig.Keybinds do
+			local keys = format(" (%s)", v.Keys[1])
+			if #v.Keys == 2 then keys = format(" (%s + %s)", v.Keys[1], v.Keys[2]) end
+			local button
+			button = Section:AddItem("ButtonText", {
+				Text = v.Command .. keys,
+				Function = function()
+					for i2, v2 in next, MiscConfig.Keybinds do
+						if #v2.Keys == 2 then
+							if FindInTable(v2.Keys, v.Keys[1]) and FindInTable(v2.Keys, v.Keys[2]) then
+								MiscConfig.Keybinds[i2] = nil
+								UpdateMiscConfig()
+								Notify("unbinded (re-open this window to refresh)")
+							end
+						else
+							if FindInTable(v2.Keys, v.Keys[1]) then
+								MiscConfig.Keybinds[i2] = nil
+								UpdateMiscConfig()
+								Notify("unbinded (re-open this window to refresh)")
+							end
+						end
+					end
+				end
+			})
+		end
 	end})
 end)
 
@@ -1689,7 +1791,7 @@ AddCommand("fly", "fly", "Makes your character able to fly.", {}, {"Utility", "s
 			GetHumanoid().PlatformStand = false
 		end
 	end
-	coroutine.wrap(function()
+	cwrap(function()
 		cons.add("fly", RunService.Stepped, function()
 			if not GetCharacter() or not GetHumanoid() then
 				ExecuteCommand("unfly")
@@ -1709,6 +1811,12 @@ end)
 
 AddCommand("unfly", "unfly", "Disable fly.", {}, {"Utility"}, 2, function()
 	RunCommandFunctions("fly")
+end)
+
+AddCommand("togglefly", "togglefly", "Toggles fly.", {}, {"Toggle"}, 2, function()
+	local command = {"fly", "unfly"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Changes your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
@@ -2587,7 +2695,7 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 	local character, root, humanoid = GetCharacter(), GetRoot(), GetHumanoid()
 	if character and root then
 		local obj = NewInstance("Part", {Name = RandomString(), CFrame = CFrame.new(0, -6942, 0), Parent = character, Transparency = 1, Size = Vector3.new(2, 0.2, 1.5), Anchored = true})
-		coroutine.wrap(function()
+		cwrap(function()
 			cons.add("float", heartbeat, function()
 				if not obj or not GetCharacter() or not GetRoot() then
 					ExecuteCommand("unfloat")
@@ -3266,7 +3374,7 @@ getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix i
 
 -- inaccurate loading time because funny
 if Config.StartupNotification then
-	Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Admin.Prefix, tick() - LoadingTick), 10)
+	Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10)
 end
 
 if listfiles and type(listfiles) == "function" then
