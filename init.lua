@@ -360,7 +360,7 @@ LogChatMessage = function(player, message)
 	end
 end
 
-CapitalizeFirstCharacter = function(str)
+CapitalizeFirstCharacters = function(str)
 	return gsub(str, "%S+", gsub(str, "^%l", upper))
 end
 
@@ -794,7 +794,7 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 			return type(v) == "number"
 		end)[1]) or 0,
 		Category = filterthrough(reqs, function(_, v)
-			return type(v) == "string" and (v == CapitalizeFirstCharacter(v))
+			return type(v) == "string" and (v == CapitalizeFirstCharacters(v))
 		end)[1] or "Misc",
 		CustomArgs = filterthrough(reqs, function(_, v)
 			return type(v) == "table"
@@ -940,18 +940,12 @@ LoadPlugin = function(path, ignore)
 				for _, v in next, Plugin.Commands do
 					if v.Name then
 						local Requirements = v.Requirements or {}
-						local Category = filterthrough(Requirements, function(_, x)
-							return type(x) == "string" and (x == CapitalizeFirstCharacter(x))
-						end)[1]
-						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, x)
-							return type(x) == "number"
-						end)[1])
-						local CustomArgs = filterthrough(Requirements, function(_, x)
-							return type(x) == "table"
-						end)[1]
+						local Category = filterthrough(Requirements, function(_, x) return type(x) == "string" and (x == CapitalizeFirstCharacters(x)) end)[1]
+						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, x) return type(x) == "number" end)[1])
+						local CustomArgs = filterthrough(Requirements, function(_, x) return type(x) == "table" end)[1]
 						if Category == nil then
 							if v.Category and type(v.Category) == "string" then
-								v.Category = CapitalizeFirstCharacter(v.Category)
+								v.Category = CapitalizeFirstCharacters(v.Category)
 								insert(Requirements, v.Category)
 							else
 								insert(Requirements, "Misc")
