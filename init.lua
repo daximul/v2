@@ -21,6 +21,7 @@ Admin = {
 }
 
 local Config = {
+	CommandBarPrefix = "Semicolon",
 	Prefix = ";",
 	DisabledPlugins = {},
 	LoweredText = false,
@@ -139,18 +140,26 @@ GetRoot = function(character)
 end
 
 IsKeyDown = {}
+LastKey = function(input)
+	return split(tostring(input), ".")[3]
+end
+GetStringFromKeyCode = function(input)
+	return filter(Enum.KeyCode:GetEnumItems(), function(_, v)
+		return UserInputService:GetStringForKeyCode(v) == input and v
+	end)[1]
+end
 cons.add(UserInputService.InputBegan, function(input, processed)
 	if not processed then
-		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = true
+		IsKeyDown[LastKey(input.KeyCode)] = true
 	end
 end)
 cons.add(UserInputService.InputEnded, function(input, processed)
 	if not processed then
-		IsKeyDown[split(tostring(input.KeyCode), ".")[3]] = nil
+		IsKeyDown[LastKey(input.KeyCode)] = nil
 	end
 end)
 
-merge_table = function(...)
+merge = function(...)
 	local new = {}
 	for i, v in next, {...} do
 		for _, v2 in next, v do
@@ -160,7 +169,7 @@ merge_table = function(...)
 	return new
 end
 
-filterthrough = function(tbl, func)
+filter = function(tbl, func)
 	local new = {}
 	for i, v in next, tbl do
 		if func(i, v) then
@@ -170,7 +179,7 @@ filterthrough = function(tbl, func)
 	return new
 end
 
-new_table = function(tbl, func)
+map = function(tbl, func)
 	local new = {}
 	for i, v in next, tbl do
 		local k, x = func(i, v)
@@ -183,7 +192,7 @@ HasTool = function(player)
 	player = player or LocalPlayer
 	local character, backpack = GetCharacter(player), GetBackpack(player)
 	if character and backpack then
-		local list = merge_table(character:GetChildren(), backpack:GetChildren())
+		local list = merge(character:GetChildren(), backpack:GetChildren())
 		for i = 1, #list do
 			if list[i]:IsA("Tool") then
 				return true
@@ -374,7 +383,7 @@ end
 SpecialPlayerCases = {
 	all = function(speaker) return Players:GetPlayers() end,
 	others = function(speaker)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker
 		end)
 	end,
@@ -392,53 +401,53 @@ SpecialPlayerCases = {
 		return returns
 	end,
 	random = function(speaker, args, currentList)
-		local players = filterthrough(Players:GetPlayers(), function(_, v)
+		local players = filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker
 		end)
 		return {players[random(1, #players)]}
 	end,
 	["%%(.+)"] = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Team and sub(lower(v.Team.Name), 1, #args[1]) == lower(args[1])
 		end)
 	end,
 	allies = function(speaker)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Team and v.Team == speaker.Team
 		end)
 	end,
 	enemies = function(speaker)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Team and v.Team ~= speaker.Team
 		end)
 	end,
 	team = function(speaker)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Team and v.Team == speaker.Team
 		end)
 	end,
 	nonteam = function(speaker)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Team and v.Team ~= speaker.Team
 		end)
 	end,
 	friends = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v:IsFriendsWith(speaker.UserId)
 		end)
 	end,
 	nonfriends = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and not v:IsFriendsWith(speaker.UserId)
 		end)
 	end,
 	guests = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.Guest
 		end)
 	end,
 	bacons = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			local character = GetCharacter(v)
 			return v ~= speaker and character and (character:FindFirstChild("Pal Hair") or character:FindFirstChild("Kate Hair"))
 		end)
@@ -446,7 +455,7 @@ SpecialPlayerCases = {
 	["age(%d+)"] = function(speaker, args)
 		local age = tonumber(args[1])
 		if not age then return {} end
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v.AccountAge <= age
 		end)
 	end,
@@ -485,18 +494,18 @@ SpecialPlayerCases = {
 	["group(%d+)"] = function(speaker, args)
 		local group = tonumber(args[1])
 		if not group then return {} end
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			return v ~= speaker and v:IsInGroup(group)
 		end)
 	end,
 	alive = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			local humanoid = GetHumanoid(GetCharacter(v))
 			return v ~= speaker and humanoid and humanoid.Health > 0
 		end)
 	end,
 	dead = function(speaker, args)
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			local humanoid = GetHumanoid(GetCharacter(v))
 			return v ~= speaker and humanoid and humanoid.Health <= 0
 		end)
@@ -504,7 +513,7 @@ SpecialPlayerCases = {
 	["rad(%d+)"] = function(speaker, args)
 		local radius, speakerchar, speakerroot = tonumber(args[1]), GetCharacter(speaker), GetRoot(GetCharacter(speaker))
 		if not radius or not speakerchar or not speakerroot then return {} end
-		return filterthrough(Players:GetPlayers(), function(_, v)
+		return filter(Players:GetPlayers(), function(_, v)
 			local root = GetRoot(GetCharacter(v))
 			local magnitude = (root and (root.Position - speakerroot.Position).magnitude) or false
 			return v ~= speaker and magnitude and magnitude <= radius
@@ -785,18 +794,18 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 		Name = lower(tostring(name)),
 		Usage = usage,
 		Description = description,
-		Alias = new_table(alias or {}, function(_, v)
+		Alias = map(alias or {}, function(_, v)
 			return lower(tostring(v))
 		end),
 		Requirements = reqs or {},
 		PermissionIndex = perm or 2,
-		ArgsNeeded = tonumber(filterthrough(reqs, function(_, v)
+		ArgsNeeded = tonumber(filter(reqs, function(_, v)
 			return type(v) == "number"
 		end)[1]) or 0,
-		Category = filterthrough(reqs, function(_, v)
+		Category = filter(reqs, function(_, v)
 			return type(v) == "string" and (v == CapitalizeFirstCharacters(v))
 		end)[1] or "Misc",
-		CustomArgs = filterthrough(reqs, function(_, v)
+		CustomArgs = filter(reqs, function(_, v)
 			return type(v) == "table"
 		end)[1] or {},
 		Func = function()
@@ -940,9 +949,9 @@ LoadPlugin = function(path, ignore)
 				for _, v in next, Plugin.Commands do
 					if v.Name then
 						local Requirements = v.Requirements or {}
-						local Category = filterthrough(Requirements, function(_, x) return type(x) == "string" and (x == CapitalizeFirstCharacters(x)) end)[1]
-						local ArgsNeeded = tonumber(filterthrough(Requirements, function(_, x) return type(x) == "number" end)[1])
-						local CustomArgs = filterthrough(Requirements, function(_, x) return type(x) == "table" end)[1]
+						local Category = filter(Requirements, function(_, x) return type(x) == "string" and (x == CapitalizeFirstCharacters(x)) end)[1]
+						local ArgsNeeded = tonumber(filter(Requirements, function(_, x) return type(x) == "number" end)[1])
+						local CustomArgs = filter(Requirements, function(_, x) return type(x) == "table" end)[1]
 						if Category == nil then
 							if v.Category and type(v.Category) == "string" then
 								v.Category = CapitalizeFirstCharacters(v.Category)
@@ -1036,6 +1045,8 @@ Notify = Gui.Message
 local CommandBarFrame = Gui.BaseObject.CommandBar
 local CommandBar = CommandBarFrame.Input
 local Prediction = CommandBar.Predict
+CommandBarFrame.Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
+CommandBarFrame.Size = UDim2.new(0, Config.Widebar and 400 or 200, 0, 35)
 
 local MatchSearch = function(str1, str2)
 	return str1 == sub(str2, 1, #str1)
@@ -1159,7 +1170,7 @@ end
 
 cons.add(CommandBar.FocusLost, function(enterPressed)
 	if enterPressed then
-		local Command = gsub(CommandBar.Text, "^" .. "%" .. Config.Prefix, "")
+		local Command = gsub(CommandBar.Text, "^" .. "%" .. Admin.Prefix, "")
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
 			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
 		})
@@ -1171,8 +1182,8 @@ cons.add(CommandBar.FocusLost, function(enterPressed)
     end
 end)
 
-cons.add(Mouse.KeyDown, function(Key)
-	if Key == Config.Prefix then
+cons.add(UserInputService.InputBegan, function(input, processed)
+	if not processed and input.KeyCode == Enum.KeyCode[Config.CommandBarPrefix] then
 		CommandBar:CaptureFocus()
 		spawn(function()
 			RunService.Stepped:Wait()
@@ -1240,6 +1251,48 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 	Section:AddItem("Text", {Text = "Click a command in the command list to view its information."})
 	Section:AddItem("Text", {Text = "Optionally, you can run 'cmdinfo name' to view its information."})
 	Section:AddItem("Text", {Text = "Change 'name' to the name of the command you want to view."})
+end)
+
+AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function()
+	local Section = Gui.New("UI"):AddSection("Section")
+	Section:AddItem("InputBox", {
+		Text = "Prefix",
+		Default = Admin.Prefix,
+		Function = function(text, object)
+			if text == "" or text == " " then object.Back.Input.Text = Admin.Prefix return end
+			text = GetStringFromKeyCode(text)
+			text = LastKey(text) == "Colon" and Enum.KeyCode.Semicolon or text
+			Admin.Prefix = UserInputService:GetStringForKeyCode(text)
+			Config.Prefix = UserInputService:GetStringForKeyCode(text)
+			Config.CommandBarPrefix = LastKey(text)
+			UpdateConfig()
+			Notify(format("prefix has been changed to %s (%s)", Config.CommandBarPrefix, Admin.Prefix))
+		end,
+		Typing = function(text, object)
+			if #text <= 2 then
+				object.Back.Input.Text = sub(text, 1, 1)
+			end
+			object.Back.Input.Text = upper(object.Back.Input.Text)
+		end
+	})
+	Section:AddItem("Button", {Text = "Commands", Function = function() ExecuteCommand("commands") end})
+	Section:AddItem("Button", {Text = "Plugins", Function = function() ExecuteCommand("pluginlist") end})
+	Section:AddItem("Button", {Text = "Browser", Function = function() ExecuteCommand("browser") end})
+	Section:AddItem("Button", {Text = "Chatlogs", Function = function() ExecuteCommand("chatlogs") end})
+	Section:AddItem("Toggle", {Text = "Keep Admin", Default = Config.KeepAdmin, Function = function(callback)
+		Config.KeepAdmin = callback
+		UpdateConfig()
+	end})
+	Section:AddItem("Toggle", {Text = "Widebar", Default = Config.Widebar, Function = function(callback)
+		Config.Widebar = callback
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
+			Position = UDim2.new(0.5, callback and -200 or -100, 1, 5)
+		})
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
+			Size = UDim2.new(0, callback and 400 or 200, 0, 35)
+		})
+		UpdateConfig()
+	end})
 end)
 
 AddCommand("addplugin", "addplugin [name]", "Adds a plugin. A plugin is a file in the admin's plugins folder (dark-admin -> plugins) located in your executor's workspace folder. The provided argument is the file name with or without the file extension.", {}, {"Core", 1}, 2, function(args, speaker)
@@ -1322,23 +1375,13 @@ AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelists [player] from u
 end)
 
 AddCommand("whitelisted", "whitelisted", "Opens a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
-	local list = new_table(Admin.Whitelisted, function(_, v)
+	local list = map(Admin.Whitelisted, function(_, v)
 		return GetLongUsername(v.Player)
 	end)
 	if #list == 0 then
 		Notify("no players are currently whitelisted")
 	else
 		Gui.DisplayTable("Whitelisted", list)
-	end
-end)
-
-AddCommand("prefix", "prefix [symbol]", "Changes the admin prefix to [symbol].", {}, {"Core", 1}, 2, function(args)
-	if #args[1] <= 2 then
-		Config.Prefix = args[1]
-		UpdateConfig()
-		Notify(format("prefix has been changed to %s", Config.Prefix))
-	elseif #args[1] > 2 then
-		Notify("prefix cannot be longer than 2 characters")
 	end
 end)
 
@@ -2094,7 +2137,7 @@ end)
 AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"}, 2, function()
 	local reach, boxreach = FindCommand("reach"), FindCommand("boxreach")
 	if reach and boxreach then
-		local modified = merge_table(reach.Env, boxreach.Env)
+		local modified = merge(reach.Env, boxreach.Env)
 		for _, data in next, modified do
 			if data.Tool and data.Handle then
 				data.Handle.Size = data.Size
@@ -2877,11 +2920,11 @@ AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility",
 	end
 end)
 
-local switchteam = new_table(Services.Teams:GetChildren(), function(_, v)
+local switchteam = map(Services.Teams:GetChildren(), function(_, v)
 	return lower(tostring(v.Name))
 end)
 AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", switchteam, 1}, 2, function()
-	local root, team = GetRoot(), filterthrough(Services.Teams:GetChildren(), function(_, v)
+	local root, team = GetRoot(), filter(Services.Teams:GetChildren(), function(_, v)
 		return lower(tostring(v.Name)) == lower(tostring(getstring(1)))
 	end)[1]
 	if root and team then
@@ -3210,11 +3253,11 @@ AddCommand("gravity", "gravity [number]", "Changes the workspace gravity to [num
 	workspace.Gravity = tonumber(args[1]) or OldGravity
 end)
 
-getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s\nrun 'killscript' to kill the script", Config.Prefix), 10) end
+getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
 if Config.StartupNotification then
-	Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Config.Prefix, tick() - LoadingTick), 10)
+	Notify(format("prefix is %s\nloaded in %.3f seconds\nrun 'help' for help", Admin.Prefix, tick() - LoadingTick), 10)
 end
 
 if listfiles and type(listfiles) == "function" then
