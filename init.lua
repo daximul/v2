@@ -1278,6 +1278,7 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	Section:AddItem("Button", {Text = "Commands", Function = function() ExecuteCommand("commands") end})
 	Section:AddItem("Button", {Text = "Plugins", Function = function() ExecuteCommand("pluginlist") end})
 	Section:AddItem("Button", {Text = "Browser", Function = function() ExecuteCommand("browser") end})
+	Section:AddItem("Button", {Text = "Changelogs", Function = function() ExecuteCommand("changelogs") end})
 	Section:AddItem("Button", {Text = "Chatlogs", Function = function() ExecuteCommand("chatlogs") end})
 	Section:AddItem("Toggle", {Text = "Keep Admin", Default = Config.KeepAdmin, Function = function(callback)
 		Config.KeepAdmin = callback
@@ -1291,6 +1292,14 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
 			Size = UDim2.new(0, callback and 400 or 200, 0, 35)
 		})
+		UpdateConfig()
+	end})
+	Section:AddItem("Toggle", {Text = "Lowercased Commandbar Text", Default = Config.LoweredText, Function = function(callback)
+		Config.LoweredText = callback
+		UpdateConfig()
+	end})
+	Section:AddItem("Toggle", {Text = "Startup Notification", Default = Config.StartupNotification, Function = function(callback)
+		Config.StartupNotification = callback
 		UpdateConfig()
 	end})
 end)
