@@ -1241,9 +1241,10 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 	local Section = Gui.New("Help"):AddSection("Section")
 	Section:AddItem("Text", {Text = "Get started", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	Section:AddItem("Text", {Text = "Run 'cmds' to view all available commands"})
+	Section:AddItem("Button", {Text = "(Optional button to open the list)", Function = function() ExecuteCommand("commands") end})
 	Section:AddItem("Text", {Text = "See a command's information", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
-	Section:AddItem("Text", {Text = "You should have noticed that the command list does not let you click a command to view more information."})
-	Section:AddItem("Text", {Text = "Run 'cmdinfo name' to view a command's information."})
+	Section:AddItem("Text", {Text = "Click a command in the command list to view its information."})
+	Section:AddItem("Text", {Text = "Optionally, you can run 'cmdinfo name' to view its information."})
 	Section:AddItem("Text", {Text = "Change 'name' to the name of the command you want to view."})
 end)
 
@@ -1259,10 +1260,13 @@ AddCommand("commands", "commands", "Opens the command list.", {"cmds"}, {"Core"}
 	local new = {}
 	for _, command in next, Admin.Commands do
 		local category = command.Category or "Misc"
-		if not new[category] then
-			new[category] = {}
-		end
-		new[category][command.Name] = lower(tostring(command.Usage))
+		if not new[category] then new[category] = {} end
+		new[category][command.Name] = {
+			Name = lower(tostring(command.Usage)),
+			Function = function()
+				ExecuteCommand(format("commandinfo %s", lower(tostring(command.Name))))
+			end
+		}
 	end
 	Gui.DisplayTable("Commands", new)
 end)
