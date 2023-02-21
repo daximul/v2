@@ -154,12 +154,14 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 		IsKeyDown[input] = true
 		for _, v in next, MiscConfig.Keybinds do
 			if FindInTable(v.Keys, input) then
-				if #v.Keys == 2 then
-					if IsKeyDown[v.Keys[1]] and IsKeyDown[v.Keys[2]] then
+				if v.Game == nil or game.PlaceId == v.Game then
+					if #v.Keys == 2 then
+						if IsKeyDown[v.Keys[1]] and IsKeyDown[v.Keys[2]] then
+							ExecuteCommand(v.Command)
+						end
+					else
 						ExecuteCommand(v.Command)
 					end
-				else
-					ExecuteCommand(v.Command)
 				end
 			end
 		end
@@ -1322,6 +1324,14 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 	local Section = Container:AddSection("Section")
 	local Current = {nil, nil}
 	local Command = Section:AddItem("InputBox", {Text = "Command"})
+	local PlaceId = Section:AddItem("InputBox", {
+		Text = "PlaceId (Optional)",
+		Typing = function(text, object)
+			if not tonumber(text) then
+				object.Back.Input.Text = ""
+			end
+		end
+	})
 	local Key = Section:AddItem("InputKey", {
 		Text = "Key",
 		Function = function(text, object)
@@ -1357,9 +1367,10 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 		local bind = Key.Object.Back.Input.Text
 		if bind == "bind" or bind == "..." then return Notify("missing keybind") end
 		if command then
+			local placeOnly = (PlaceId.Object.Back.Input.Text == "" and nil) or tonumber(PlaceId.Object.Back.Input.Text)
 			local key, key2 = Current[1], Current[2]
 			if key ~= nil then
-				insert(MiscConfig.Keybinds, {Command = input, Keys = {key, key2}})
+				insert(MiscConfig.Keybinds, {Command = input, Game = placeOnly, Keys = {key, key2}})
 				UpdateMiscConfig()
 				if key2 ~= nil then
 					Notify(format("binded '%s' to (%s + %s)", command.Name, key, key2))
@@ -1383,14 +1394,13 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 		end})
 		Section:AddItem("Text", {Text = "Click one of the following to delete it"})
 		for _, v in next, MiscConfig.Keybinds do
-			local keys = format(" (%s)", v.Keys[1])
-			if #v.Keys == 2 then keys = format(" (%s + %s)", v.Keys[1], v.Keys[2]) end
-			local button
-			button = Section:AddItem("ButtonText", {
-				Text = v.Command .. keys,
+			local keys = format("(%s)", v.Keys[1])
+			if #v.Keys == 2 then keys = format("(%s + %s)", v.Keys[1], v.Keys[2]) end
+			Section:AddItem("ButtonText", {
+				Text = v.Game ~= nil and format("%s [%s] %s", v.Command, v.Game, keys) or format("%s %s", v.Command, keys),
 				Function = function()
 					for i2, v2 in next, MiscConfig.Keybinds do
-						if v2.Command == v.Command then
+						if v2.Command == v.Command and v2.Game == v.Game then
 							if #v2.Keys == 2 then
 								if FindInTable(v2.Keys, v.Keys[1]) and FindInTable(v2.Keys, v.Keys[2]) then
 									MiscConfig.Keybinds[i2] = nil
