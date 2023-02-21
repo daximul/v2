@@ -3343,8 +3343,8 @@ AddCommand("bang", "bang [player] [speed]", "Bangs [player] with a speed of [spe
 			end)
 			env[1] = function()
 				cons.remove({"bang", "bang2"})
-				anim:Stop()
-				id:Destroy()
+				if anim then anim:Stop() end
+				if id then id:Destroy() end
 			end
 		end
 	end
