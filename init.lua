@@ -3423,6 +3423,19 @@ AddCommand("mousetp", "mousetp", "Teleports your character to your mouse. This i
 	end
 end)
 
+AddCommand("light", "light [radius] [brightness]", "Gives your character dynamic light. [radius] and [brightness] are optional arguments.", {}, {"Utility"}, 2, function(args, _, env)
+	ExecuteCommand("nolight")
+	local root = GetRoot()
+	if root then
+		local light = NewInstance("PointLight", {Name = RandomString(), Range = tonumber(args[1]) or 30, Brightness = tonumber(args[2]) or 5, Parent = root})
+		env[1] = function() if light then light:Destroy() end end
+	end
+end)
+
+AddCommand("nolight", "nolight", "Disables light.", {"unlight"}, {"Utility"}, 2, function()
+	RunCommandFunctions("light")
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
