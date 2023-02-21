@@ -1325,6 +1325,7 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 	local Key = Section:AddItem("InputKey", {
 		Text = "Key",
 		Function = function(text, object)
+			object.Back.Input.Text = "..."
 			local listen, OldShiftLock = nil, LocalPlayer.DevEnableMouseLock
 			LocalPlayer.DevEnableMouseLock = false
 			listen = cons.add(UserInputService.InputBegan, function(input, processed)
@@ -1349,9 +1350,12 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 			end)
 		end
 	})
+	Key.Object.Back.Input.Text = "bind"
 	Section:AddItem("Button", {Text = "Add Keybind", Function = function()
 		local input = Command.Object.Back.Input.Text
 		local command = FindCommand(split(input, " ")[1])
+		local bind = Key.Object.Back.Input.Text
+		if bind == "bind" or bind == "..." then return Notify("missing keybind") end
 		if command then
 			local key, key2 = Current[1], Current[2]
 			if key ~= nil then
@@ -1386,17 +1390,19 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 				Text = v.Command .. keys,
 				Function = function()
 					for i2, v2 in next, MiscConfig.Keybinds do
-						if #v2.Keys == 2 then
-							if FindInTable(v2.Keys, v.Keys[1]) and FindInTable(v2.Keys, v.Keys[2]) then
-								MiscConfig.Keybinds[i2] = nil
-								UpdateMiscConfig()
-								Notify("unbinded (re-open this window to refresh)")
-							end
-						else
-							if FindInTable(v2.Keys, v.Keys[1]) then
-								MiscConfig.Keybinds[i2] = nil
-								UpdateMiscConfig()
-								Notify("unbinded (re-open this window to refresh)")
+						if v2.Command == v.Command then
+							if #v2.Keys == 2 then
+								if FindInTable(v2.Keys, v.Keys[1]) and FindInTable(v2.Keys, v.Keys[2]) then
+									MiscConfig.Keybinds[i2] = nil
+									UpdateMiscConfig()
+									Notify("unbinded (re-open this window to refresh)")
+								end
+							else
+								if FindInTable(v2.Keys, v.Keys[1]) then
+									MiscConfig.Keybinds[i2] = nil
+									UpdateMiscConfig()
+									Notify("unbinded (re-open this window to refresh)")
+								end
 							end
 						end
 					end
