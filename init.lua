@@ -1728,6 +1728,12 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 	end
 end)
 
+AddCommand("toggle", "toggle [command 1] [command 2]", "Runs [command 1]. When ran again, runs [command 2]. Recommended that command 1 is something like fly and command 2 is like unfly.", {}, {"Toggle", 2}, 2, function(args)
+	local command = {args[1], args[2]}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
+end)
+
 AddCommand("viewtools", "viewtools [player]", "Views the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
