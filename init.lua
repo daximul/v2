@@ -253,7 +253,11 @@ end
 
 GetLongUsername = function(player)
 	player = player or LocalPlayer
-	return player.DisplayName and format("%s (%s)", player.Name, player.DisplayName) or player.Name
+	if player.DisplayName ~= player.Name then
+		return format("%s (%s)", player.Name, player.DisplayName)
+	else
+		return player.Name
+	end
 end
 
 local clipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
