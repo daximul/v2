@@ -2273,7 +2273,7 @@ AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"},
 	end
 end)
 
-AddCommand("teleporttool", "teleporttool", "Give yourself a tool that teleports you where you click.", {"tweenteleporttool", "tptool", "tweentptool", "clicktp"}, {"Utility"}, 2, function()
+AddCommand("teleporttool", "teleporttool", "Gives you a tool that teleports your character where you click.", {"tweenteleporttool", "tptool", "tweentptool", "clicktp"}, {"Utility"}, 2, function()
 	local backpack = GetBackpack()
 	if backpack then
 		local tool = NewInstance("Tool", {Name = "Click TP", RequiresHandle = false, Parent = backpack})
@@ -3392,6 +3392,13 @@ end)
 
 AddCommand("gravity", "gravity [number]", "Changes the workspace gravity to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
 	workspace.Gravity = tonumber(args[1]) or OldGravity
+end)
+
+AddCommand("mousetp", "mousetp", "Teleports your character to your mouse. This is recommended as a keybind.", {}, {"Utility"}, 2, function()
+	local root, pos = GetRoot(), Mouse.Hit
+	if root and pos then
+		root.CFrame = pos + Vector3.new(3, 1, 0)
+	end
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
