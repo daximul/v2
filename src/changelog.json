@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/21/23",
+        "+ toggle [command 1] [command 2]"
+    ],
+    [
         "Update 2/20/23",
         "+ ui, keybinds, togglefly, togglefloat, toggleswim, togglefullbright"
     ],
