@@ -2554,6 +2554,12 @@ AddCommand("unswim", "unswim", "Stop swimming.", {}, {"Utility"}, 2, function()
 	RunCommandFunctions("swim")
 end)
 
+AddCommand("toggleswim", "toggleswim", "Toggles swim.", {}, {"Toggle"}, 2, function()
+	local command = {"swim", "unswim"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
+end)
+
 AddCommand("notifyposition", "notifyposition", "Notify yourself your character's current position (x, y, z).", {"notifypos"}, {"Utility"}, 2, function()
 	local root = GetRoot()
 	if root then
@@ -2724,6 +2730,12 @@ end)
 
 AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function()
 	RunCommandFunctions("float")
+end)
+
+AddCommand("togglefloat", "togglefloat", "Toggles float.", {}, {"Toggle"}, 2, function()
+	local command = {"float", "unfloat"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
