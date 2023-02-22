@@ -1204,8 +1204,10 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode[Config.CommandBarPrefix] then
 		CommandBar:CaptureFocus()
 		spawn(function()
-			RunService.Stepped:Wait()
-			CommandBar.Text = ""
+			repeat
+				CommandBar.Text = ""
+				RunService.RenderStepped:Wait()
+			until CommandBar.Text == ""
 		end)
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
 			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, -110)
