@@ -154,7 +154,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 		IsKeyDown[input] = true
 		for _, v in next, MiscConfig.Keybinds do
 			if FindInTable(v.Keys, input) then
-				if v.Game == nil or game.PlaceId == v.Game then
+				if v.Game == nil or game.PlaceId == v.Game or game.GameId == v.Game then
 					if #v.Keys == 2 then
 						if IsKeyDown[v.Keys[1]] and IsKeyDown[v.Keys[2]] then
 							ExecuteCommand(v.Command)
@@ -1329,7 +1329,7 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 	local Current = {nil, nil}
 	local Command = Section:AddItem("InputBox", {Text = "Command"})
 	local PlaceId = Section:AddItem("InputBox", {
-		Text = "PlaceId (Optional)",
+		Text = "PlaceId or GameId (Optional)",
 		Typing = function(text, object)
 			if not tonumber(text) then
 				object.Back.Input.Text = ""
@@ -1371,10 +1371,10 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 		local bind = Key.Object.Back.Input.Text
 		if bind == "bind" or bind == "..." then return Notify("missing keybind") end
 		if command then
-			local placeOnly = (PlaceId.Object.Back.Input.Text == "" and nil) or tonumber(PlaceId.Object.Back.Input.Text)
+			local place = (PlaceId.Object.Back.Input.Text == "" and nil) or tonumber(PlaceId.Object.Back.Input.Text)
 			local key, key2 = Current[1], Current[2]
 			if key ~= nil then
-				insert(MiscConfig.Keybinds, {Command = input, Game = placeOnly, Keys = {key, key2}})
+				insert(MiscConfig.Keybinds, {Command = input, Game = place, Keys = {key, key2}})
 				UpdateMiscConfig()
 				if key2 ~= nil then
 					Notify(format("binded '%s' to (%s + %s)", command.Name, key, key2))
