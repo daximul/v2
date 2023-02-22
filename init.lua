@@ -3398,6 +3398,13 @@ AddCommand("nolight", "nolight", "Disables light.", {"unlight"}, {"Utility"}, 2,
 	RunCommandFunctions("light")
 end)
 
+AddCommand("hipheight", "hipheight [number]", "Changes your character's hip height to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid.HipHeight = humanoid.RigType == Enum.HumanoidRigType.R15 and (tonumber(args[1]) or 2.1) or (tonumber(args[1]) or 0)
+	end
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
