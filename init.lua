@@ -1398,8 +1398,7 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 		end})
 		Section:AddItem("Text", {Text = "Click one of the following to delete it"})
 		for _, v in next, MiscConfig.Keybinds do
-			local keys = format("(%s)", v.Keys[1])
-			if #v.Keys == 2 then keys = format("(%s + %s)", v.Keys[1], v.Keys[2]) end
+			local keys = #v.Keys == 2 and format("(%s + %s)", v.Keys[1], v.Keys[2]) or format("(%s)", v.Keys[1])
 			Section:AddItem("ButtonText", {
 				Text = v.Game ~= nil and format("%s [%s] %s", v.Command, v.Game, keys) or format("%s %s", v.Command, keys),
 				Function = function()
