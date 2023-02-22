@@ -1525,7 +1525,7 @@ AddCommand("unlowercasedcommandbar", "unlowercasedcommandbar", "Undoes lowercase
 	UpdateConfig()
 end)
 
-AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat history.", {}, {"Core"}, 2, function(_, _, env)
+AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat history.", {"clogs"}, {"Core"}, 2, function(_, _, env)
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
 		Loaded.Container.Close()
@@ -2480,9 +2480,7 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 				weld.Part1 = nil
 				weld:Destroy()
 			end
-			if seat then
-				seat:Destroy()
-			end
+			if seat then seat:Destroy() end
 			for _, v in next, saved do
 				if v.Object and v.Transparency then
 					v.Object.Transparency = v.Transparency
@@ -2511,9 +2509,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		wait(0.2)
 		root.CFrame = oldpos
 	end
-	env[1] = function()
-		cons.remove("tool invisible")
-	end
+	env[1] = function() cons.remove("tool invisible") end
 end)
 
 AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis", "untoolinvisible", "untoolinvis", "untinvis"}, {"Utility"}, 2, function()
@@ -2671,7 +2667,7 @@ AddCommand("togglefullbright", "togglefullbright", "Toggles fullbright.", {}, {"
 	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
-AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1}, 2, function(args)
 	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", true)
@@ -2680,7 +2676,7 @@ AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / 
 	end
 end)
 
-AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", {"inventory", "backpack", "playerlist", "leaderboard", "chat", "reset", "emotes", "all"}, 1}, 2, function(args)
+AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1}, 2, function(args)
 	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
 	if opt == "reset" then
 		Services.StarterGui:SetCore("ResetButtonCallback", false)
@@ -2693,9 +2689,7 @@ AddCommand("invisiblecamera", "invisiblecamera", "Makes it so you can put your c
 	ExecuteCommand("uninvisiblecamera")
 	local OldCameraMaxZoomDistance, OldDevCameraOcclusionMode = LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode
 	LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode = 600, "Invisicam"
-	env[1] = function()
-		LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode = OldCameraMaxZoomDistance, OldDevCameraOcclusionMode
-	end
+	env[1] = function() LocalPlayer.CameraMaxZoomDistance, LocalPlayer.DevCameraOcclusionMode = OldCameraMaxZoomDistance, OldDevCameraOcclusionMode end
 end)
 
 AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera.", {"uninviscamera", "uninviscam"}, {"Utility"}, 2, function()
@@ -2754,9 +2748,7 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 		end
 		env[1] = function()
 			cons.remove({"float", "float2"})
-			if obj then
-				obj:Destroy()
-			end
+			if obj then obj:Destroy() end
 		end
 	end
 end)
@@ -2784,11 +2776,7 @@ AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]
 	if root then
 		local speed = tonumber(args[1]) or 20
 		local obj = NewInstance("BodyAngularVelocity", {Name = RandomString(), Parent = root, MaxTorque = Vector3.new(0, math.huge, 0), AngularVelocity = Vector3.new(0, speed, 0)})
-		env[1] = function()
-			if obj then
-				obj:Destroy()
-			end
-		end
+		env[1] = function() if obj then obj:Destroy() end end
 	end
 end)
 
@@ -2971,9 +2959,7 @@ do
 		Freecam.Active = false
 	end
 	Freecam.Start = function(pos)
-		if Freecam.Active then
-			Freecam.Stop()
-		end
+		if Freecam.Active then Freecam.Stop() end
 		local cameraCFrame = pos and pos or Camera.CFrame
 		cameraRot, cameraPos, cameraFov = Vector2.new(), cameraCFrame.p, Camera.FieldOfView
 		velSpring:Reset(Vector3.new())
@@ -2983,17 +2969,13 @@ do
 		Input.StartCapture()
 		Freecam.Active = true
 	end
-	Freecam.Adjust = function(sp)
-		NAV_KEYBOARD_SPEED = Vector3.new(sp, sp, sp)
-	end
+	Freecam.Adjust = function(sp) NAV_KEYBOARD_SPEED = Vector3.new(sp, sp, sp) end
 end
 
 AddCommand("freecam", "freecam", "Allows you to move your camera freely in the game.", {"fc"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unfreecam")
 	Freecam.Start()
-	env[1] = function()
-		Freecam.Stop()
-	end
+	env[1] = function() Freecam.Stop() end
 end)
 
 AddCommand("unfreecam", "unfreecam", "Disables freecam.", {"unfc"}, {"Utility"}, 2, function()
@@ -3004,9 +2986,7 @@ AddCommand("freecamgoto", "freecamgoto [player]", "Starts freecam at [player].",
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) then
 		ExecuteCommand("unfreecam")
-		FindCommand("freecam").Env[1] = function()
-			Freecam.Stop()
-		end
+		FindCommand("freecam").Env[1] = function() Freecam.Stop() end
 		Freecam.Start(GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 5, 5))
 	end
 end)
@@ -3019,10 +2999,7 @@ AddCommand("freecamposition", "freecamposition [x, y, z]", "Starts freecam at th
 	local x, y, z = tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
 	if x and y and z then
 		ExecuteCommand("unfreecam")
-		FindCommand("freecam").Env[1] = function()
-			FindCommand("freecam").Env[1] = nil
-			Freecam.Stop()
-		end
+		FindCommand("freecam").Env[1] = function() Freecam.Stop() end
 		Freecam.Start(CFrame.new(x, y, z))
 	end
 end)
@@ -3082,10 +3059,8 @@ AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility",
 	end
 end)
 
-local switchteam = map(Services.Teams:GetChildren(), function(_, v)
-	return lower(tostring(v.Name))
-end)
-AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", switchteam, 1}, 2, function()
+local validTeams = map(Services.Teams:GetChildren(), function(_, v) return lower(tostring(v.Name)) end)
+AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", validTeams, 1}, 2, function()
 	local root, team = GetRoot(), filter(Services.Teams:GetChildren(), function(_, v)
 		return lower(tostring(v.Name)) == lower(tostring(getstring(1)))
 	end)[1]
@@ -3222,15 +3197,11 @@ AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from k
 	env[1] = function() end
 	local old, old2, getnamecallmethod = nil, nil, getnamecallmethod or function() return "" end
 	old = hookmetamethod(game, "__index", function(self, method)
-		if env[1] and self == LocalPlayer and lower(method) == "kick" then
-			return error("Expected ':' not '.' calling member function Kick", 2)
-		end
+		if env[1] and self == LocalPlayer and lower(method) == "kick" then return error("Expected ':' not '.' calling member function Kick", 2) end
 		return old(self, method)
 	end)
 	old2 = hookmetamethod(game, "__namecall", function(self, ...)
-		if env[1] and self == LocalPlayer and lower(getnamecallmethod()) == "kick" then
-			return
-		end
+		if env[1] and self == LocalPlayer and lower(getnamecallmethod()) == "kick" then return end
 		return old2(self, ...)
 	end)
 end)
@@ -3256,22 +3227,14 @@ AddCommand("breadcrumbs", "breadcrumbs", "Leaves a trail behind you.", {}, {}, 2
 				attachment2.Parent = root
 				trail.Parent = camera
 			end)
-			if not success then
-				ExecuteCommand("nobreadcrumbs")
-			end
+			if not success then ExecuteCommand("nobreadcrumbs") end
 		end
 	end)
 	env[1] = function()
 		cons.remove("breadcrumbs")
-		if attachment then
-			attachment:Destroy()
-		end
-		if attachment2 then
-			attachment2:Destroy()
-		end
-		if trail then
-			trail:Destroy()
-		end
+		if attachment then attachment:Destroy() end
+		if attachment2 then attachment2:Destroy() end
+		if trail then trail:Destroy() end
 	end
 end)
 
