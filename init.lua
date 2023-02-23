@@ -3642,6 +3642,53 @@ AddCommand("hipheight", "hipheight [number]", "Changes your character's hip heig
 	end
 end)
 
+AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket to make your character orbit around [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unrocketconnect")
+	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
+	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
+		humanoid.Sit = true
+		local rocket = NewInstance("RocketPropulsion", {Name = RandomString(), CartoonFactor = 1, MaxThrust = 5000, MaxSpeed = 100, ThrustP = 5000, Target = GetRoot(GetCharacter(target)), Parent = root})
+		rocket:Fire()
+		cons.add("rocketconnect", humanoid.Died, function() ExecuteCommand("unrocketconnect") end)
+		cons.add("rocketconnect2", humanoid.Seated, function(value) if not value then ExecuteCommand("unrocketconnect") end end)
+		env[1] = function()
+			cons.remove({"rocketconnect", "rocketconnect2"})
+			if rocket then rocket:Destroy() end
+		end
+	end
+end)
+
+AddCommand("unrocketconnect", "unrocketconnect", "Disables rocketconnect.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("rocketconnect")
+end)
+
+AddCommand("orbit", "orbit [player]", "Makes your character orbit around [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unorbit")
+	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
+	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
+		local rotation = 0
+		cons.add("orbit", heartbeat, function()
+			pcall(function()
+				rotation = rotation + 0.2
+				root.CFrame = CFrame.new(GetRoot(GetCharacter(target)).Position) * CFrame.Angles(0, math.rad(rotation), 0) * CFrame.new(6, 0, 0)
+			end)
+		end)
+		humanoid.Sit = true
+		cons.add("orbit2", RunService.RenderStepped, function()
+			pcall(function()
+				root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position)
+			end)
+		end)
+		cons.add("orbit3", humanoid.Died, function() ExecuteCommand("unorbit") end)
+		cons.add("orbit4", humanoid.Seated, function(value) if not value then ExecuteCommand("unorbit") end end)
+		env[1] = function() cons.remove({"orbit", "orbit2", "orbit3", "orbit4"}) end
+	end
+end)
+
+AddCommand("unorbit", "unorbit", "Disables orbit.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("orbit")
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
