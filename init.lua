@@ -772,11 +772,13 @@ local ListenToCharacter = function(player)
 end
 
 do
+	local got = false
 	local MainChat = LocalPlayer:FindFirstChildWhichIsA("PlayerGui") and LocalPlayer:FindFirstChildWhichIsA("PlayerGui"):FindFirstChild("Chat")
 	if MainChat then
 		if MainChat:FindFirstChild("Frame") and MainChat.Frame:FindFirstChild("ChatBarParentFrame") then
 			local ChatbarFrame = MainChat.Frame.ChatBarParentFrame
 			if ChatbarFrame:FindFirstChild("Frame") and ChatbarFrame.Frame:FindFirstChild("BoxFrame") and ChatbarFrame.Frame.BoxFrame:FindFirstChild("Frame") and ChatbarFrame.Frame.BoxFrame.Frame:FindFirstChild("ChatBar") then
+				got = true
 				local chatbar = ChatbarFrame.Frame.BoxFrame.Frame.ChatBar
 				cons.add(chatbar.FocusLost, function()
 					local message = chatbar.Text
@@ -792,17 +794,29 @@ do
 			end
 		end
 	end
+	if not got then
+		cons.add(LocalPlayer.Chatted, function(message)
+			spawn(function()
+				wait()
+				do_exec(message, LocalPlayer)
+			end)
+			LogChatMessage(LocalPlayer, message)
+			Events.Fire("OnChatted", LocalPlayer.Name, message)
+		end)
+	end
 end
 
 for _, player in next, Players:GetPlayers() do
-	cons.add(player.Chatted, function(message)
-		spawn(function()
-			wait()
-			do_exec(message, player)
+	if player ~= LocalPlayer then
+		cons.add(player.Chatted, function(message)
+			spawn(function()
+				wait()
+				do_exec(message, player)
+			end)
+			LogChatMessage(player, message)
+			Events.Fire("OnChatted", player.Name, message)
 		end)
-		LogChatMessage(player, message)
-		Events.Fire("OnChatted", player.Name, message)
-	end)
+	end
 	ListenToCharacter(player)
 end
 
@@ -1841,7 +1855,7 @@ Events = (function()
 		end
 		return res
 	end
-	AddCommand("eventeditor", "eventeditor", "Set up listener events.", {}, {"Core"}, 2, function(_, _, env)
+	AddCommand("eventeditor", "eventeditor", "Handle events that run when a specific action is performed.", {}, {"Core"}, 2, function(_, _, env)
 		local Loaded = GetEnvironment("eventeditor")[1]
 		if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
 		local Container = Gui.New("Events", function() env[1] = nil end)
@@ -1868,6 +1882,7 @@ Events = (function()
 						input.Object.Back.Input.Text = ""
 					end
 				end})
+				if #event.commands > 0 then Section:AddItem("Text", {Text = "Events", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1}) end
 				for i, command in next, event.commands do
 					Section:AddItem("ButtonText", {Text = command[1], Function = function()
 						Container.Close()
@@ -1925,7 +1940,7 @@ Events = (function()
 								end, Typing = function(text, object) if not tonumber(text) then object.Back.Input.Text = sub(text, 1, 1) end end})
 							end
 						end
-						Section:AddItem("Text", {Text = "", ImageTransparency = 1})
+						Section:AddItem("Text", {Text = "Event", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 						Section:AddItem("ButtonText", {Text = "Remove", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
 							remove(event.commands, i)
 							save()
