@@ -145,7 +145,7 @@ GetMagnitude = function(player)
 end
 
 CheckDistanceAndClear = function(target)
-	delay(1.05, function()
+	delay(1, function()
 		local character = GetCharacter()
 		if character and target and GetMagnitude(target) <= 10 then
 			character:ClearAllChildren()
