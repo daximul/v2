@@ -1927,7 +1927,7 @@ Events = (function()
 									Notify("updated")
 								end})
 								local val = command[2][1]
-								if val ~= 0 then custom.Object.Back.Input.Text = val end
+								if val ~= 0 and val ~= 1 then custom.Object.Back.Input.Text = val end
 							elseif stype == "Number" then
 								Section:AddItem("Text", {Text = x.Name or "Number", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 								Section:AddItem("Button", {Text = "Any Number", Function = function()
@@ -1938,6 +1938,7 @@ Events = (function()
 									command[2][i] = tonumber(text)
 									Notify("updated")
 								end, Typing = function(text, object) if not tonumber(text) then object.Back.Input.Text = sub(text, 1, 1) end end})
+								if val ~= 0 then custom.Object.Back.Input.Text = val end
 							end
 						end
 						Section:AddItem("Text", {Text = "Event", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
