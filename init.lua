@@ -31,7 +31,7 @@ local Config = {
 	StartupNotification = true,
 	Widebar = false,
 }
-local MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}}
+local MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}, Events = {}}
 
 local cloneref = cloneref or function(...) return ... end
 Services = {}
@@ -3407,6 +3407,184 @@ AddCommand("hipheight", "hipheight [number]", "Changes your character's hip heig
 	end
 end)
 
+Events = (function()
+	local events = {}
+	local register = function(name, sets)
+		events[name] = {commands = {}, sets = sets or {}}
+	end
+	local fire = function(name, ...)
+		local args = {...}
+		local event = events[name]
+		if event then
+			for _, command in next, event.commands do
+				local valid = true
+				for i, set in next, event.sets do
+					local val = args[i]
+					local stype = set.Type
+					set = command[2][i]
+					if stype == "Player" then
+						if set == 0 then
+							valid = valid and (LocalPlayer.Name == val)
+						elseif set ~= 1 then
+							valid = valid and tfind(getPlayer(set, LocalPlayer), val)
+						end
+					elseif stype == "String" then
+						if set ~= 0 then
+							valid = valid and find(lower(val), lower(set))
+						end
+					elseif stype == "Number" then
+						if set ~= 0 then
+							valid = valid and (tonumber(val) <= tonumber(set))
+						end
+					end
+					if not valid then break end
+				end
+				if valid then
+					pcall(coroutine.wrap(function()
+						local str = command[1]
+						for num, arg in next, args do str = gsub(str, "%$" .. num, arg) end
+						wait(command[3] or 0)
+						ExecuteCommand(str)
+					end))
+				end
+			end
+		end
+	end
+	local save = function()
+		for i, v in next, events do
+			MiscConfig.Events[i] = v.commands
+		end
+	end
+	local load = function(str)
+		for i, v in pairs(MiscConfig.Events) do
+			if events[i] then
+				events[i].commands = v
+			end
+		end
+	end
+	local default = function(ev)
+		local res = {}
+		for _, v in next, ev.sets do
+			if v.Type == "Player" then
+				res[#res + 1] = v.Default or 0
+			elseif v.Type == "String" then
+				res[#res + 1] = v.Default or 0
+			elseif v.Type == "Number" then
+				res[#res + 1] = v.Default or 0
+			end
+		end
+		return res
+	end
+	AddCommand("eventeditor", "eventeditor", "Set up listener events.", {}, {"Core"}, 2, function(_, _, env)
+		local Loaded = GetEnvironment("eventeditor")[1]
+		if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
+		local Container = Gui.New("Events", function() env[1] = nil end)
+		local Section = Container:AddSection("Section")
+		env[1] = {Container = Container, Section = Section}
+		for name, event in next, events do
+			Section:AddItem("ButtonText", {Text = name, TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+				Container.Close()
+				Container = Gui.New(name, function() env[1] = nil end)
+				Section = Container:AddSection("Section")
+				Section:AddItem("ButtonText", {Text = "Back to Event Editor", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+					Container.Close()
+					ExecuteCommand("eventeditor")
+				end})
+				local input = Section:AddItem("InputBox", {Text = "Command"})
+				Section:AddItem("Button", {Text = "Add Above Event", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+					local text = tostring(input.Object.Back.Input.Text)
+					if text ~= "" and text ~= " " then
+						event.commands[#event.commands + 1] = {text, default(event), 0}
+						save()
+						UpdateMiscConfig()
+						Notify(format("added event (%s)\nre-open (%s) to refresh list", text, name))
+					else
+						input.Object.Back.Input.Text = ""
+					end
+				end})
+				for i, command in next, event.commands do
+					Section:AddItem("ButtonText", {Text = command[1], Function = function()
+						Container.Close()
+						Container = Gui.New(name, function() env[1] = nil end)
+						Section = Container:AddSection("Section")
+						Section:AddItem("Button", {Text = "Back to Event Editor", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+							Container.Close()
+							ExecuteCommand("eventeditor")
+						end})
+						local preview = Section:AddItem("InputBox", {Text = "Command", Function = function(text) command[1] = text end})
+						preview.Object.Back.Input.Text = command[1]
+						local delayed = Section:AddItem("InputBox", {Text = "Delay (s)", Function = function(text)
+							command[3] = tonumber(text)
+						end, Typing = function(text, object) if not tonumber(text) then object.Back.Input.Text = sub(text, 1, 1) end end})
+						delayed.Object.Back.Input.Text = tostring(command[3])
+						for _, x in next, event.sets do
+							local stype = x.Type
+							if stype == "Player" then
+								Section:AddItem("Text", {Text = x.Name or "Player", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+								Section:AddItem("Button", {Text = "Me Only", Function = function()
+									command[2][i] = 0
+									Notify("updated")
+								end})
+								Section:AddItem("Button", {Text = "Any Player", Function = function()
+									command[2][i] = 1
+									Notify("updated")
+								end})
+								local custom = Section:AddItem("InputBox", {Text = "Custom Player", Function = function(text, object)
+									command[2][i] = text
+									Notify("updated")
+								end})
+								local val = command[2][1]
+								if val ~= 0 and val ~= 1 then custom.Object.Back.Input.Text = val end
+							elseif stype == "String" then
+								Section:AddItem("Text", {Text = x.Name or "String", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+								Section:AddItem("Button", {Text = "Any String", Function = function()
+									command[2][i] = 0
+									Notify("updated")
+								end})
+								local custom = Section:AddItem("InputBox", {Text = "Custom String", Function = function(text)
+									command[2][i] = text
+									Notify("updated")
+								end})
+								local val = command[2][1]
+								if val ~= 0 then custom.Object.Back.Input.Text = val end
+							elseif stype == "Number" then
+								Section:AddItem("Text", {Text = x.Name or "Number", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+								Section:AddItem("Button", {Text = "Any Number", Function = function()
+									command[2][i] = 0
+									Notify("updated")
+								end})
+								local custom = Section:AddItem("InputBox", {Text = "Custom Number", Function = function(text)
+									command[2][i] = tonumber(text)
+									Notify("updated")
+								end, Typing = function(text, object) if not tonumber(text) then object.Back.Input.Text = sub(text, 1, 1) end end})
+							end
+						end
+						Section:AddItem("Text", {Text = "", ImageTransparency = 1})
+						Section:AddItem("ButtonText", {Text = "Remove", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+							remove(event.commands, i)
+							save()
+							UpdateMiscConfig()
+							Container.Close()
+							ExecuteCommand("eventeditor")
+							Notify("removed event")
+						end})
+						Section:AddItem("ButtonText", {Text = "Update", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+							save()
+							UpdateMiscConfig()
+							Notify("updated event and saved")
+						end})
+					end})
+				end
+			end})
+		end
+	end)
+	return {Register = register, Fire = fire, Save = save, Load = load}
+end)()
+Events.Register("OnExecute")
+-- not doing OnChatted right now bro
+-- Events.Fire("OnChatted", LocalPlayer.Name)
+-- Events.Register("OnChatted", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
@@ -3438,4 +3616,7 @@ for name, permission in next, MiscConfig.Permissions do
 		end
 	end
 end
+
 UpdateMiscConfig()
+Events.Load()
+Events.Fire("OnExecute")
