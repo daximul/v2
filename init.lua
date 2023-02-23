@@ -2467,9 +2467,7 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 			wait(0.2)
 			cons.remove("refresh")
 			root = GetRoot()
-			if root then
-				root.CFrame = oldpos
-			end
+			if root then root.CFrame = oldpos end
 		end)
 		character:ClearAllChildren()
 	end
@@ -2569,15 +2567,15 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 				Attach(target)
 				wait(0.2)
 				CheckDistanceAndClear(target)
-				repeat wait()
-				root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
-				until not root or not root2
+				spawn(function()
+					repeat wait()
+					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
+					until not root or not root2
+				end)
 				LocalPlayer.CharacterAdded:Wait()
 				wait(0.2)
 				root = GetRoot()
-				if root then
-					root.CFrame = oldpos
-				end
+				if root then root.CFrame = oldpos end
 			end
 		end
 	end
@@ -2658,9 +2656,7 @@ AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky an
 			speaker.CharacterAdded:Wait()
 			wait(0.2)
 			root = GetRoot()
-			if root then
-				root.CFrame = oldpos
-			end
+			if root then root.CFrame = oldpos end
 		end
 	end
 end)
