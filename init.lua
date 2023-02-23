@@ -139,6 +139,20 @@ GetRoot = function(character)
 	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("LowerTorso"))
 end
 
+GetMagnitude = function(player)
+	local root, root2 = GetRoot(), GetRoot(GetCharacter(player))
+	return player and (root and root2 and (root2.Position - root.Position).magnitude) or math.huge
+end
+
+CheckDistanceAndClear = function(target)
+	delay(1.05, function()
+		local character = GetCharacter()
+		if character and target and GetMagnitude(target) <= 10 then
+			character:ClearAllChildren()
+		end
+	end)
+end
+
 IsKeyDown = {}
 LastKey = function(input)
 	return split(tostring(input), ".")[3]
@@ -2552,6 +2566,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 				local oldpos = root.CFrame
 				Attach(target)
 				wait(0.2)
+				CheckDistanceAndClear(target)
 				repeat wait()
 				root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 				until not root or not root2
@@ -2632,11 +2647,12 @@ end)
 AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky and bring [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target, root = Players[available], GetRoot()
-		if target and target.Character and root then
+		if target and GetCharacter(target) and root then
 			local oldpos = root.CFrame
 			root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
 			wait(0.2)
 			Attach(target)
+			CheckDistanceAndClear(target)
 			speaker.CharacterAdded:Wait()
 			wait(0.2)
 			root = GetRoot()
