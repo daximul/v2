@@ -107,7 +107,7 @@ end
 
 NewInstance = function(class, properties)
 	local new = creatingInstance(class)
-	for property, value in pairs(properties) do
+	for property, value in next, properties do
 		new[property] = value
 	end
 	return new
@@ -740,14 +740,43 @@ local do_exec = function(str, plr)
 	end
 end
 
+local ListenToCharacter = function(player)
+	local Listen = function()
+		spawn(function()
+			pcall(function()
+				local out = 0
+				repeat wait(1) out = out + 1 until (GetHumanoid(GetCharacter(player)) ~= nil or out == 10)
+				local humanoid = GetHumanoid(GetCharacter(player))
+				if humanoid then
+					cons.add(humanoid.Died, function()
+						Events.Fire("OnDied", player.Name)
+						local killedBy = humanoid:FindFirstChild("Creator")
+						if killedBy and killedBy.Value and killedBy.Value.Parent then
+							Events.Fire("OnKilled", player.Name, killedBy.Name)
+						end
+					end)
+					local OldHealth = humanoid.Health
+					humanoid.HealthChanged:Connect(function(health)
+						if OldHealth > health then Events.Fire("OnDamage", player.Name, tonumber(health)) end
+						OldHealth = health
+					end)
+				end
+			end)
+		end)
+	end
+	cons.add(player.CharacterAdded, function(character)
+		Events.Fire("OnSpawn", player.Name)
+		Listen()
+	end)
+	Listen()
+end
+
 do
-	local got = false
 	local MainChat = LocalPlayer:FindFirstChildWhichIsA("PlayerGui") and LocalPlayer:FindFirstChildWhichIsA("PlayerGui"):FindFirstChild("Chat")
 	if MainChat then
 		if MainChat:FindFirstChild("Frame") and MainChat.Frame:FindFirstChild("ChatBarParentFrame") then
 			local ChatbarFrame = MainChat.Frame.ChatBarParentFrame
 			if ChatbarFrame:FindFirstChild("Frame") and ChatbarFrame.Frame:FindFirstChild("BoxFrame") and ChatbarFrame.Frame.BoxFrame:FindFirstChild("Frame") and ChatbarFrame.Frame.BoxFrame.Frame:FindFirstChild("ChatBar") then
-				got = true
 				local chatbar = ChatbarFrame.Frame.BoxFrame.Frame.ChatBar
 				cons.add(chatbar.FocusLost, function()
 					local message = chatbar.Text
@@ -763,29 +792,18 @@ do
 			end
 		end
 	end
-	if not got then
-		cons.add(LocalPlayer.Chatted, function(message)
-			spawn(function()
-				wait()
-				do_exec(message, LocalPlayer)
-			end)
-			LogChatMessage(LocalPlayer, message)
-			Events.Fire("OnChatted", LocalPlayer.Name, message)
-		end)
-	end
 end
 
 for _, player in next, Players:GetPlayers() do
-	if player ~= LocalPlayer then
-		cons.add(player.Chatted, function(message)
-			spawn(function()
-				wait()
-				do_exec(message, player)
-			end)
-			LogChatMessage(player, message)
-			Events.Fire("OnChatted", player.Name, message)
+	cons.add(player.Chatted, function(message)
+		spawn(function()
+			wait()
+			do_exec(message, player)
 		end)
-	end
+		LogChatMessage(player, message)
+		Events.Fire("OnChatted", player.Name, message)
+	end)
+	ListenToCharacter(player)
 end
 
 cons.add(Players.PlayerAdded, function(player)
@@ -798,6 +816,7 @@ cons.add(Players.PlayerAdded, function(player)
 		LogChatMessage(player, message)
 		Events.Fire("OnChatted", player.Name, message)
 	end)
+	ListenToCharacter(player)
 end)
 
 Admin.CommandRequirements = {
@@ -1829,7 +1848,7 @@ Events = (function()
 		local Section = Container:AddSection("Section")
 		env[1] = {Container = Container, Section = Section}
 		for name, event in next, events do
-			Section:AddItem("ButtonText", {Text = name, TextXAlignment = Enum.TextXAlignment.Center, Function = function()
+			Section:AddItem("ButtonText", {Text = name .. (#event.commands > 0 and " (" .. #event.commands .. ")" or ""), TextXAlignment = Enum.TextXAlignment.Center, Function = function()
 				Container.Close()
 				Container = Gui.New(name, function() env[1] = nil end)
 				Section = Container:AddSection("Section")
@@ -1930,6 +1949,10 @@ end)()
 Events.Register("OnExecute")
 Events.Register("OnChatted", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}, {Type = "String", Name = "Message Filter ($2)"}})
 Events.Register("OnJoin", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
+Events.Register("OnSpawn", {{Type = "Player", Name = "Player Filter ($1)"}})
+Events.Register("OnDied", {{Type = "Player", Name = "Player Filter ($1)"}})
+Events.Register("OnDamage", {{Type = "Player", Name = "Player Filter ($1)"}, {Type = "Number", Name = "Below Health ($2)"}})
+Events.Register("OnKilled", {{Type = "Player", Name = "Victim Player ($1)"}, {Type = "String", Name = "Killer Player ($2)", Default = 1}})
 
 AddCommand("toggle", "toggle [command 1] [command 2]", "Runs [command 1]. When ran again, runs [command 2]. Recommended that command 1 is something like fly and command 2 is like unfly.", {}, {"Toggle", 2}, 2, function(args)
 	local command = {args[1], args[2]}
