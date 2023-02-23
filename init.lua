@@ -310,6 +310,8 @@ Attach = function(target)
 		if tool and character and tcharacter then
 			local humanoid, root, root2 = GetHumanoid(), GetRoot(), GetRoot(tcharacter)
 			if humanoid and root and root2 then
+				local backpack = GetBackpack()
+				if backpack then tool.Parent = backpack end
 				ReplaceHumanoid()
 				workspace.CurrentCamera.CameraSubject = character
 				humanoid.DisplayDistanceType = "None"
