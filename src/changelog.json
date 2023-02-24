@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 2/24/23",
+        "+ joinlogs, savejoinlogs, clearjoinlogs"
+    ],
+    [
         "Update 2/23/23",
         "added more events to the event editor",
         "+ rocketconnect [player], unrocketconnect, orbit [player] [speed] [distance], unorbit, stareat [player], unstareat",
