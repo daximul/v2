@@ -3642,7 +3642,7 @@ AddCommand("hipheight", "hipheight [number]", "Changes your character's hip heig
 	end
 end)
 
-AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket to make your character orbit around [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketPropulsion) to make your character follow [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unrocketconnect")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
@@ -3662,18 +3662,17 @@ AddCommand("unrocketconnect", "unrocketconnect", "Disables rocketconnect.", {}, 
 	RunCommandFunctions("rocketconnect")
 end)
 
-AddCommand("orbit", "orbit [player]", "Makes your character orbit around [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character orbit around [player] with a speed of [speed] and a distance of [distance]. [speed] and [distance] are optional arguments.", {}, {"Utility", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unorbit")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
-		local rotation = 0
+		local rotation, speed, distance = 0, (tonumber(args[2]) or 0.2), (tonumber(args[3]) or 6)
 		cons.add("orbit", heartbeat, function()
 			pcall(function()
-				rotation = rotation + 0.2
-				root.CFrame = CFrame.new(GetRoot(GetCharacter(target)).Position) * CFrame.Angles(0, math.rad(rotation), 0) * CFrame.new(6, 0, 0)
+				rotation = rotation + speed
+				root.CFrame = CFrame.new(GetRoot(GetCharacter(target)).Position) * CFrame.Angles(0, math.rad(rotation), 0) * CFrame.new(distance, 0, 0)
 			end)
 		end)
-		humanoid.Sit = true
 		cons.add("orbit2", RunService.RenderStepped, function()
 			pcall(function()
 				root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position)
@@ -3687,6 +3686,25 @@ end)
 
 AddCommand("unorbit", "unorbit", "Disables orbit.", {}, {"Utility"}, 2, function()
 	RunCommandFunctions("orbit")
+end)
+
+AddCommand("stareat", "stareat [player]", "Makes your character stare at [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+	ExecuteCommand("unstareat")
+	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
+	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
+		cons.add("stareat", RunService.RenderStepped, function()
+			pcall(function()
+				root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position)
+			end)
+		end)
+		cons.add("stareat2", humanoid.Died, function() ExecuteCommand("unorbit") end)
+		cons.add("stareat3", humanoid.Seated, function(value) if not value then ExecuteCommand("unorbit") end end)
+		env[1] = function() cons.remove({"stareat", "stareat2", "stareat3"}) end
+	end
+end)
+
+AddCommand("unstareat", "unstareat", "Disables stareat.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("stareat")
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
