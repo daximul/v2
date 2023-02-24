@@ -3246,6 +3246,7 @@ AddCommand("replicationlag", "replicationlag [number]", "Sets IncomingReplicatio
 end)
 
 AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("noxray")
 	local modified = {}
 	for _, v in next, workspace:GetDescendants() do
 		if v:IsA("Part") and v.Transparency <= 0.3 then
@@ -3262,8 +3263,14 @@ AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 
 	end
 end)
 
-AddCommand("unxray", "unxray", "Disables xray.", {}, {"Utility"}, 2, function()
+AddCommand("noxray", "noxray", "Disables xray.", {"unxray"}, {"Utility"}, 2, function()
 	RunCommandFunctions("xray")
+end)
+
+AddCommand("togglexray", "togglexray", "Toggles xray.", {}, {"Toggle"}, 2, function()
+	local command = {"xray", "noxray"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
@@ -3642,7 +3649,7 @@ AddCommand("hipheight", "hipheight [number]", "Changes your character's hip heig
 	end
 end)
 
-AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketPropulsion) to make your character follow [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketPropulsion) to make your character follow [player].", {}, {"Fun", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unrocketconnect")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
@@ -3658,11 +3665,11 @@ AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketProp
 	end
 end)
 
-AddCommand("unrocketconnect", "unrocketconnect", "Disables rocketconnect.", {}, {"Utility"}, 2, function()
+AddCommand("unrocketconnect", "unrocketconnect", "Disables rocketconnect.", {}, {"Fun"}, 2, function()
 	RunCommandFunctions("rocketconnect")
 end)
 
-AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character orbit around [player] with a speed of [speed] and a distance of [distance]. [speed] and [distance] are optional arguments.", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character orbit around [player] with a speed of [speed] and a distance of [distance]. [speed] and [distance] are optional arguments.", {}, {"Fun", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unorbit")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
@@ -3684,11 +3691,11 @@ AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character o
 	end
 end)
 
-AddCommand("unorbit", "unorbit", "Disables orbit.", {}, {"Utility"}, 2, function()
+AddCommand("unorbit", "unorbit", "Disables orbit.", {}, {"Fun"}, 2, function()
 	RunCommandFunctions("orbit")
 end)
 
-AddCommand("stareat", "stareat [player]", "Makes your character stare at [player].", {}, {"Utility", 1}, 2, function(args, speaker, env)
+AddCommand("stareat", "stareat [player]", "Makes your character stare at [player].", {}, {"Fun", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unstareat")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
@@ -3703,8 +3710,38 @@ AddCommand("stareat", "stareat [player]", "Makes your character stare at [player
 	end
 end)
 
-AddCommand("unstareat", "unstareat", "Disables stareat.", {}, {"Utility"}, 2, function()
+AddCommand("unstareat", "unstareat", "Disables stareat.", {}, {"Fun"}, 2, function()
 	RunCommandFunctions("stareat")
+end)
+
+AddCommand("wallteleport", "wallteleport", "Makes your character stare at [player].", {"walltp"}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("unwallteleport")
+	local root, humanoid = GetRoot(), GetHumanoid()
+	if root and humanoid then
+		cons.add("walltp", root.Touched, function(hit)
+			root, humanoid = GetRoot(), GetHumanoid()
+			if root and humanoid and hit:IsA("BasePart") and hit.Position.Y > root.Position.Y - humanoid.HipHeight then
+				local hitRoot = GetRoot(hit.Parent)
+				if hitRoot ~= nil then
+					root.CFrame = hit.CFrame * CFrame.new(root.CFrame.lookVector.X, hitRoot.Size.Z / 2 + humanoid.HipHeight, root.CFrame.lookVector.Z)
+				elseif hitRoot == nil then
+					root.CFrame = hit.CFrame * CFrame.new(root.CFrame.lookVector.X, hit.Size.Y / 2 + humanoid.HipHeight, root.CFrame.lookVector.Z)
+				end
+			end
+		end)
+		cons.add("walltp2", humanoid.Died, function() ExecuteCommand("unwallteleport") end)
+		env[1] = function() cons.remove({"walltp", "walltp2"}) end
+	end
+end)
+
+AddCommand("unwallteleport", "unwallteleport", "Disables wallteleport.", {"unwalltp"}, {"Utility"}, 2, function()
+	RunCommandFunctions("wallteleport")
+end)
+
+AddCommand("togglewallteleport", "togglewallteleport", "Toggles wallteleport.", {"togglewalltp"}, {"Toggle"}, 2, function()
+	local command = {"wallteleport", "unwallteleport"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
