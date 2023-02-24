@@ -2,8 +2,8 @@
     "Month / Day / Year",
     [
         "Update 2/23/23",
-        "added more to the event editor",
-        "+ rocketconnect [player], unrocketconnect, orbit [player], unorbit"
+        "added more events to the event editor",
+        "+ rocketconnect [player], unrocketconnect, orbit [player] [speed] [distance], unorbit, stareat [player], unstareat"
     ],
     [
         "Update 2/22/23",
