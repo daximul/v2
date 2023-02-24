@@ -403,6 +403,16 @@ LogChatMessage = function(player, message)
 	end
 end
 
+JoinHistory = {}
+LogJoinMessage = function(player, message)
+	insert(JoinHistory, {Player = player, Name = GetLongUsername(player), Message = message})
+	local Loaded = GetEnvironment("joinlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then
+		local log = format("[%s] %s", GetLongUsername(player), message)
+		Loaded.Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
+	end
+end
+
 CapitalizeFirstCharacters = function(str)
 	return gsub(str, "%S+", gsub(str, "^%l", upper))
 end
@@ -847,7 +857,10 @@ cons.add(Players.PlayerAdded, function(player)
 		Events.Fire("OnChatted", player.Name, message)
 	end)
 	ListenToCharacter(player)
+	LogJoinMessage(player, "has joined the game")
 end)
+
+cons.add(Players.PlayerRemoving, function(player) LogJoinMessage(player, "has left the game") end)
 
 Admin.CommandRequirements = {
 	spawned = {
@@ -1355,6 +1368,7 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	Section:AddItem("Button", {Text = "Keybinds", Function = function() ExecuteCommand("keybinds") end})
 	Section:AddItem("Button", {Text = "Changelogs", Function = function() ExecuteCommand("changelogs") end})
 	Section:AddItem("Button", {Text = "Chatlogs", Function = function() ExecuteCommand("chatlogs") end})
+	Section:AddItem("Button", {Text = "Joinlogs", Function = function() ExecuteCommand("joinlogs") end})
 	Section:AddItem("Toggle", {Text = "Keep Admin", Default = Config.KeepAdmin, Function = function(callback)
 		Config.KeepAdmin = callback
 		UpdateConfig()
@@ -1583,17 +1597,12 @@ end)
 
 AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat history.", {"clogs"}, {"Core"}, 2, function(_, _, env)
 	local Loaded = GetEnvironment("chatlogs")[1]
-	if Loaded and Loaded.Container and Loaded.Section then
-		Loaded.Container.Close()
-	end
+	if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
 	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
 	local Section = Container:AddSection("Section")
-	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
-		ExecuteCommand("savechatlogs")
+	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("savechatlogs")
 	end})
-	Section:AddItem("Button", {Text = "Clear Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function()
-		ExecuteCommand("clearchatlogs")
-	end})
+	Section:AddItem("Button", {Text = "Clear Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("clearchatlogs") end})
 	spawn(function()
 		for _, v in next, ChatHistory do
 			local log = format("[%s]: %s", v.Name, v.Message)
@@ -1606,20 +1615,13 @@ AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat histo
 end)
 
 AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in the chatlogs to save it, this exists.", {}, {"Core"}, 2, function()
-	if #ChatHistory == 0 then
-		Notify("no chat history available")
-		return
-	end
+	if #ChatHistory == 0 then return Notify("no chat history available") end
 	local os = os.date("*t")
 	local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
 	local name = CleanSpecials(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name)
 	local data = format("Chatlogs for \"%s\"\n\n\n\n", name)
-	for _, v in next, ChatHistory do
-		data = data .. format("[%s]: %s\n", v.Name, v.Message)
-	end
-	local success, result = pcall(function()
-		writefile(format("dark-admin/logs/%s - %s.txt", name, date), data)
-	end)
+	for _, v in next, ChatHistory do data = data .. format("[%s]: %s\n", v.Name, v.Message) end
+	local success, result = pcall(function() writefile(format("dark-admin/logs/%s - %s.txt", name, date), data) end)
 	if success then
 		Notify("successfully saved chatlogs")
 	else
@@ -1629,13 +1631,54 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 end)
 
 AddCommand("clearchatlogs", "clearchatlogs", "Clears the chatlogs.", {}, {"Core"}, 2, function()
-	for i, _ in next, ChatHistory do
-		ChatHistory[i] = nil
-	end
+	for i, _ in next, ChatHistory do ChatHistory[i] = nil end
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
 		Loaded.Container.Close()
 		ExecuteCommand("chatlogs")
+	end
+end)
+
+AddCommand("joinlogs", "joinlogs", "Opens a list to view the server's join history.", {"jlogs"}, {"Core"}, 2, function(_, _, env)
+	local Loaded = GetEnvironment("joinlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
+	local Container = Gui.Log("Joinlogs", function() env[1] = nil end, true)
+	local Section = Container:AddSection("Section")
+	Section:AddItem("Button", {Text = "Save Joinlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("savejoinlogs") end})
+	Section:AddItem("Button", {Text = "Clear Joinlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("clearjoinlogs") end})
+	spawn(function()
+		for _, v in next, JoinHistory do
+			local log = format("[%s] %s", v.Name, v.Message)
+			Section:AddItem("ButtonText", {Text = log, Function = function() toexecutorclipboard(log) end})
+		end
+	end)
+	env[1] = {Container = Container, Section = Section}
+	wait()
+	Container.SectionContainer.CanvasPosition = Vector2.new(0, Container.SectionContainer.CanvasSize.Y.Offset + 1000)
+end)
+
+AddCommand("savejoinlogs", "savejoinlogs", "If you don't want to scroll up in the joinlogs to save it, this exists.", {}, {"Core"}, 2, function()
+	if #JoinHistory == 0 then return Notify("no chat history available") end
+	local os = os.date("*t")
+	local date = os.hour .. " " .. os.min .. " " .. os.sec .. " " .. os.day .. "." .. os.month .. "." .. os.year
+	local name = CleanSpecials(Services.MarketplaceService:GetProductInfo(game.PlaceId).Name)
+	local data = format("Joinlogs for \"%s\"\n\n\n\n", name)
+	for _, v in next, JoinHistory do data = data .. format("[%s] %s\n", v.Name, v.Message) end
+	local success, result = pcall(function() writefile(format("dark-admin/logs/%s - %s.txt", name, date), data) end)
+	if success then
+		Notify("successfully saved joinlogs")
+	else
+		warn("Save Error:", result)
+		Notify("failed to save joinlogs, check console for more info")
+	end
+end)
+
+AddCommand("clearjoinlogs", "clearjoinlogs", "Clears the joinlogs.", {}, {"Core"}, 2, function()
+	for i, _ in next, JoinHistory do JoinHistory[i] = nil end
+	local Loaded = GetEnvironment("joinlogs")[1]
+	if Loaded and Loaded.Container and Loaded.Section then
+		Loaded.Container.Close()
+		ExecuteCommand("joinlogs")
 	end
 end)
 
