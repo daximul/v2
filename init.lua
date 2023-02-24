@@ -2127,7 +2127,7 @@ AddCommand("togglefly", "togglefly", "Toggles fly.", {}, {"Toggle"}, 2, function
 end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Changes your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
-	if toumber(args[1]) then
+	if tonumber(args[1]) then
 		Config.FlySpeed = tonumber(args[1])
 		UpdateConfig()
 	end
@@ -3729,7 +3729,7 @@ AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character o
 			end)
 		end)
 		cons.add("orbit3", humanoid.Died, function() ExecuteCommand("unorbit") end)
-		cons.add("orbit4", humanoid.Seated, function(value) if not value then ExecuteCommand("unorbit") end end)
+		cons.add("orbit4", humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
 		env[1] = function() cons.remove({"orbit", "orbit2", "orbit3", "orbit4"}) end
 	end
 end)
@@ -3748,7 +3748,7 @@ AddCommand("stareat", "stareat [player]", "Makes your character stare at [player
 			end)
 		end)
 		cons.add("stareat2", humanoid.Died, function() ExecuteCommand("unorbit") end)
-		cons.add("stareat3", humanoid.Seated, function(value) if not value then ExecuteCommand("unorbit") end end)
+		cons.add("stareat3", humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
 		env[1] = function() cons.remove({"stareat", "stareat2", "stareat3"}) end
 	end
 end)
