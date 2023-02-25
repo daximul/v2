@@ -863,14 +863,8 @@ end)
 cons.add(Players.PlayerRemoving, function(player) LogJoinMessage(player, "has left the game") end)
 
 Admin.CommandRequirements = {
-	spawned = {
-		func = function() return GetCharacter() ~= nil end,
-		warning = "you need to be spawned for this command"
-	},
-	tool = {
-		func = HasTool,
-		warning = "you need a tool for this command"
-	}
+	spawned = function() return {"you need to be spawned for this command", GetCharacter() ~= nil} end,
+	tool = function() return {"you need a tool (with a handle) for this command", GetTool(LocalPlayer, true) ~= nil} end
 }
 
 AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
@@ -895,15 +889,15 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 		end)[1] or {},
 		Func = function()
 			for _, v in next, reqs do
-				if type(v) == "function" and v() == false then
-					if Admin.RequirementsNotification then
-						Notify("you are missing something that is needed for this command")
-					end
+				if type(v) == "function" then
+					local action = v()
+					action[1] = action[1] or "you are missing something that is needed for this command"
+					if action[2] == false and Admin.RequirementsNotification then Notify(action[1]) end
 					return false
-				elseif type(v) == "string" and Admin.CommandRequirements[v] ~= nil and Admin.CommandRequirements[v].func() == false then
-					if Admin.RequirementsNotification then
-						Notify(Admin.CommandRequirements[v].warning)
-					end
+				elseif type(v) == "string" and Admin.CommandRequirements[v] ~= nil then
+					local action = Admin.CommandRequirements[v]()
+					action[1] = action[1] or "you are missing something that is needed for this command"
+					if action[2] == false and Admin.RequirementsNotification then Notify(action[1]) end
 					return false
 				end
 			end
