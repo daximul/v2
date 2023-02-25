@@ -234,15 +234,17 @@ GetTool = function(player, requiresHandle)
 	player = player or LocalPlayer
 	local character, backpack = GetCharacter(player), GetBackpack(player)
 	if character and backpack and HasTool(player) then
-		local tool = character:FindFirstChildWhichIsA("Tool") or backpack:FindFirstChildWhichIsA("Tool")
-		if requiresHandle then
-			local handle = tool:FindFirstChild("Handle")
-			if handle and handle:IsA("Part") then
-				return tool
+		local tools = filter(merge(character:GetChildren(), backpack:GetChildren()), function(_, v) return v:IsA("Tool") and v end)
+		return filter(tools, function(_, v)
+			if requiresHandle then
+				local handle = v:FindFirstChild("Handle")
+				if handle and handle:IsA("Part") then
+					return v
+				end
+				return nil
 			end
-			return nil
-		end
-		return tool
+			return v
+		end)[1]
 	end
 	return nil
 end
@@ -305,7 +307,7 @@ ReplaceHumanoid = function()
 end
 
 Attach = function(target)
-	if HasTool(LocalPlayer) and target then
+	if GetTool(LocalPlayer, true) ~= nil and target then
 		local tool, character, tcharacter = GetTool(LocalPlayer, true), GetCharacter(), GetCharacter(target)
 		if tool and character and tcharacter then
 			local humanoid, root, root2 = GetHumanoid(), GetRoot(), GetRoot(tcharacter)
