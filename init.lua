@@ -1360,13 +1360,14 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 			object.Back.Input.Text = upper(object.Back.Input.Text)
 		end
 	})
-	Section:AddItem("Button", {Text = "Commands", Function = function() ExecuteCommand("commands") end})
-	Section:AddItem("Button", {Text = "Plugins", Function = function() ExecuteCommand("pluginlist") end})
-	Section:AddItem("Button", {Text = "Browser", Function = function() ExecuteCommand("browser") end})
-	Section:AddItem("Button", {Text = "Keybinds", Function = function() ExecuteCommand("keybinds") end})
-	Section:AddItem("Button", {Text = "Changelogs", Function = function() ExecuteCommand("changelogs") end})
-	Section:AddItem("Button", {Text = "Chatlogs", Function = function() ExecuteCommand("chatlogs") end})
-	Section:AddItem("Button", {Text = "Joinlogs", Function = function() ExecuteCommand("joinlogs") end})
+	Section:AddItem("Button", {Text = "Commands", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("commands") end})
+	Section:AddItem("Button", {Text = "Plugins", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("pluginlist") end})
+	Section:AddItem("Button", {Text = "Browser", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("browser") end})
+	Section:AddItem("Button", {Text = "Keybinds", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("keybinds") end})
+	Section:AddItem("Button", {Text = "Event Binds", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("eventeditor") end})
+	Section:AddItem("Button", {Text = "Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("chatlogs") end})
+	Section:AddItem("Button", {Text = "Joinlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("joinlogs") end})
+	Section:AddItem("Button", {Text = "Changelogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("changelogs") end})
 	Section:AddItem("Toggle", {Text = "Keep Admin", Default = Config.KeepAdmin, Function = function(callback)
 		Config.KeepAdmin = callback
 		UpdateConfig()
@@ -1912,7 +1913,7 @@ Events = (function()
 		end
 		return res
 	end
-	AddCommand("eventeditor", "eventeditor", "Handle events that run when a specific action is performed.", {}, {"Core"}, 2, function(_, _, env)
+	AddCommand("eventeditor", "eventeditor", "Handle events that run when a specific action is performed.", {"eventbinds"}, {"Core"}, 2, function(_, _, env)
 		local Loaded = GetEnvironment("eventeditor")[1]
 		if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
 		local Container = Gui.New("Events", function() env[1] = nil end)
@@ -2498,6 +2499,10 @@ end)
 
 AddCommand("unview", "unview", "Disables view.", {"unspectate"}, {"Utility"}, 2, function()
 	RunCommandFunctions("view")
+end)
+
+AddCommand("respawn", "respawn", "Attempts to respawn.", {}, {"Utility"}, 2, function()
+	GetCharacter():ClearAllChildren()
 end)
 
 AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you will be teleported back to your previous spot.", {"re"}, {"Utility"}, 2, function()
