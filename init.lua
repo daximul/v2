@@ -892,13 +892,17 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 				if type(v) == "function" then
 					local action = v()
 					action[1] = action[1] or "you are missing something that is needed for this command"
-					if action[2] == false and Admin.RequirementsNotification then Notify(action[1]) end
-					return false
+					if action[2] == false and Admin.RequirementsNotification then
+						Notify(action[1])
+						return false
+					end
 				elseif type(v) == "string" and Admin.CommandRequirements[v] ~= nil then
 					local action = Admin.CommandRequirements[v]()
 					action[1] = action[1] or "you are missing something that is needed for this command"
-					if action[2] == false and Admin.RequirementsNotification then Notify(action[1]) end
-					return false
+					if action[2] == false and Admin.RequirementsNotification then
+						Notify(action[1])
+						return false
+					end
 				end
 			end
 			return func
@@ -906,8 +910,8 @@ AddCommand = function(name, usage, description, alias, reqs, perm, func, pl)
 		Env = {},
 		Plugin = pl or false
 	}
-	local DestroyFunc = function() Admin.Commands[Id] = nil end
-	return {Destroy = DestroyFunc, Remove = DestroyFunc, Delete = DestroyFunc}
+	local InvalidateCommand = function() Admin.Commands[Id] = nil end
+	return {Destroy = InvalidateCommand, Remove = InvalidateCommand, Delete = InvalidateCommand, Invalidate = InvalidateCommand}
 end
 
 RewriteCommand = function(cmd, func)
