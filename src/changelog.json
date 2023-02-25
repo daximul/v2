@@ -2,6 +2,10 @@
     "Month / Day / Year",
     [
         "Update 2/24/23",
+        "+ respawn"
+    ],
+    [
+        "Update 2/24/23",
         "+ joinlogs, savejoinlogs, clearjoinlogs"
     ],
     [
