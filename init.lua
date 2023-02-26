@@ -2166,9 +2166,7 @@ end)
 
 AddCommand("esp", "esp", "Views all players in the server.", {"tracers", "chams"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unesp")
-	local success, esp = pcall(function()
-		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/sense/main/init.lua"))()
-	end)
+	local success, esp = pcall(function() return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/sense/main/init.lua"))() end)
 	if success then
 		local Container = Gui.New("Visuals", function() esp:Kill() end)
 		local Section = Container:AddSection("Section")
