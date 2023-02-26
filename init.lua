@@ -2170,11 +2170,9 @@ AddCommand("esp", "esp", "Views all players in the server.", {"tracers", "chams"
 		return loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/sense/main/init.lua"))()
 	end)
 	if success then
-		local Container = Gui.New("Visuals", function()
-			esp:Kill()
-		end)
+		local Container = Gui.New("Visuals", function() esp:Kill() end)
 		local Section = Container:AddSection("Section")
-		Section:AddItem("Toggle", {Text = "ESP", Default = true, Function = function(callback) esp:Toggle(callback) end})
+		esp:Toggle(true)
 		Section:AddItem("Toggle", {Text = "Players", Default = true, Function = function(callback) esp.Players = callback end})
 		Section:AddItem("Toggle", {Text = "Teammates", Default = true, Function = function(callback) esp.TeamMates = callback end})
 		Section:AddItem("Toggle", {Text = "TeamColor", Default = true, Function = function(callback) esp.TeamColor = callback end})
@@ -2184,15 +2182,10 @@ AddCommand("esp", "esp", "Views all players in the server.", {"tracers", "chams"
 		Section:AddItem("Toggle", {Text = "Tracers", Function = function(callback) esp.Tracers = callback end})
 		Section:AddItem("Toggle", {Text = "Health", Function = function(callback) esp.Health = callback end})
 		Section:AddItem("Toggle", {Text = "Chams", Function = function(callback) esp:Chams(callback) end})
-		env[1] = function()
-			if Container and Container.Close then
-				Container.Close()
-			else
-				esp:Kill()
-			end
-		end
+		env[1] = function() if Container and Container.Close then Container.Close() else esp:Kill() end end
 		local PlaceExists, PlaceResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.PlaceId)) end)
 		local GameExists, GameResult = pcall(function() return game:HttpGet(format("https://raw.githubusercontent.com/daximul/sense/main/supported/%d.lua", game.GameId)) end)
+		if PlaceExists or GameExists then Section:AddItem("Text", {Text = "Supported", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1}) end
 		if PlaceExists then loadstring(PlaceResult)()(Container, Section, esp) elseif GameExists then loadstring(GameResult)()(Container, Section, esp) end
 	end
 end)
