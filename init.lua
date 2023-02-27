@@ -61,6 +61,7 @@ Lighting = Services.Lighting
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, cwrap, wait, spawn = table.remove, string.gmatch, string.match, table.find, coroutine.wrap, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
+extraspaces = function(str) gsub(gsub(str, "^%s*(.-)%s*$", "%1"), "%s+", " ") end
 local getconnections = getconnections or get_signal_cons
 local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 local queue_on_teleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
