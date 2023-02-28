@@ -8,5 +8,10 @@
         "Name": "Cyclically's Btools",
         "Description": "Better btools with Undo & Identify. The command is cycbtools.",
         "Url": "cyclicallysbtools.lua"
+    },
+    {
+        "Name": "Hub Loader",
+        "Description": "Load specific hubs because why not?",
+        "Url": "hubloader.lua"
     }
 ]
