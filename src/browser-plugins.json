@@ -13,5 +13,10 @@
         "Name": "Hub Loader",
         "Description": "Load specific hubs because why not?",
         "Url": "hubloader.lua"
+    },
+    {
+        "Name": "Draggable Chat",
+        "Description": "Adds a command to make chat draggable and resizable. The command is draggablechat.",
+        "Url": "draggablechat.lua"
     }
 ]
