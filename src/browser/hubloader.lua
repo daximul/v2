@@ -13,19 +13,24 @@ local urls = {
     end}
 }
 
+urls = filter(urls, function(_, v)
+    return {
+        Name = v[1],
+        Description = format("Loads the script by %s.", v[2]),
+        Function = function()
+            if type(v[3]) == "function" then
+                v[3]()
+            else
+                loadstring(game:HttpGet(v[3]))()
+            end
+        end
+    }
+end)
+
+local commands = {}
+for _, v in next, urls do insert(commands, v) end
+
 return {
     Name = "Hub Loader",
-    Commands = filter(urls, function(_, v)
-        return {
-            Name = v[1],
-            Description = format("Loads the script by %s.", v[2]),
-            Function = function()
-                if type(v[3]) == "function" then
-                    v[3]()
-                else
-                    loadstring(game:HttpGet(v[3]))()
-                end
-            end
-        }
-    end)
+    Commands = commands
 }
