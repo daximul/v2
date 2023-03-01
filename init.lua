@@ -164,6 +164,12 @@ GetStringFromKeyCode = function(input)
 end
 cons.add(UserInputService.InputBegan, function(input, processed)
 	if not processed then
+		if find(tostring(input.UserInputType), "MouseButton") then
+			input = LastKey(input.UserInputType)
+			IsKeyDown[input] = true
+			IsKeyDown[gsub(input, "MouseButton", "MB")] = true
+			return
+		end
 		input = LastKey(input.KeyCode)
 		IsKeyDown[input] = true
 		for _, v in next, MiscConfig.Keybinds do
@@ -183,6 +189,12 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 end)
 cons.add(UserInputService.InputEnded, function(input, processed)
 	if not processed then
+		if find(tostring(input.UserInputType), "MouseButton") then
+			input = LastKey(input.UserInputType)
+			IsKeyDown[input] = false
+			IsKeyDown[gsub(input, "MouseButton", "MB")] = false
+			return
+		end
 		IsKeyDown[LastKey(input.KeyCode)] = false
 	end
 end)
@@ -3781,6 +3793,20 @@ AddCommand("togglewallteleport", "togglewallteleport", "Toggles wallteleport.", 
 	local command = {"wallteleport", "unwallteleport"}
 	local content = #GetEnvironment(command[1])
 	ExecuteCommand(content == 0 and command[1] or command[2])
+end)
+
+AddCommand("offset", "offset [x, y, z]", "Offsets you by the provided coordinates.", {}, {"Utility", 3}, 2, function(args)
+	local character, x, y, z = GetCharacter(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
+	if character and x and y and z then
+		character:TranslateBy(Vector3.new(x, y, z))
+	end
+end)
+
+AddCommand("tweenoffset", "tweenoffset [x, y, z]", "Tween offsets you by the provided coordinates.", {}, {"Utility", 3}, 2, function(args)
+	local root, x, y, z = GetRoot(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
+	if root and x and y and z then
+		TweenObj(root, "Sine", "Out", Config.TweenSpeed, {CFrame = CFrame.new(x, y, z)})
+	end
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
