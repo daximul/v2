@@ -2739,15 +2739,15 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 		local weld = NewInstance("Weld", {Name = RandomString(), Parent = seat, Part0 = seat, Part1 = root})
 		root.Anchored = false
 		seat.CFrame = oldpos
-		local saved = {}
+		local modified = {}
 		for _, v in next, character:GetChildren() do
 			if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Part") then
-				insert(saved, {Object = v, Transparency = v.Transparency})
+				insert(modified, {Object = v, Transparency = v.Transparency})
 				v.Transparency = v.Transparency <= 0.3 and 0.4 or v.Transparency
 			elseif v:IsA("Accessory") then
 				local handle = v:FindFirstChildWhichIsA("MeshPart") or v:FindFirstChildWhichIsA("Part")
 				if handle then
-					insert(saved, {Object = handle, Transparency = handle.Transparency})
+					insert(modified, {Object = handle, Transparency = handle.Transparency})
 					handle.Transparency = handle.Transparency <= 0.3 and 0.4 or handle.Transparency
 				end
 			end
@@ -2759,7 +2759,7 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 				weld:Destroy()
 			end
 			if seat then seat:Destroy() end
-			for _, v in next, saved do
+			for _, v in next, modified do
 				if v.Object and v.Transparency then
 					v.Object.Transparency = v.Transparency
 				end
