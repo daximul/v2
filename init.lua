@@ -2632,13 +2632,13 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 	end
 end)
 
-AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {}, {"Utility"}, 2, function(_, speaker)
+AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {"setspawn"}, {"Utility"}, 2, function(_, speaker)
 	ExecuteCommand("unspawnpoint")
 	local root = GetRoot()
 	if root then
 		local saved, pos = root.CFrame, root.Position
 		Notify(format("set a spawn point at (%s, %s, %s)", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
-		cons.add("spawn point", speaker.CharacterAdded, function()
+		cons.add("spawnpoint", speaker.CharacterAdded, function()
 			wait(0.2)
 			root = GetRoot()
 			if root then
@@ -2648,8 +2648,8 @@ AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are curren
 	end
 end)
 
-AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {}, {"Utility"}, 2, function(_, speaker)
-	cons.remove("spawn point")
+AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {"removespawn"}, {"Utility"}, 2, function(_, speaker)
+	cons.remove("spawnpoint")
 end)
 
 local lastdeath = false
@@ -2843,7 +2843,8 @@ AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we 
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 		cons.add("swim", heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
-			root.Velocity = ((moving or IsKeyDown.Space) and v3(moving and rootvelo.X or 0, IsKeyDown.Space and 50 or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
+			local vertical = (IsKeyDown.Space and 50) or (IsKeyDown.LeftControl and -50)
+			root.Velocity = ((moving or IsKeyDown.Space or IsKeyDown.LeftControl) and v3(moving and rootvelo.X or 0, vertical or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
 			cons.remove("swim")
