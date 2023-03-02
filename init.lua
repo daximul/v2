@@ -2247,17 +2247,13 @@ AddCommand("unantivoid", "unantivoid", "Sets the FallenPartsDestroyHeight back t
 end)
 
 AddCommand("fakeout", "fakeout", "Teleports your character into the void and then back to your original position. Useful for getting rid of players that are attached to your character.", {}, {"Fun"}, 2, function()
-	local reset = workspace.FallenPartsDestroyHeight ~= OldFallenPartsDestroyHeight
 	ExecuteCommand("antivoid")
 	local root = GetRoot()
 	if root then
 		local oldpos = root.CFrame
-		root.CFrame = CFrame.new(Vector3.new(0, -69420, 0))
-		wait(0.75)
+		root.CFrame = CFrame.new(Vector3.new(0, -694, 0))
+		wait(1)
 		root.CFrame = oldpos
-	end
-	if reset then
-		ExecuteCommand("unantivoid")
 	end
 end)
 
