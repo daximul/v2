@@ -2065,7 +2065,7 @@ AddCommand("viewtools", "viewtools [player]", "Views the tools of [player].", {}
 	end
 end)
 
-AddCommand("fly", "fly", "Makes your character able to fly.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
+AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up. Tap [LeftControl] to go down.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unfly")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if not character or not humanoid or not root then return end
@@ -2830,7 +2830,7 @@ AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {
 	loadstring(Services.InsertService:LoadLocalAsset("rbxassetid://6695644299"):Clone().Source)()
 end)
 
-AddCommand("swim", "swim", "Why are you swimming in the air? Get down please we need to talk about among us.", {}, {"Utility"}, 2, function(_, speaker, env)
+AddCommand("swim", "swim", "Makes your character able to swim while not being in water. Tap [Space] to go up. Tap [LeftControl] to go down.", {}, {"Utility"}, 2, function(_, speaker, env)
 	ExecuteCommand("unswim")
 	local character, humanoid, root = GetCharacter(), GetHumanoid(), GetRoot()
 	if character and humanoid and root then
