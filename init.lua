@@ -3848,7 +3848,7 @@ AddCommand("ignore", "ignore [player]", "Ignores [player] by putting them in Lig
 			local tracker = format("ignore-%s", target.Name)
 			cons.remove(tracker)
 			target.Character.Parent = Lighting
-			cons.add("tracker", target.CharacterAdded, function() target.Character.Parent = Lighting end)
+			cons.add(tracker, target.CharacterAdded, function() target.Character.Parent = Lighting end)
 			Notify("i forgor 💀")
 		end
 	end
