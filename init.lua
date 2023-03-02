@@ -3809,6 +3809,38 @@ AddCommand("tweenoffset", "tweenoffset [x, y, z]", "Tween offsets you by the pro
 	end
 end)
 
+AddCommand("grabtools", "grabtools", "Gives yourself tools that are in workspace.", {}, {"Utility"}, 2, function()
+	local humanoid = GetHumanoid()
+	if humanoid then
+		humanoid:UnequipTools()
+		for _, v in next, workspace:GetDescendants() do
+			if v:IsA("Tool") and v:FindFirstChild("Handle") then
+				humanoid:EquipTool(v)
+			end
+		end
+		wait(0.25)
+		humanoid:UnequipTools()
+	end
+end)
+
+AddCommand("listento", "listento [player]", "\"Listens to the area around the player (cool with vc).\" - 1Shawn1", {"listen"}, {"Fun", 1}, 2, function(args, speaker)
+	ExecuteCommand("unlistento")
+	local target = Players[getPlayer(args[1], speaker)[1]]
+	local root = GetRoot(GetCharacter(target))
+	if root then
+		env[1] = function()
+			cons.remove("listento")
+			Services.SoundService:SetListener(Enum.ListenerType.Camera)
+		end
+		Services.SoundService:SetListener(Enum.ListenerType.ObjectPosition, root)
+		cons.add("listento", target.CharacterRemoving, function() Services.SoundService:SetListener(Enum.ListenerType.Camera) end)
+	end
+end)
+
+AddCommand("unlistento", "unlistento", "Disables listento.", {"unlisten"}, {"Fun", 1}, 2, function()
+	RunCommandFunctions("listento")
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
