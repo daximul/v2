@@ -2097,19 +2097,13 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 	if root:FindFirstChild(BodyVelocityName) then
 		root:FindFirstChild(BodyVelocityName):Destroy()
 	end
-	local BodyGyro = NewInstance("BodyGyro", {Name = BodyGyroName, P = 9e4, MaxTorque = Vector3.new(9e9,9e9,9e9), CFrame = root.CFrame, Parent = root})
+	local BodyGyro = NewInstance("BodyGyro", {Name = BodyGyroName, P = 9e4, MaxTorque = Vector3.new(9e9, 9e9, 9e9), CFrame = root.CFrame, Parent = root})
 	local BodyVelocity = NewInstance("BodyVelocity", {Name = BodyVelocityName, Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root})
 	env[1] = function()
 		cons.remove({"fly", "fly2"})
-		if BodyGyro then
-			BodyGyro:Destroy()
-		end
-		if BodyVelocity then
-			BodyVelocity:Destroy()
-		end
-		if GetHumanoid() then
-			GetHumanoid().PlatformStand = false
-		end
+		if BodyGyro then BodyGyro:Destroy() end
+		if BodyVelocity then BodyVelocity:Destroy() end
+		if GetHumanoid() then GetHumanoid().PlatformStand = false end
 	end
 	cwrap(function()
 		cons.add("fly", RunService.Stepped, function()
@@ -2120,8 +2114,8 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 			for i, v in next, Keys do
 				v(IsKeyDown[i])
 			end
-			BodyGyro.CFrame = BodyGyro.CFrame:lerp(workspace.CurrentCamera.CFrame, 0.095)
-			BodyVelocity.Velocity = ((workspace.CurrentCamera.CFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CFrame.Position)
+			BodyGyro.CFrame = workspace.CurrentCamera.CoordinateFrame
+			BodyVelocity.Velocity = ((workspace.CurrentCamera.CoordinateFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CoordinateFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CoordinateFrame.p)
 		end)
 	end)()
 	cons.add("fly2", humanoid.Died, function()
