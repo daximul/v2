@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 3/2/23",
-        "+ grabtools, listento [player], unlistento"
+        "+ grabtools, listento [player], unlistento, ignore [player], unignore [player]"
     ],
     [
         "Update 2/27/23",
