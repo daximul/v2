@@ -3818,7 +3818,7 @@ AddCommand("grabtools", "grabtools", "Gives yourself tools that are in workspace
 	end
 end)
 
-AddCommand("listento", "listento [player]", "\"Listens to the area around the player (cool with vc).\" - 1Shawn1", {"listen"}, {"Fun", 1}, 2, function(args, speaker)
+AddCommand("listento", "listento [player]", "\"Listens to the area around the player (cool with vc).\" - 1Shawn1", {"listen"}, {"Fun", 1}, 2, function(args, speaker, env)
 	ExecuteCommand("unlistento")
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	local root = GetRoot(GetCharacter(target))
