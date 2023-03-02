@@ -3855,7 +3855,6 @@ AddCommand("ignore", "ignore [player]", "Ignores [player] by putting them in Lig
 end)
 
 AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"remember"}, {"Utility", 1}, 2, function(args, speaker)
-	local ignore = FindCommand("ignore").Env
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
