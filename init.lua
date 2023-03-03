@@ -2109,20 +2109,14 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 	end
 	cwrap(function()
 		cons.add("fly", RunService.Stepped, function()
-			if not GetCharacter() or not GetHumanoid() then
-				ExecuteCommand("unfly")
-			end
+			if not GetCharacter() or not GetHumanoid() then ExecuteCommand("unfly") end
 			humanoid.PlatformStand = true
-			for i, v in next, Keys do
-				v(IsKeyDown[i])
-			end
+			for i, v in next, Keys do v(IsKeyDown[i]) end
 			BodyGyro.CFrame = workspace.CurrentCamera.CoordinateFrame
 			BodyVelocity.Velocity = ((workspace.CurrentCamera.CoordinateFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CoordinateFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CoordinateFrame.p)
 		end)
 	end)()
-	cons.add("fly2", humanoid.Died, function()
-		ExecuteCommand("unfly")
-	end)
+	cons.add("fly2", humanoid.Died, function() ExecuteCommand("unfly") end)
 end)
 
 AddCommand("unfly", "unfly", "Disable fly.", {}, {"Utility"}, 2, function()
@@ -2268,34 +2262,20 @@ AddCommand("car", "car [speed]", "Makes you some form of a car. The car's speed 
 		local speed = tonumber(args[1]) or 70
 		humanoid.WalkSpeed = speed
 		humanoid.JumpPower = 15
-		if humanoid.RigType == Enum.HumanoidRigType.R6 then
-			animate.walk.WalkAnim.AnimationId = "rbxassetid://129342287"
-			animate.run.RunAnim.AnimationId = "rbxassetid://129342287"
-			animate.fall.FallAnim.AnimationId = "rbxassetid://129342287"
-			animate.idle.Animation1.AnimationId = "rbxassetid://129342287"
-			animate.idle.Animation2.AnimationId = "rbxassetid://129342287"
-			animate.jump.JumpAnim.AnimationId = "rbxassetid://129342287"
-			for _, obj in next, character:GetDescendants() do
-				if obj:IsA("Part") then
-					obj.CustomPhysicalProperties = PhysicalProperties.new(0.025, 0, 0)
-				end
+		local isR15 = humanoid.RigType == Enum.HumanoidRigType.R15
+		local AnimationId = isR15 and "rbxassetid://3360694441" or "rbxassetid://129342287"
+		animate.walk.WalkAnim.AnimationId = AnimationId
+		animate.run.RunAnim.AnimationId = AnimationId
+		animate.fall.FallAnim.AnimationId = AnimationId
+		animate.idle.Animation1.AnimationId = AnimationId
+		animate.idle.Animation2.AnimationId = AnimationId
+		animate.jump.JumpAnim.AnimationId = AnimationId
+		for _, obj in next, character:GetDescendants() do
+			if obj:IsA("Part") or obj:IsA("MeshPart") then
+				obj.CustomPhysicalProperties = PhysicalProperties.new(0.025, 0, 0)
 			end
-			humanoid.HipHeight = -1.03
 		end
-		if humanoid.RigType == Enum.HumanoidRigType.R15 then
-			animate.walk.WalkAnim.AnimationId = "rbxassetid://3360694441"
-			animate.run.RunAnim.AnimationId = "rbxassetid://3360694441"
-			animate.fall.FallAnim.AnimationId = "rbxassetid://3360694441"
-			animate.idle.Animation1.AnimationId = "rbxassetid://3360694441"
-			animate.idle.Animation2.AnimationId = "rbxassetid://3360694441"
-			animate.jump.JumpAnim.AnimationId = "rbxassetid://3360694441"
-			for _, obj in next, character:GetDescendants() do
-				if obj:IsA("Part") or obj:IsA("MeshPart") then
-					obj.CustomPhysicalProperties = PhysicalProperties.new(0.025, 0, 0)
-				end
-			end
-			humanoid.HipHeight = 0.56
-		end
+		humanoid.HipHeight = isR15 and 0.56 or -1.03
 	end
 end)
 
