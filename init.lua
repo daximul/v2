@@ -1419,6 +1419,8 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 			end
 		end
 	})
+	Section:AddItem("ButtonText", {Text = "Insert Current PlaceId", Function = function() PlaceId.Object.Back.Input.Text = game.PlaceId end})
+	Section:AddItem("ButtonText", {Text = "Insert Current GameId", Function = function() PlaceId.Object.Back.Input.Text = game.GameId end})
 	local Key = Section:AddItem("InputKey", {
 		Text = "Key",
 		Function = function(text, object)
@@ -2792,6 +2794,12 @@ end)
 
 AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis", "untoolinvisible", "untoolinvis", "untinvis"}, {"Utility"}, 2, function()
 	RunCommandFunctions({"invisible", "toolinvisible"})
+end)
+
+AddCommand("toggleinvisible", "toggleinvisible", "Toggles invisible.", {}, {"Toggle"}, 2, function()
+	local command = {"invisible", "uninvisible"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direction. [speed] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
