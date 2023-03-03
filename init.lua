@@ -2200,7 +2200,7 @@ AddCommand("unesp", "unesp", "Disables esp.", {"untracers", "unchams"}, {"Utilit
 	RunCommandFunctions("esp")
 end)
 
-AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function()
+AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unnoclip")
 	cons.add("noclip", RunService.Stepped, function()
 		local character = GetCharacter()
@@ -2213,15 +2213,18 @@ AddCommand("noclip", "noclip", "Makes your character able to walk through walls.
 		end
 	end)
 	local humanoid = GetHumanoid()
-	if humanoid then
-		cons.add("noclip2", humanoid.Died, function()
-			ExecuteCommand("unnoclip")
-		end)
-	end
+	if humanoid then cons.add("noclip2", humanoid.Died, function() ExecuteCommand("unnoclip") end) end
+	env[1] = function() cons.remove({"noclip", "noclip2"}) end
 end)
 
 AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2, function()
-	cons.remove({"noclip", "noclip2"})
+	RunCommandFunctions("noclip")
+end)
+
+AddCommand("togglenoclip", "togglenoclip", "Toggles noclip.", {}, {"Toggle"}, 2, function()
+	local command = {"noclip", "unnoclip"}
+	local content = #GetEnvironment(command[1])
+	ExecuteCommand(content == 0 and command[1] or command[2])
 end)
 
 AddCommand("goto", "goto [player] [distance]", "Teleports your character to [player]. [distance] is an optional argument.", {"to"}, {"Utility", 1}, 2, function(args, speaker)
