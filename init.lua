@@ -1,12 +1,6 @@
-if not game:IsLoaded() then
-	game.Loaded:Wait()
-end
-
+if not game:IsLoaded() then game.Loaded:Wait() end
+if getgenv().dxrkj and type(getgenv().dxrkj) == "function" then return getgenv().dxrkj() end
 local LoadingTick = tick()
-
-if getgenv().dxrkj and type(getgenv().dxrkj) == "function" then
-	return getgenv().dxrkj()
-end
 
 Admin = {
 	Debug = false,
@@ -33,13 +27,13 @@ local Config = {
 }
 local MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}, Events = {}}
 
-local cloneref = cloneref or function(...) return ... end
+clonerefs = getgenv().cloneref or function(...) return ... end
 Services = {}
 setmetatable(Services, {
 	__index = function(tbl, prop)
 		local success, service = pcall(function() return game:GetService(prop) end)
 		if success then
-			Services[prop] = cloneref(service)
+			Services[prop] = clonerefs(service)
 			return Services[prop]
 		end
 		return nil
@@ -261,15 +255,15 @@ GetTool = function(player, requiresHandle)
 	return nil
 end
 
-local touchedcache = {}
+local touchinterest = {}
 firerbxtouch = getgenv().firetouchinterest or function(part, part2, value)
 	if part and part2 then
 		if value == 0 then
-			touchedcache[1] = part.CFrame
+			touchinterest[1] = part.CFrame
 			part.CFrame = part2.CFrame
 		else
-			part.CFrame = touchedcache[1]
-			touchedcache[1] = nil
+			part.CFrame = touchinterest[1]
+			touchinterest[1] = nil
 		end
 	end
 end
