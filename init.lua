@@ -3452,15 +3452,14 @@ AddCommand("fireproximityprompts", "fireproximityprompts", "Activates all proxim
 	end
 end)
 
-AddCommand("instantproximityprompts", "instantproximityprompts", "Removes the cooldown for all proximity prompts.", {}, {"Utility"}, 2, function()
+AddCommand("instantproximityprompts", "instantproximityprompts", "Removes the cooldown for all proximity prompts.", {}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninstantproximityprompts")
-	cons.add("instantproximityprompts", Services.ProximityPromptService.PromptButtonHoldBegan, function(prompt)
-		fireproximityprompt(prompt)
-	end)
+	cons.add("instantproximityprompts", Services.ProximityPromptService.PromptButtonHoldBegan, fireproximityprompt)
+	env[1] = function() cons.remove("instantproximityprompts") end
 end)
 
 AddCommand("uninstantproximityprompts", "uninstantproximityprompts", "Disables instantproximityprompts.", {"noinstantproximityprompts"}, {"Utility"}, 2, function()
-	cons.remove("instantproximityprompts")
+	RunCommandFunctions("instantproximityprompts")
 end)
 
 AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from kicking you.", {"antikick"}, {"Utility"}, 2, function(_, _, env)
