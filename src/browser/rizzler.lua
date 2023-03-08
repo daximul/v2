@@ -1,6 +1,6 @@
 local lines = loadstring(game:HttpGet("https://raw.githubusercontent.com/ligmajohn/backups/main/rizz_lines.lua"))()
 return {
-    Name = "Rizz",
+    Name = "Rizzler",
     Commands = {
         {
             Name = "rizz",
