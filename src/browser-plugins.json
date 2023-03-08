@@ -18,5 +18,10 @@
         "Name": "Draggable Chat",
         "Description": "Adds a command to make chat draggable and resizable. The command is draggablechat.",
         "Url": "draggablechat.lua"
+    },
+    {
+        "Name": "Rizzler",
+        "Description": "Adds a command to open a gui to pick chat lines that help you pick up virtual women. The command is rizz.",
+        "Url": "rizzler.lua"
     }
 ]
