@@ -2415,18 +2415,36 @@ AddCommand("memory", "memory", "Notifies your memory usage.", {}, {"Utility"}, 2
 	Notify("your memory usage is " .. round(Services.Stats:GetTotalMemoryUsageMb()) .. " mb")
 end)
 
-AddCommand("infinitejump", "infinitejump", "Makes your character able to infinitely jump with no cooldown.", {}, {"Utility"}, 2, function()
+AddCommand("infinitejump", "infinitejump", "Makes your character able to jump with no cooldown.", {}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninfinitejump")
-	cons.add("infinite jump", UserInputService.JumpRequest, function()
-		local humanoid = GetHumanoid()
-		if humanoid then
-			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	local debounce = false
+	cons.add("infinitejump", UserInputService.JumpRequest, function()
+		if not debounce then
+			debounce = true
+			local humanoid = GetHumanoid()
+			if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+			wait(0.11)
+			debounce = false
 		end
 	end)
+	env[1] = function() cons.remove("infinitejump") end
 end)
 
 AddCommand("uninfinitejump", "uninfinitejump", "Disables infinitejump.", {}, {"Utility"}, 2, function()
-	cons.remove("infinite jump")
+	RunCommandFunctions("infinitejump")
+end)
+
+AddCommand("flyjump", "flyjump", "Makes your character able to infinitely jump upwards with no cooldown.", {}, {"Utility"}, 2, function(_, _, env)
+	ExecuteCommand("uninfinitejump")
+	cons.add("flyjump", UserInputService.JumpRequest, function()
+		local humanoid = GetHumanoid()
+		if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+	end)
+	env[1] = function() cons.remove("flyjump") end
+end)
+
+AddCommand("unflyjump", "unflyjump", "Disables flyjump.", {}, {"Utility"}, 2, function()
+	RunCommandFunctions("flyjump")
 end)
 
 AddCommand("antiafk", "antiafk", "Prevents yourself from being kicked after being idle for 20 minutes.", {"antiidle"}, {"Utility"}, 2, function()
