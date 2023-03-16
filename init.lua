@@ -3860,6 +3860,23 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 	end
 end)
 
+AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"remember"}, {"Utility", 1}, 2, function(args, speaker)
+	for _, available in next, getPlayer(args[1], speaker) do
+		local target = Players[available]
+		if target then
+			cons.remove(format("ignore-%s", target.Name))
+			target.Character.Parent = workspace
+			Notify("i rember!!! 😄 💡")
+		end
+	end
+end)
+
+AddCommand("savegame", "savegame", "N/A", {}, {"Misc"}, 2, function(args)
+	local opt = lower(tostring(args[1]))
+	local n = opt == "noscripts" or opt == "noscr" or opt == "nos" or opt == "no" or opt == "n"
+	if syn and syn.run_secure_function and not syn.toast_notification then if n then saveinstance({noscripts = true}) else saveinstance() end else if n then saveinstance(game, {noscripts = true}) else saveinstance(game) end end
+end)
+
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 
 -- inaccurate loading time because funny
