@@ -3860,17 +3860,6 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 	end
 end)
 
-AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"remember"}, {"Utility", 1}, 2, function(args, speaker)
-	for _, available in next, getPlayer(args[1], speaker) do
-		local target = Players[available]
-		if target then
-			cons.remove(format("ignore-%s", target.Name))
-			target.Character.Parent = workspace
-			Notify("i rember!!! 😄 💡")
-		end
-	end
-end)
-
 AddCommand("savegame", "savegame", "N/A", {}, {"Misc"}, 2, function(args)
 	local opt = lower(tostring(args[1]))
 	local n = opt == "noscripts" or opt == "noscr" or opt == "nos" or opt == "no" or opt == "n"
