@@ -2613,7 +2613,7 @@ end)
 
 AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {"setspawn"}, {"Utility"}, 2, function(_, speaker, env)
 	ExecuteCommand("unspawnpoint")
-	env[1] = function() cons.remove("spawnspoint") end
+	env[1] = function() cons.remove("spawnpoint") end
 	local root = GetRoot()
 	if root then
 		local saved, pos = root.CFrame, root.Position
