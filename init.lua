@@ -14,7 +14,7 @@ Admin = {
 	Prefix = ";"
 }
 
-local Config = {
+Config = {
 	CommandBarPrefix = "Semicolon",
 	Prefix = ";",
 	DisabledPlugins = {},
@@ -25,7 +25,7 @@ local Config = {
 	StartupNotification = true,
 	Widebar = false,
 }
-local MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}, Events = {}}
+MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}, Events = {}}
 
 clonerefs = getgenv().cloneref or function(...) return ... end
 Services = {}
@@ -194,23 +194,15 @@ cons.add(UserInputService.InputEnded, function(input, processed)
 end)
 
 merge = function(...)
-	local new = {}
-	for i, v in next, {...} do
-		for _, v2 in next, v do
-			new[i] = v2
-		end
-	end
-	return new
+    local new = {}
+    for i, v in next, {...} do for _, v2 in next, v do new[i] = v2 end end
+    return new
 end
 
 filter = function(tbl, func)
-	local new = {}
-	for i, v in next, tbl do
-		if func(i, v) then
-			new[#new + 1] = v
-		end
-	end
-	return new
+    local new = {}
+    for i, v in next, tbl do if func(i, v) then new[#new + 1] = v end end
+    return new
 end
 
 map = function(tbl, func)
@@ -1018,9 +1010,7 @@ LoadedPlugins = {}
 PluginExtensions = {".luau", ".lua", ".txt", ".da"}
 
 LoadPlugin = function(path, ignore)
-	local Success, Plugin = pcall(function()
-		return loadstring(readfile(format("dark-admin/plugins/%s", path)))()
-	end)
+	local Success, Plugin = pcall(function() return loadstring(readfile(format("dark-admin/plugins/%s", path)))() end)
 	if not Success then
 		Notify(format("plugin error for (%s)\nplease open console (F9) for the error", path))
 		for i, v in next, LoadedPlugins do
@@ -1252,7 +1242,7 @@ cons.add(CommandBar.Focused, function()
 	end)
 end)
 
-local TweenObj = function(obj, style, direction, cd, goal)
+TweenObj = function(obj, style, direction, cd, goal)
 	local tweeninfo = TweenInfo.new(cd, Enum.EasingStyle[style], Enum.EasingDirection[direction])
 	local Tween = TweenService:Create(obj, tweeninfo, goal)
 	Tween:Play()
@@ -2636,7 +2626,7 @@ AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are curren
 	end
 end)
 
-AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {"removespawn"}, {"Utility"}, 2, function(_, speaker)
+AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {"removespawn", "unsetspawn"}, {"Utility"}, 2, function(_, speaker)
 	RunCommandFunctions("spawnpoint")
 end)
 
