@@ -2609,7 +2609,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 				CheckDistanceAndClear(target)
 				spawn(function()
 					repeat wait()
-					root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
+						root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
 					until not root or not root2
 				end)
 				LocalPlayer.CharacterAdded:Wait()
@@ -2621,24 +2621,23 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 	end
 end)
 
-AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {"setspawn"}, {"Utility"}, 2, function(_, speaker)
+AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {"setspawn"}, {"Utility"}, 2, function(_, speaker, env)
 	ExecuteCommand("unspawnpoint")
+	env[1] = function() cons.remove("spawnspoint") end
 	local root = GetRoot()
 	if root then
 		local saved, pos = root.CFrame, root.Position
-		Notify(format("set a spawn point at (%s, %s, %s)", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
+		Notify(format("set a spawn point at (%d, %d, %d)", round(pos.X), round(pos.Y), round(pos.Z)))
 		cons.add("spawnpoint", speaker.CharacterAdded, function()
 			wait(0.2)
 			root = GetRoot()
-			if root then
-				root.CFrame = saved
-			end
+			if root then root.CFrame = saved end
 		end)
 	end
 end)
 
 AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {"removespawn"}, {"Utility"}, 2, function(_, speaker)
-	cons.remove("spawnpoint")
+	RunCommandFunctions("spawnpoint")
 end)
 
 local lastdeath = false
@@ -2646,25 +2645,19 @@ cons.add(LocalPlayer.CharacterAdded, function()
 	repeat wait(1) until GetHumanoid() ~= nil
 	cons.add(GetHumanoid().Died, function()
 		local root = GetRoot()
-		if root then
-			lastdeath = root.CFrame
-		end
+		if root then lastdeath = root.CFrame end
 	end)
 end)
 spawn(function()
 	repeat wait(1) until GetHumanoid() ~= nil
 	cons.add(GetHumanoid().Died, function()
 		local root = GetRoot()
-		if root then
-			lastdeath = root.CFrame
-		end
+		if root then lastdeath = root.CFrame end
 	end)
 end)
 AddCommand("diedtp", "diedtp", "Teleport to your last position before you died.", {"flashback"}, {"Utility"}, 2, function(_, speaker)
 	local root = GetRoot()
-	if root and lastdeath then
-		root.CFrame = lastdeath
-	end
+	if root and lastdeath then lastdeath = root.CFrame end
 end)
 
 AddCommand("control", "control [player]", "Control [player] for a few seconds.", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
@@ -2712,9 +2705,7 @@ AddCommand("handlekill", "handlekill [player]", "Kill [player] with tool damage.
 				spawn(function()
 					while tool and handle and GetCharacter() and GetCharacter(target) and tool.Parent == GetCharacter() do
 						local humanoid = GetHumanoid(GetCharacter(target))
-						if not humanoid or humanoid.Health <= 0 then
-							break
-						end
+						if not humanoid or humanoid.Health <= 0 then break end
 						for _, obj in next, GetCharacter(target):GetChildren() do
 							obj = ((obj:IsA("BasePart") and firerbxtouch(handle, obj, 1, (renderstepped:Wait() and nil) or firerbxtouch(handle, obj, 0)) and nil) or obj) or obj
 						end
