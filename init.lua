@@ -66,13 +66,11 @@ RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", 
 
 cons = {connections = {}, loaded = true}
 cons.add = function(name, con, func)
-	if not func then
-		func = con
-		con = name
-		name = RandomString()
-	end
-	cons.connections[name] = con:Connect(func)
-	return cons.connections[name]
+	if not func then func, con, name = con, name, RandomString() end
+	local cname = type(name) == "table" and RandomString() or name
+	cons.connections[cname] = con:Connect(func)
+	if type(name) == "table" then name[#name + 1] = function() cons.remove(cname) end end
+	return cons.connections[cname]
 end
 cons.remove = function(name)
 	if type(name) == "table" then
@@ -2126,6 +2124,16 @@ AddCommand("walkspeed", "walkspeed [number]", "Changes your character's walkspee
 	end
 end)
 
+AddCommand("loopwalkspeed", "loopwalkspeed [number]", "Loop changes your character's walkspeed to [number].", {"loopspeed", "loopws"}, {"Utility", 1}, 2, function(args, _, env)
+	ExecuteCommand("unloopwalkspeed")
+	local speed = tonumber(args[1])
+	if speed then cons.add(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().WalkSpeed = speed end) end) end
+end)
+
+AddCommand("unloopwalkspeed", "unloopwalkspeed", "Disables loopwalkspeed.", {"unloopspeed", "unloopws"}, {"Utility"}, 2, function()
+	RunCommandFunctions("loopwalkspeed")
+end)
+
 AddCommand("jumppower", "jumppower [number]", "Changes your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
 	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
 		GetHumanoid().JumpPower = tonumber(args[1])
@@ -3773,16 +3781,12 @@ end)
 
 AddCommand("offset", "offset [x, y, z]", "Offsets you by the provided coordinates.", {}, {"Utility", 3}, 2, function(args)
 	local character, x, y, z = GetCharacter(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
-	if character and x and y and z then
-		character:TranslateBy(Vector3.new(x, y, z))
-	end
+	if character and x and y and z then character:TranslateBy(Vector3.new(x, y, z)) end
 end)
 
 AddCommand("tweenoffset", "tweenoffset [x, y, z]", "Tween offsets you by the provided coordinates.", {}, {"Utility", 3}, 2, function(args)
 	local root, x, y, z = GetRoot(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
-	if root and x and y and z then
-		TweenObj(root, "Sine", "Out", Config.TweenSpeed, {CFrame = CFrame.new(x, y, z)})
-	end
+	if root and x and y and z then TweenObj(root, "Sine", "Out", Config.TweenSpeed, {CFrame = CFrame.new(x, y, z)}) end
 end)
 
 AddCommand("grabtools", "grabtools", "Gives yourself tools that are in workspace.", {}, {"Utility"}, 2, function()
@@ -3839,12 +3843,6 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 			Notify("i rember!!! 😄 💡")
 		end
 	end
-end)
-
-AddCommand("savegame", "savegame", "N/A", {}, {"Misc"}, 2, function(args)
-	local opt = lower(tostring(args[1]))
-	local n = opt == "noscripts" or opt == "noscr" or opt == "nos" or opt == "no" or opt == "n"
-	if syn and syn.run_secure_function and not syn.toast_notification then if n then saveinstance({noscripts = true}) else saveinstance() end else if n then saveinstance(game, {noscripts = true}) else saveinstance(game) end end
 end)
 
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
