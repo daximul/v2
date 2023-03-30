@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 3/30/23",
+        "+ loopwalkspeed [number], unloopwalkspeed"
+    ],
+    [
         "Update 3/10/23",
         "+ flyjump, unflyjump"
     ],
