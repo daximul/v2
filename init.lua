@@ -2119,9 +2119,8 @@ AddCommand("flyspeed", "flyspeed [number]", "Changes your fly speed to [number].
 end)
 
 AddCommand("walkspeed", "walkspeed [number]", "Changes your character's walkspeed to [number].", {"speed", "ws"}, {"Utility", "spawned", 1}, 2, function(args)
-	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
-		GetHumanoid().WalkSpeed = tonumber(args[1])
-	end
+	local humanoid, speed = GetHumanoid(), tonumber(args[1])
+	if humanoid and speed then GetHumanoid().WalkSpeed = speed end
 end)
 
 AddCommand("loopwalkspeed", "loopwalkspeed [number]", "Loop changes your character's walkspeed to [number].", {"loopspeed", "loopws"}, {"Utility", 1}, 2, function(args, _, env)
@@ -2135,9 +2134,18 @@ AddCommand("unloopwalkspeed", "unloopwalkspeed", "Disables loopwalkspeed.", {"un
 end)
 
 AddCommand("jumppower", "jumppower [number]", "Changes your character's jump power to [number].", {"jp"}, {"Utility", "spawned", 1}, 2, function(args)
-	if tonumber(args[1]) and GetCharacter() and GetHumanoid() then
-		GetHumanoid().JumpPower = tonumber(args[1])
-	end
+	local humanoid, power = GetHumanoid(), tonumber(args[1])
+	if humanoid and power then GetHumanoid().JumpPower = power end
+end)
+
+AddCommand("loopjumppower", "loopwalkspeed [number]", "Loop changes your character's jump power to [number].", {"loopjumppower", "loopjp"}, {"Utility", 1}, 2, function(args, _, env)
+	ExecuteCommand("unloopjumppower")
+	local speed = tonumber(args[1])
+	if speed then cons.add(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().JumpPower = speed end) end) end
+end)
+
+AddCommand("unloopjumppower", "unloopjumppower", "Disables loopjumppower.", {"unloopjumppower", "unloopjp"}, {"Utility"}, 2, function()
+	RunCommandFunctions("loopjumppower")
 end)
 
 AddCommand("rejoin", "rejoin", "Rejoins the game.", {"rj"}, {"Utility"}, 2, function()
