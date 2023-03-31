@@ -1350,9 +1350,7 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 			Notify(format("prefix has been changed to %s (%s)", Config.CommandBarPrefix, Admin.Prefix))
 		end,
 		Typing = function(text, object)
-			if #text <= 2 then
-				object.Back.Input.Text = sub(text, 1, 1)
-			end
+			if #text <= 2 then object.Back.Input.Text = sub(text, 1, 1) end
 			object.Back.Input.Text = upper(object.Back.Input.Text)
 		end
 	})
@@ -1370,12 +1368,8 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	end})
 	Section:AddItem("Toggle", {Text = "Widebar", Default = Config.Widebar, Function = function(callback)
 		Config.Widebar = callback
-		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Position = UDim2.new(0.5, callback and -200 or -100, 1, 5)
-		})
-		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Size = UDim2.new(0, callback and 400 or 200, 0, 35)
-		})
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Position = UDim2.new(0.5, callback and -200 or -100, 1, 5)})
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Size = UDim2.new(0, callback and 400 or 200, 0, 35)})
 		UpdateConfig()
 	end})
 	Section:AddItem("Toggle", {Text = "Lowercased Commandbar Text", Default = Config.LoweredText, Function = function(callback)
@@ -1393,14 +1387,7 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 	local Section = Container:AddSection("Section")
 	local Current = {nil, nil}
 	local Command = Section:AddItem("InputBox", {Text = "Command"})
-	local PlaceId = Section:AddItem("InputBox", {
-		Text = "PlaceId or GameId (Optional)",
-		Typing = function(text, object)
-			if not tonumber(text) then
-				object.Back.Input.Text = ""
-			end
-		end
-	})
+	local PlaceId = Section:AddItem("InputBox", {Text = "PlaceId or GameId (Optional)", Typing = function(text, object) if not tonumber(text) then object.Back.Input.Text = "" end end})
 	Section:AddItem("ButtonText", {Text = "Insert Current PlaceId", Function = function() PlaceId.Object.Back.Input.Text = game.PlaceId end})
 	Section:AddItem("ButtonText", {Text = "Insert Current GameId", Function = function() PlaceId.Object.Back.Input.Text = game.GameId end})
 	local Key = Section:AddItem("InputKey", {
@@ -1532,12 +1519,8 @@ AddCommand("commandinfo", "commandinfo [command]", "Opens more information about
 end)
 
 AddCommand("changelogs", "changelogs", "Opens a list of the script changelogs.", {"changelog"}, {"Core"}, 2, function()
-	local success, result = pcall(function()
-		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")
-	end)
-	if success then
-		Gui.DisplayTable("Changelog", HttpService:JSONDecode(result))
-	end
+	local success, result = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json") end)
+	if success then Gui.DisplayTable("Changelog", HttpService:JSONDecode(result)) end
 end)
 
 AddCommand("editpermissions", "editpermissions [command] [number]", "Changes the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
@@ -1572,14 +1555,8 @@ AddCommand("unwhitelist", "unwhitelist [player]", "Un-whitelists [player] from u
 end)
 
 AddCommand("whitelisted", "whitelisted", "Opens a list of the current players that can use permission index 1 commands.", {}, {"Core"}, 2, function()
-	local list = map(Admin.Whitelisted, function(_, v)
-		return GetLongUsername(v.Player)
-	end)
-	if #list == 0 then
-		Notify("no players are currently whitelisted")
-	else
-		Gui.DisplayTable("Whitelisted", list)
-	end
+	local list = map(Admin.Whitelisted, function(_, v) return GetLongUsername(v.Player) end)
+	if #list == 0 then Notify("no players are currently whitelisted") else Gui.DisplayTable("Whitelisted", list) end
 end)
 
 AddCommand("lowercasedcommandbar", "lowercasedcommandbar", "Makes all future text in the command bar lowercased.", {}, {"Core"}, 2, function()
@@ -1597,8 +1574,7 @@ AddCommand("chatlogs", "chatlogs", "Opens a list to view the server's chat histo
 	if Loaded and Loaded.Container and Loaded.Section then Loaded.Container.Close() end
 	local Container = Gui.Log("Chatlogs", function() env[1] = nil end, true)
 	local Section = Container:AddSection("Section")
-	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("savechatlogs")
-	end})
+	Section:AddItem("Button", {Text = "Save Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("savechatlogs") end})
 	Section:AddItem("Button", {Text = "Clear Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("clearchatlogs") end})
 	spawn(function()
 		for _, v in next, ChatHistory do
@@ -1706,12 +1682,8 @@ end)
 
 AddCommand("widebar", "widebar", "Widens the command bar. This is a toggle and saves.", {}, {"Core"}, 2, function()
 	Config.Widebar = not Config.Widebar
-	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-		Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
-	})
-	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-		Size = UDim2.new(0, Config.Widebar and 400 or 200, 0, 35)
-	})
+	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)})
+	TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Size = UDim2.new(0, Config.Widebar and 400 or 200, 0, 35)})
 	UpdateConfig()
 end)
 
@@ -1791,9 +1763,7 @@ AddCommand("customaliases", "customaliases", "Opens a list of your custom alaise
 end)
 
 AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {"Core"}, 2, function()
-	local success, list = pcall(function()
-		return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/browser-plugins.json")
-	end)
+	local success, list = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/browser-plugins.json") end)
 	if success then
 		list = HttpService:JSONDecode(list)
 		local Container = Gui.New("Plugin Browser")
@@ -1845,9 +1815,7 @@ end)
 
 Events = (function()
 	local events = {}
-	local register = function(name, sets)
-		events[name] = {commands = {}, sets = sets or {}}
-	end
+	local register = function(name, sets) events[name] = {commands = {}, sets = sets or {}} end
 	local fire = function(name, ...)
 		local args = {...}
 		local event = events[name]
@@ -2037,14 +2005,7 @@ AddCommand("viewtools", "viewtools [player]", "Views the tools of [player].", {}
 		local target = Players[available]
 		if target then
 			local backpack, tools = GetBackpack(target), {}
-			if backpack then
-				for _, v in next, backpack:GetChildren() do
-					if v:IsA("Tool") or v:IsA("HopperBin") then
-						insert(tools, v.Name)
-					end
-				end
-				Gui.DisplayTable(format("Tools (%s)", GetUsername(target)), tools)
-			end
+			if backpack then Gui.DisplayTable(format("Tools (%s)", GetUsername(target)), map(filter(backpack:GetChildren(), function(_, v) return v:IsA("Tool") or v:IsA("HopperBin") end), function(_, v) return v.Name end)) end
 		end
 	end
 end)
@@ -2075,12 +2036,8 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 			Controls.Down = clamp(Controls.Down + (t and -1 or 1), -(MaxSpeed() * 2), 0)
 		end
 	}
-	if root:FindFirstChild(BodyGyroName) then
-		root:FindFirstChild(BodyGyroName):Destroy()
-	end
-	if root:FindFirstChild(BodyVelocityName) then
-		root:FindFirstChild(BodyVelocityName):Destroy()
-	end
+	if root:FindFirstChild(BodyGyroName) then root:FindFirstChild(BodyGyroName):Destroy() end
+	if root:FindFirstChild(BodyVelocityName) then root:FindFirstChild(BodyVelocityName):Destroy() end
 	local BodyGyro = NewInstance("BodyGyro", {Name = BodyGyroName, P = 9e4, MaxTorque = Vector3.new(9e9, 9e9, 9e9), CFrame = root.CFrame, Parent = root})
 	local BodyVelocity = NewInstance("BodyVelocity", {Name = BodyVelocityName, Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root})
 	env[1] = function()
