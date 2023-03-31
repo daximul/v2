@@ -1146,9 +1146,7 @@ local PlayerArgs = function(argument)
 	return StringFind(Admin.PredictionCases, argument) or (function()
 		for _, v in ipairs(Players:GetPlayers()) do
 			local name = lower(tostring(v.Name))
-			if MatchSearch(argument, name) then
-				return name
-			end
+			if MatchSearch(argument, name) then return name end
 		end
 	end)()
 end
@@ -1250,15 +1248,11 @@ end
 cons.add(CommandBar.FocusLost, function(enterPressed)
 	if enterPressed then
 		local Command = gsub(CommandBar.Text, "^" .. "%" .. Admin.Prefix, "")
-		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)
-		})
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)})
 		spawn(function() ExecuteCommand(Command, LocalPlayer, true) end)
 	end
 	wait()
-	if not CommandBar:IsFocused() then
-        CommandBar.Text = ""
-    end
+	if not CommandBar:IsFocused() then CommandBar.Text = "" end
 end)
 
 cons.add(UserInputService.InputBegan, function(input, processed)
@@ -1270,9 +1264,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 				RunService.RenderStepped:Wait()
 			until CommandBar.Text == ""
 		end)
-		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {
-			Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, -110)
-		})
+		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, -110)})
 	end
 end)
 
@@ -1303,23 +1295,15 @@ AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {
 	cons.wipe()
 	Gui.BaseObject:Destroy()
 	getgenv().dxrkj = nil
-	for _, command in next, Admin.Commands do
-		RunCommandFunctions(command.Name, true)
-	end
+	for _, command in next, Admin.Commands do RunCommandFunctions(command.Name, true) end
 end)
 
 AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
 	ExecuteCommand("killscript")
 	cwrap(function()
-		local success, result = pcall(function()
-			return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
-		end)
+		local success, result = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua") end)
 		local file, data = pcall(readfile, "dark-admin/init.lua")
-		if file then
-			loadstring(data)()
-		elseif success then
-			loadstring(result)()
-		end
+		if file then loadstring(data)() elseif success then loadstring(result)() end
 	end)()
 end)
 
@@ -1492,12 +1476,7 @@ AddCommand("commands", "commands", "Opens the command list.", {"cmds"}, {"Core"}
 	for _, command in next, Admin.Commands do
 		local category = command.Category or "Misc"
 		if not new[category] then new[category] = {} end
-		new[category][command.Name] = {
-			Name = lower(tostring(command.Usage)),
-			Function = function()
-				ExecuteCommand(format("commandinfo %s", lower(tostring(command.Name))))
-			end
-		}
+		new[category][command.Name] = {Name = lower(tostring(command.Usage)), Function = function() ExecuteCommand(format("commandinfo %s", lower(tostring(command.Name)))) end}
 	end
 	Gui.DisplayTable("Commands", new)
 end)
@@ -1657,15 +1636,9 @@ end)
 
 cons.add(LocalPlayer.OnTeleport, function()
 	if Config.KeepAdmin and queue_on_teleport then
-		queue_on_teleport([[local success, result = pcall(function()
-	return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua")
-end)
+		queue_on_teleport([[local success, result = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua") end)
 local file, data = pcall(readfile, "dark-admin/init.lua")
-if file then
-	loadstring(data)()
-elseif success then
-	loadstring(result)()
-end]])
+if file then loadstring(data)() elseif success then loadstring(result)() end]])
 	end
 end)
 AddCommand("keepadmin", "keepadmin", "Makes it so the script re-executes upon teleporting. This is a toggle and saves.", {}, {"Core"}, 2, function()
@@ -1753,9 +1726,7 @@ AddCommand("customaliases", "customaliases", "Opens a list of your custom alaise
 		local new = {}
 		for _, v in next, MiscConfig.CustomAlias do
 			local tab = v.Name
-			if not new[tab] then
-				new[tab] = {}
-			end
+			if not new[tab] then new[tab] = {} end
 			new[tab][v.Alias] = v.Alias
 		end
 		Gui.DisplayTable("Custom Aliases", new)
