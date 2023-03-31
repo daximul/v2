@@ -2,7 +2,7 @@
     "Month / Day / Year",
     [
         "Update 3/30/23",
-        "+ loopwalkspeed [number], unloopwalkspeed"
+        "+ loopwalkspeed [number], unloopwalkspeed, loopjumppower [number], unloopjumppower"
     ],
     [
         "Update 3/10/23",
