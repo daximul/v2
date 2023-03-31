@@ -1316,6 +1316,10 @@ AddCommand("helpmenu", "helpmenu", "Get started using the script.", {"help"}, {"
 	Section:AddItem("Text", {Text = "Click a command in the command list to view its information."})
 	Section:AddItem("Text", {Text = "Optionally, you can run 'cmdinfo name' to view its information."})
 	Section:AddItem("Text", {Text = "Change 'name' to the name of the command you want to view."})
+	Section:AddItem("Text", {Text = "Open main interface", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
+	Section:AddItem("Text", {Text = "Run 'ui' to open main interface"})
+	Section:AddItem("Button", {Text = "(Optional button to open the ui)", Function = function() ExecuteCommand("ui") end})
+	Section:AddItem("Text", {Text = "The main interface has useful shortcuts to some commands like chatlogs, changelogs, etc."})
 end)
 
 AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function()
