@@ -3781,38 +3781,19 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 	end
 end)
 
+-- Load
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
-
 -- inaccurate loading time because funny
-if Config.StartupNotification then
-	Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10)
-end
-
+if Config.StartupNotification then Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10) end
 if listfiles and type(listfiles) == "function" then
 	local Plugins = {}
-	for _, v in next, listfiles("dark-admin/plugins") do
-		if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then
-			insert(Plugins, tostring(split(v, "\\")[2]))
-		end
-	end
-	for _, v in next, Plugins do
-		if not FindInTable(Config.DisabledPlugins, v) then
-			InstallPlugin(v, true)
-		end
-	end
+	for _, v in next, listfiles("dark-admin/plugins") do if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then insert(Plugins, tostring(split(v, "\\")[2])) end end
+	for _, v in next, Plugins do if not FindInTable(Config.DisabledPlugins, v) then InstallPlugin(v, true) end end
 end
-
 for name, permission in next, MiscConfig.Permissions do
 	local command = FindCommand(name)
-	if command then
-		if command.PermissionIndex == permission then
-			MiscConfig.Permissions[name] = nil
-		else
-			command.PermissionIndex = permission
-		end
-	end
+	if command then if command.PermissionIndex == permission then MiscConfig.Permissions[name] = nil else command.PermissionIndex = permission end end
 end
-
 UpdateMiscConfig()
 Events.Load()
 Events.Fire("OnExecute")
