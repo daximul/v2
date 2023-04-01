@@ -2833,8 +2833,8 @@ AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optio
 	end
 end)
 
-AddCommand("dex", "dex", "Open an explorer similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/dex/main.lua"))()
+AddCommand("dex", "dex", "Opens a debugging suite similar to the one in Roblox Studio.", {"explorer"}, {"Utility"}, 2, function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
 end)
 
 AddCommand("settime", "settime [number / day / dawn / night]", "Changes the time of day to [number]. Optional arguments of day, dawn, or night.", {"time"}, {"Utility", {"day", "dawn", "night"}, 1}, 2, function(args)
