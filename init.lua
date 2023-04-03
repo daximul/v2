@@ -96,12 +96,11 @@ cons.wipe = function()
 	end
 	cons.loaded = false
 end
+consadd, consremove = cons.add, cons.remove
 
 NewInstance = function(class, properties)
 	local new = creatingInstance(class)
-	for property, value in next, properties do
-		new[property] = value
-	end
+	for property, value in next, properties do new[property] = value end
 	return new
 end
 
@@ -133,28 +132,24 @@ end
 
 GetMagnitude = function(player)
 	local root, root2 = GetRoot(), GetRoot(GetCharacter(player))
-	return player and (root and root2 and (root2.Position - root.Position).magnitude) or math.huge
+	return (player and (root and root2 and (root2.Position - root.Position).magnitude)) or math.huge
 end
 
-CheckDistanceAndClear = function(target)
+CheckDistanceAndClear = function(target, distance)
 	delay(1, function()
 		local character = GetCharacter()
-		if character and target and GetMagnitude(target) <= 10 then
-			character:ClearAllChildren()
-		end
+		if character and target and GetMagnitude(target) <= (distance or 10) then character:ClearAllChildren() end
 	end)
 end
 
 IsKeyDown = {}
-LastKey = function(input)
-	return split(tostring(input), ".")[3]
-end
+LastKey = function(input) return split(tostring(input), ".")[3] end
 GetStringFromKeyCode = function(input)
 	return filter(Enum.KeyCode:GetEnumItems(), function(_, v)
-		return UserInputService:GetStringForKeyCode(v) == input and v
+		return UserInputService:GetStringForKeyCode(v) == input
 	end)[1]
 end
-cons.add(UserInputService.InputBegan, function(input, processed)
+consadd(UserInputService.InputBegan, function(input, processed)
 	if not processed then
 		if find(tostring(input.UserInputType), "MouseButton") then
 			input = LastKey(input.UserInputType)
@@ -179,7 +174,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 		end
 	end
 end)
-cons.add(UserInputService.InputEnded, function(input, processed)
+consadd(UserInputService.InputEnded, function(input, processed)
 	if not processed then
 		if find(tostring(input.UserInputType), "MouseButton") then
 			input = LastKey(input.UserInputType)
@@ -234,9 +229,7 @@ GetTool = function(player, requiresHandle)
 		return filter(tools, function(_, v)
 			if requiresHandle then
 				local handle = v:FindFirstChild("Handle")
-				if handle and handle:IsA("Part") then
-					return v
-				end
+				if handle and handle:IsA("Part") then return v end
 				return nil
 			end
 			return v
@@ -772,7 +765,7 @@ local ListenToCharacter = function(player)
 				repeat wait(1) out = out + 1 until (GetHumanoid(GetCharacter(player)) ~= nil or out == 10)
 				local humanoid = GetHumanoid(GetCharacter(player))
 				if humanoid then
-					cons.add(humanoid.Died, function()
+					consadd(humanoid.Died, function()
 						Events.Fire("OnDied", player.Name)
 						local killedBy = humanoid:FindFirstChild("Creator")
 						if killedBy and killedBy.Value and killedBy.Value.Parent then
@@ -788,7 +781,7 @@ local ListenToCharacter = function(player)
 			end)
 		end)
 	end
-	cons.add(player.CharacterAdded, function(character)
+	consadd(player.CharacterAdded, function(character)
 		Events.Fire("OnSpawn", player.Name)
 		Listen()
 	end)
@@ -804,7 +797,7 @@ do
 			if ChatbarFrame:FindFirstChild("Frame") and ChatbarFrame.Frame:FindFirstChild("BoxFrame") and ChatbarFrame.Frame.BoxFrame:FindFirstChild("Frame") and ChatbarFrame.Frame.BoxFrame.Frame:FindFirstChild("ChatBar") then
 				got = true
 				local chatbar = ChatbarFrame.Frame.BoxFrame.Frame.ChatBar
-				cons.add(chatbar.FocusLost, function()
+				consadd(chatbar.FocusLost, function()
 					local message = chatbar.Text
 					if message ~= "" then
 						spawn(function()
@@ -819,7 +812,7 @@ do
 		end
 	end
 	if not got then
-		cons.add(LocalPlayer.Chatted, function(message)
+		consadd(LocalPlayer.Chatted, function(message)
 			spawn(function()
 				wait()
 				do_exec(message, LocalPlayer)
@@ -832,7 +825,7 @@ end
 
 for _, player in next, Players:GetPlayers() do
 	if player ~= LocalPlayer then
-		cons.add(player.Chatted, function(message)
+		consadd(player.Chatted, function(message)
 			spawn(function()
 				wait()
 				do_exec(message, player)
@@ -844,9 +837,9 @@ for _, player in next, Players:GetPlayers() do
 	ListenToCharacter(player)
 end
 
-cons.add(Players.PlayerAdded, function(player)
+consadd(Players.PlayerAdded, function(player)
 	Events.Fire("OnJoin", player.Name)
-	cons.add(player.Chatted, function(message)
+	consadd(player.Chatted, function(message)
 		spawn(function()
 			wait()
 			do_exec(message, player)
@@ -858,7 +851,7 @@ cons.add(Players.PlayerAdded, function(player)
 	LogJoinMessage(player, "has joined the game")
 end)
 
-cons.add(Players.PlayerRemoving, function(player) LogJoinMessage(player, "has left the game") end)
+consadd(Players.PlayerRemoving, function(player) LogJoinMessage(player, "has left the game") end)
 
 Admin.CommandRequirements = {
 	spawned = function() return {"you need to be spawned for this command", GetCharacter() ~= nil} end,
@@ -1151,12 +1144,12 @@ local PlayerArgs = function(argument)
 	end)()
 end
 
-cons.add(CommandBar.FocusLost, function()
+consadd(CommandBar.FocusLost, function()
 	Prediction.Text = ""
-	cons.remove("tab complete")
+	consremove("tab complete")
 end)
 
-cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
+consadd(CommandBar:GetPropertyChangedSignal("Text"), function()
 	if Config.LoweredText then CommandBar.Text = lower(CommandBar.Text) end
 	Prediction.Text = ""
 	local InputText = CommandBar.Text
@@ -1216,8 +1209,8 @@ cons.add(CommandBar:GetPropertyChangedSignal("Text"), function()
 	end
 end)
 
-cons.add(CommandBar.Focused, function()
-	cons.add("tab complete", UserInputService.InputBegan, function(input)
+consadd(CommandBar.Focused, function()
+	consadd("tab complete", UserInputService.InputBegan, function(input)
 		if CommandBar:IsFocused() then
 			if input.KeyCode == Enum.KeyCode.Tab then
                 	if CommandBar.Text == "" or CommandBar.Text == " " then
@@ -1233,7 +1226,7 @@ cons.add(CommandBar.Focused, function()
 				end
 			end
 		else
-			cons.remove("tab complete")
+			consremove("tab complete")
 		end
 	end)
 end)
@@ -1245,7 +1238,7 @@ TweenObj = function(obj, style, direction, cd, goal)
 	return Tween
 end
 
-cons.add(CommandBar.FocusLost, function(enterPressed)
+consadd(CommandBar.FocusLost, function(enterPressed)
 	if enterPressed then
 		local Command = gsub(CommandBar.Text, "^" .. "%" .. Admin.Prefix, "")
 		TweenObj(CommandBarFrame, "Quint", "Out", 0.5, {Position = UDim2.new(0.5, Config.Widebar and -200 or -100, 1, 5)})
@@ -1255,7 +1248,7 @@ cons.add(CommandBar.FocusLost, function(enterPressed)
 	if not CommandBar:IsFocused() then CommandBar.Text = "" end
 end)
 
-cons.add(UserInputService.InputBegan, function(input, processed)
+consadd(UserInputService.InputBegan, function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode[Config.CommandBarPrefix] then
 		CommandBar:CaptureFocus()
 		spawn(function()
@@ -1268,7 +1261,7 @@ cons.add(UserInputService.InputBegan, function(input, processed)
 	end
 end)
 
-cons.add(UserInputService.InputBegan, function(input, processed)
+consadd(UserInputService.InputBegan, function(input, processed)
 	if CommandBar:IsFocused() and processed then
 		if input.KeyCode == Enum.KeyCode.Up then
 			HistoryCount = HistoryCount + 1
@@ -1384,7 +1377,7 @@ AddCommand("keybinds", "keybinds", "Opens a gui so you can bind commands to cert
 			object.Back.Input.Text = "..."
 			local listen, OldShiftLock = nil, LocalPlayer.DevEnableMouseLock
 			LocalPlayer.DevEnableMouseLock = false
-			listen = cons.add(UserInputService.InputBegan, function(input, processed)
+			listen = consadd(UserInputService.InputBegan, function(input, processed)
 				if not processed and input.UserInputType == Enum.UserInputType.Keyboard then
 					local input2, processed2 = nil, nil
 					cwrap(function()
@@ -1638,7 +1631,7 @@ AddCommand("clearjoinlogs", "clearjoinlogs", "Clears the joinlogs.", {}, {"Core"
 	end
 end)
 
-cons.add(LocalPlayer.OnTeleport, function()
+consadd(LocalPlayer.OnTeleport, function()
 	if Config.KeepAdmin and queue_on_teleport then
 		queue_on_teleport([[local success, result = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/init.lua") end)
 local file, data = pcall(readfile, "dark-admin/init.lua")
@@ -2016,13 +2009,13 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 	local BodyGyro = NewInstance("BodyGyro", {Name = BodyGyroName, P = 9e4, MaxTorque = Vector3.new(9e9, 9e9, 9e9), CFrame = root.CFrame, Parent = root})
 	local BodyVelocity = NewInstance("BodyVelocity", {Name = BodyVelocityName, Velocity = Vector3.new(0, 0, 0), MaxForce = Vector3.new(9e9, 9e9, 9e9), Parent = root})
 	env[1] = function()
-		cons.remove({"fly", "fly2"})
+		consremove({"fly", "fly2"})
 		if BodyGyro then BodyGyro:Destroy() end
 		if BodyVelocity then BodyVelocity:Destroy() end
 		if GetHumanoid() then GetHumanoid().PlatformStand = false end
 	end
 	cwrap(function()
-		cons.add("fly", RunService.Stepped, function()
+		consadd("fly", RunService.Stepped, function()
 			if not GetCharacter() or not GetHumanoid() then ExecuteCommand("unfly") end
 			humanoid.PlatformStand = true
 			for i, v in next, Keys do v(IsKeyDown[i]) end
@@ -2030,7 +2023,7 @@ AddCommand("fly", "fly", "Makes your character able to fly. Tap [Space] to go up
 			BodyVelocity.Velocity = ((workspace.CurrentCamera.CoordinateFrame.LookVector * (Controls.Front + Controls.Back)) + (workspace.CurrentCamera.CoordinateFrame * CFrame.new(Controls.Left + Controls.Right, (Controls.Front + Controls.Back + Controls.Up + Controls.Down) * 0.2, 0).Position) - workspace.CurrentCamera.CoordinateFrame.p)
 		end)
 	end)()
-	cons.add("fly2", humanoid.Died, function() ExecuteCommand("unfly") end)
+	consadd("fly2", humanoid.Died, function() ExecuteCommand("unfly") end)
 end)
 
 AddCommand("unfly", "unfly", "Disable fly.", {}, {"Utility"}, 2, function()
@@ -2058,7 +2051,7 @@ end)
 AddCommand("loopwalkspeed", "loopwalkspeed [number]", "Loop changes your character's walkspeed to [number].", {"loopspeed", "loopws"}, {"Utility", 1}, 2, function(args, _, env)
 	ExecuteCommand("unloopwalkspeed")
 	local speed = tonumber(args[1])
-	if speed then cons.add(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().WalkSpeed = speed end) end) end
+	if speed then consadd(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().WalkSpeed = speed end) end) end
 end)
 
 AddCommand("unloopwalkspeed", "unloopwalkspeed", "Disables loopwalkspeed.", {"unloopspeed", "unloopws"}, {"Utility"}, 2, function()
@@ -2073,7 +2066,7 @@ end)
 AddCommand("loopjumppower", "loopwalkspeed [number]", "Loop changes your character's jump power to [number].", {"loopjumppower", "loopjp"}, {"Utility", 1}, 2, function(args, _, env)
 	ExecuteCommand("unloopjumppower")
 	local speed = tonumber(args[1])
-	if speed then cons.add(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().JumpPower = speed end) end) end
+	if speed then consadd(env, RunService.PostSimulation, function() pcall(function() GetHumanoid().JumpPower = speed end) end) end
 end)
 
 AddCommand("unloopjumppower", "unloopjumppower", "Disables loopjumppower.", {"unloopjumppower", "unloopjp"}, {"Utility"}, 2, function()
@@ -2130,7 +2123,7 @@ end)
 
 AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unnoclip")
-	cons.add("noclip", RunService.Stepped, function()
+	consadd("noclip", RunService.Stepped, function()
 		local character = GetCharacter()
 		if character then
 			for _, v in next, character:GetChildren() do
@@ -2141,8 +2134,8 @@ AddCommand("noclip", "noclip", "Makes your character able to walk through walls.
 		end
 	end)
 	local humanoid = GetHumanoid()
-	if humanoid then cons.add("noclip2", humanoid.Died, function() ExecuteCommand("unnoclip") end) end
-	env[1] = function() cons.remove({"noclip", "noclip2"}) end
+	if humanoid then consadd("noclip2", humanoid.Died, function() ExecuteCommand("unnoclip") end) end
+	env[1] = function() consremove({"noclip", "noclip2"}) end
 end)
 
 AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2, function()
@@ -2358,7 +2351,7 @@ end)
 AddCommand("infinitejump", "infinitejump", "Makes your character able to jump with no cooldown.", {}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninfinitejump")
 	local debounce = false
-	cons.add("infinitejump", UserInputService.JumpRequest, function()
+	consadd("infinitejump", UserInputService.JumpRequest, function()
 		if not debounce then
 			debounce = true
 			local humanoid = GetHumanoid()
@@ -2367,7 +2360,7 @@ AddCommand("infinitejump", "infinitejump", "Makes your character able to jump wi
 			debounce = false
 		end
 	end)
-	env[1] = function() cons.remove("infinitejump") end
+	env[1] = function() consremove("infinitejump") end
 end)
 
 AddCommand("uninfinitejump", "uninfinitejump", "Disables infinitejump.", {}, {"Utility"}, 2, function()
@@ -2376,11 +2369,11 @@ end)
 
 AddCommand("flyjump", "flyjump", "Makes your character able to infinitely jump upwards with no cooldown.", {}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninfinitejump")
-	cons.add("flyjump", UserInputService.JumpRequest, function()
+	consadd("flyjump", UserInputService.JumpRequest, function()
 		local humanoid = GetHumanoid()
 		if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
 	end)
-	env[1] = function() cons.remove("flyjump") end
+	env[1] = function() consremove("flyjump") end
 end)
 
 AddCommand("unflyjump", "unflyjump", "Disables flyjump.", {}, {"Utility"}, 2, function()
@@ -2411,16 +2404,16 @@ AddCommand("view", "view [player]", "Views [player].", {"spectate"}, {"Utility",
 	local character = GetCharacter(target)
 	if target and character then
 		workspace.CurrentCamera.CameraSubject = character
-		cons.add("spectate1", target.CharacterAdded, function()
+		consadd("spectate1", target.CharacterAdded, function()
 			wait(0.2)
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
-		cons.add("spectate2", LocalPlayer.CharacterAdded, function()
+		consadd("spectate2", LocalPlayer.CharacterAdded, function()
 			wait(0.2)
 			workspace.CurrentCamera.CameraSubject = GetCharacter(target)
 		end)
 		env[1] = function()
-			cons.remove({"spectate1", "spectate2"})
+			consremove({"spectate1", "spectate2"})
 			if GetCharacter() then
 				workspace.CurrentCamera.CameraSubject = GetCharacter()
 			end
@@ -2441,9 +2434,9 @@ AddCommand("refresh", "refresh", "Refreshes your character. Once you respawn you
 	local character, root = GetCharacter(), GetRoot()
 	if character and root then
 		local oldpos = root.CFrame
-		cons.add("refresh", LocalPlayer.CharacterAdded, function()
+		consadd("refresh", LocalPlayer.CharacterAdded, function()
 			wait(0.2)
-			cons.remove("refresh")
+			consremove("refresh")
 			root = GetRoot()
 			if root then root.CFrame = oldpos end
 		end)
@@ -2513,14 +2506,14 @@ AddCommand("teleporttool", "teleporttool", "Gives you a tool that teleports your
 	local backpack = GetBackpack()
 	if backpack then
 		local tool = NewInstance("Tool", {Name = "Click TP", RequiresHandle = false, Parent = backpack})
-		cons.add(tool.Activated, function()
+		consadd(tool.Activated, function()
 			local root, pos = GetRoot(), Mouse.Hit
 			if root and pos then
 				root.CFrame = pos + Vector3.new(3, 1, 0)
 			end
 		end)
 		local tool2 = NewInstance("Tool", {Name = "Click TweenTP", RequiresHandle = false, Parent = backpack})
-		cons.add(tool2.Activated, function()
+		consadd(tool2.Activated, function()
 			local root, pos = GetRoot(), Mouse.Hit
 			if root and pos then
 				TweenObj(root, "Sine", "Out", 0.5, {CFrame = pos + Vector3.new(3, 1, 0)})
@@ -2561,12 +2554,12 @@ end)
 
 AddCommand("spawnpoint", "spawnpoint", "Place a spawn point where you are currently standing.", {"setspawn"}, {"Utility"}, 2, function(_, speaker, env)
 	ExecuteCommand("unspawnpoint")
-	env[1] = function() cons.remove("spawnpoint") end
+	env[1] = function() consremove("spawnpoint") end
 	local root = GetRoot()
 	if root then
 		local saved, pos = root.CFrame, root.Position
 		Notify(format("set a spawn point at (%d, %d, %d)", round(pos.X), round(pos.Y), round(pos.Z)))
-		cons.add("spawnpoint", speaker.CharacterAdded, function()
+		consadd("spawnpoint", speaker.CharacterAdded, function()
 			wait(0.2)
 			root = GetRoot()
 			if root then root.CFrame = saved end
@@ -2579,16 +2572,16 @@ AddCommand("unspawnpoint", "unspawnpoint", "Remove your placed spawn point.", {"
 end)
 
 local lastdeath = false
-cons.add(LocalPlayer.CharacterAdded, function()
+consadd(LocalPlayer.CharacterAdded, function()
 	repeat wait(1) until GetHumanoid() ~= nil
-	cons.add(GetHumanoid().Died, function()
+	consadd(GetHumanoid().Died, function()
 		local root = GetRoot()
 		if root then lastdeath = root.CFrame end
 	end)
 end)
 spawn(function()
 	repeat wait(1) until GetHumanoid() ~= nil
-	cons.add(GetHumanoid().Died, function()
+	consadd(GetHumanoid().Died, function()
 		local root = GetRoot()
 		if root then lastdeath = root.CFrame end
 	end)
@@ -2604,13 +2597,13 @@ AddCommand("control", "control [player]", "Control [player] for a few seconds.",
 		if target and target.Character then
 			ExecuteCommand("sit")
 			Attach(target)
-			cons.add("control", UserInputService.InputBegan, function(input, processed)
+			consadd("control", UserInputService.InputBegan, function(input, processed)
 				if not processed and input.KeyCode == Enum.KeyCode.Space then
 					ExecuteCommand("jump")
 				end
 			end)
 			speaker.CharacterAdded:Wait()
-			cons.remove("control")
+			consremove("control")
 		end
 	end
 end)
@@ -2703,7 +2696,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		local oldpos = root.CFrame
 		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
 		wait(0.2)
-		cons.add("tool invisible", heartbeat, function()
+		consadd("tool invisible", heartbeat, function()
 			if not character or not character:FindFirstChild("Head") or not root then
 				ExecuteCommand("uninvisible")
 			end
@@ -2715,7 +2708,7 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		wait(0.2)
 		root.CFrame = oldpos
 	end
-	env[1] = function() cons.remove("tool invisible") end
+	env[1] = function() consremove("tool invisible") end
 end)
 
 AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis", "untoolinvisible", "untoolinvis", "untinvis"}, {"Utility"}, 2, function()
@@ -2765,13 +2758,13 @@ AddCommand("swim", "swim", "Makes your character able to swim while not being in
 			humanoid:SetStateEnabled(state, false)
 		end
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-		cons.add("swim", heartbeat, function()
+		consadd("swim", heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
 			local vertical = (IsKeyDown.Space and 50) or (IsKeyDown.LeftControl and -50)
 			root.Velocity = ((moving or IsKeyDown.Space or IsKeyDown.LeftControl) and v3(moving and rootvelo.X or 0, vertical or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
 		env[1] = function()
-			cons.remove("swim")
+			consremove("swim")
 			workspace.Gravity = OldGravity
 			humanoid = GetHumanoid()
 			if humanoid then
@@ -2942,7 +2935,7 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 	if character and root then
 		local obj = NewInstance("Part", {Name = RandomString(), CFrame = CFrame.new(0, -6942, 0), Parent = character, Transparency = 1, Size = Vector3.new(2, 0.2, 1.5), Anchored = true})
 		cwrap(function()
-			cons.add("float", heartbeat, function()
+			consadd("float", heartbeat, function()
 				if not obj or not GetCharacter() or not GetRoot() then
 					ExecuteCommand("unfloat")
 				end
@@ -2955,12 +2948,12 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 			end)
 		end)()
 		if humanoid then
-			cons.add("float2", humanoid.Died, function()
+			consadd("float2", humanoid.Died, function()
 				ExecuteCommand("unfloat")
 			end)
 		end
 		env[1] = function()
-			cons.remove({"float", "float2"})
+			consremove({"float", "float2"})
 			if obj then obj:Destroy() end
 		end
 	end
@@ -3020,7 +3013,7 @@ end)
 local Freecam = {Active = false}
 do
 	local Camera, NAV_KEYBOARD_SPEED, cameraRot, cameraPos, cameraFov = workspace.CurrentCamera, Vector3.new(1, 1, 1), Vector2.new(), Vector3.new(), nil
-	cons.add(workspace:GetPropertyChangedSignal("CurrentCamera"), function()
+	consadd(workspace:GetPropertyChangedSignal("CurrentCamera"), function()
 		if workspace.CurrentCamera then Camera = workspace.CurrentCamera end
 	end)
 	local INPUT_PRIORITY = Enum.ContextActionPriority.High.Value
@@ -3279,11 +3272,9 @@ AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility",
 	end
 end)
 
-local validTeams = map(Services.Teams:GetChildren(), function(_, v) return lower(tostring(v.Name)) end)
-AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", validTeams, 1}, 2, function()
-	local root, team = GetRoot(), filter(Services.Teams:GetChildren(), function(_, v)
-		return lower(tostring(v.Name)) == lower(tostring(getstring(1)))
-	end)[1]
+local _ValidTeams = map(Services.Teams:GetChildren(), function(_, v) return lower(tostring(v.Name)) end)
+AddCommand("switchteam", "switchteam [name]", "Switches to the team of [name].", {"changeteam", "team"}, {"Utility", _ValidTeams, 1}, 2, function()
+	local root, team = GetRoot(), filter(Services.Teams:GetChildren(), function(_, v) return lower(tostring(v.Name)) == lower(tostring(getstring(1))) end)[1]
 	if root and team then
 		for _, v in next, workspace:GetDescendants() do
 			if v:IsA("SpawnLocation") and v.TeamColor == team.TeamColor then
@@ -3297,35 +3288,22 @@ end)
 
 AddCommand("equiptools", "equiptools", "Equips all your tools.", {}, {"Utility"}, 2, function()
 	local character, backpack = GetCharacter(), GetBackpack()
-	if character and backpack then
-		for _, v in next, backpack:GetChildren() do
-			if v:IsA("Tool") then
-				v.Parent = character
-			end
-		end
-	end
+	if character and backpack then for _, v in next, backpack:GetChildren() do if v:IsA("Tool") then v.Parent = character end end end
 end)
 
 AddCommand("activatetools", "activatetools", "Equips and activates all your tools.", {}, {"Utility"}, 2, function()
 	local character = GetCharacter()
 	if character then
 		ExecuteCommand("equiptools")
-		local activated = 0
-		for _, v in next, character:GetChildren() do
-			if v:IsA("Tool") then
-				activated = activated + 1
-				v:Activate()
-			end
-		end
-		Services.VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, activated)
+		local tools = filter(character:GetChildren(), function(_, v) return v:IsA("Tool") end)
+		for _, v in next, tools do v:Activate() end
+		Services.VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, #tools)
 	end
 end)
 
 AddCommand("lastcommand", "lastcommand", "Runs the previous command.", {}, {}, 2, function()
 	local recent = Admin.History[1]
-	if recent then
-		ExecuteCommand(lower(tostring(recent)))
-	end
+	if recent then ExecuteCommand(lower(tostring(recent))) end
 end)
 
 AddCommand("noclickdetectorlimits", "noclickdetectorlimits", "Removes the distance limit on all click detectors.", {"nocdlimits"}, {"Utility"}, 2, function(_, _, v)
@@ -3337,13 +3315,7 @@ AddCommand("noclickdetectorlimits", "noclickdetectorlimits", "Removes the distan
 			v.MaxActivationDistance = math.huge
 		end
 	end
-	env[1] = function()
-		for _, v in next, modified do
-			if v.Object and v.Distance then
-				v.Object.MaxActivationDistance = v.Distance
-			end
-		end
-	end
+	env[1] = function() for _, v in next, modified do if v.Object and v.Distance then v.Object.MaxActivationDistance = v.Distance end end end
 end)
 
 AddCommand("clickdetectorlimits", "clickdetectorlimits", "Adds back the distance limit to all click detectors affected by the noclickdetectorlimits command.", {"cdlimits"}, {"Utility"}, 2, function()
@@ -3351,11 +3323,7 @@ AddCommand("clickdetectorlimits", "clickdetectorlimits", "Adds back the distance
 end)
 
 AddCommand("fireclickdetectors", "fireclickdetectors", "Activates all click detectors.", {"firecds"}, {"Utility"}, 2, function()
-	for _, v in next, workspace:GetDescendants() do
-		if v:IsA("ClickDetector") then
-			fireclickdetector(v)
-		end
-	end
+	for _, v in next, workspace:GetDescendants() do if v:IsA("ClickDetector") then fireclickdetector(v) end end
 end)
 
 AddCommand("firetouchinterests", "firetouchinterests", "Activates all touch interests.", {}, {"Utility"}, 2, function()
@@ -3380,13 +3348,7 @@ AddCommand("noproximitypromptlimits", "noproximitypromptlimits", "Removes the di
 			v.MaxActivationDistance = math.huge
 		end
 	end
-	env[1] = function()
-		for _, v in next, modified do
-			if v.Object and v.Distance then
-				v.Object.MaxActivationDistance = v.Distance
-			end
-		end
-	end
+	env[1] = function() for _, v in next, modified do if v.Object and v.Distance then v.Object.MaxActivationDistance = v.Distance end end end
 end)
 
 AddCommand("proximitypromptlimits", "proximitypromptlimits", "Adds back the distance limit to all proximity prompts affected by the noproximitypromptlimits command.", {"pplimits"}, {"Utility"}, 2, function()
@@ -3394,17 +3356,12 @@ AddCommand("proximitypromptlimits", "proximitypromptlimits", "Adds back the dist
 end)
 
 AddCommand("fireproximityprompts", "fireproximityprompts", "Activates all proximity prompts.", {}, {"Utility"}, 2, function()
-	for _, v in next, workspace:GetDescendants() do
-		if v:IsA("ProximityPrompt") then
-			fireproximityprompt(v)
-		end
-	end
+	for _, v in next, workspace:GetDescendants() do if v:IsA("ProximityPrompt") then fireproximityprompt(v) end end
 end)
 
 AddCommand("instantproximityprompts", "instantproximityprompts", "Removes the cooldown for all proximity prompts.", {}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("uninstantproximityprompts")
-	cons.add("instantproximityprompts", Services.ProximityPromptService.PromptButtonHoldBegan, fireproximityprompt)
-	env[1] = function() cons.remove("instantproximityprompts") end
+	consadd(env, Services.ProximityPromptService.PromptButtonHoldBegan, fireproximityprompt)
 end)
 
 AddCommand("uninstantproximityprompts", "uninstantproximityprompts", "Disables instantproximityprompts.", {"noinstantproximityprompts"}, {"Utility"}, 2, function()
@@ -3414,7 +3371,7 @@ end)
 AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from kicking you.", {"antikick"}, {"Utility"}, 2, function(_, _, env)
 	RunCommandFunctions("clientantikick")
 	env[1] = function() end
-	local old, old2, getnamecallmethod = nil, nil, getnamecallmethod or function() return "" end
+	local old, old2, getnamecallmethod = nil, nil, getnamecallmethod or get_namecall_method or function() return "" end
 	old = hookmetamethod(game, "__index", function(self, method)
 		if env[1] and self == LocalPlayer and lower(method) == "kick" then return error("Expected ':' not '.' calling member function Kick", 2) end
 		return old(self, method)
@@ -3438,23 +3395,18 @@ AddCommand("breadcrumbs", "breadcrumbs", "Leaves a trail behind you.", {}, {}, 2
 	local attachment = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, 0.07 - 2.7, 0)})
 	local attachment2 = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, -0.07 - 2.7, 0)})
 	local trail = NewInstance("Trail", {Name = RandomString(), Attachment0 = attachment, Attachment1 = attachment2, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1), Color3.new(1, 1, 1)), FaceCamera = true, Lifetime = math.huge, Enabled = true})
-	cons.add("breadcrumbs", heartbeat, function()
-		local root, camera = GetRoot(), workspace.CurrentCamera
-		if root and camera then
-			local success, _ = pcall(function()
-				attachment.Parent = root
-				attachment2.Parent = root
-				trail.Parent = camera
-			end)
-			if not success then ExecuteCommand("nobreadcrumbs") end
-		end
-	end)
 	env[1] = function()
-		cons.remove("breadcrumbs")
 		if attachment then attachment:Destroy() end
 		if attachment2 then attachment2:Destroy() end
 		if trail then trail:Destroy() end
 	end
+	consadd(env, heartbeat, function()
+		local root, camera = GetRoot(), workspace.CurrentCamera
+		if root and camera then
+			local success, _ = pcall(function() attachment.Parent, attachment2.Parent, trail.Parent = root, root, camera end)
+			if not success then ExecuteCommand("nobreadcrumbs") end
+		end
+	end)
 end)
 
 AddCommand("nobreadcrumbs", "nobreadcrumbs", "Disables breadcrumbs.", {"unbreadcrumbs"}, {}, 2, function()
@@ -3465,13 +3417,8 @@ AddCommand("crosshair", "crosshair", "Enables and changes your mouse icon.", {},
 	ExecuteCommand("nocrosshair")
 	local OldMouseIconEnabled, Icon, u2 = UserInputService.MouseIconEnabled, Gui.BaseObject.Crosshair, UDim2.new
 	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	cons.add("crosshair", heartbeat, function()
-		UserInputService.MouseIconEnabled, Icon.Position, Icon.Visible = false, u2(0, Mouse.X, 0, Mouse.Y), true
-	end)
-	env[1] = function()
-		cons.remove("crosshair")
-		UserInputService.MouseIconEnabled, Icon.Visible = OldMouseIconEnabled, false
-	end
+	env[1] = function() UserInputService.MouseIconEnabled, Icon.Visible = OldMouseIconEnabled, false end
+	consadd(env, heartbeat, function() UserInputService.MouseIconEnabled, Icon.Position, Icon.Visible = false, u2(0, Mouse.X, 0, Mouse.Y), true end)
 end)
 
 AddCommand("nocrosshair", "nocrosshair", "Disables crosshair.", {"uncrosshair"}, {}, 2, function()
@@ -3530,19 +3477,12 @@ AddCommand("bang", "bang [player] [speed]", "Bangs [player] with a speed of [spe
 			local anim = humanoid:LoadAnimation(id)
 			anim:Play(0.1, 1, 1)
 			anim:AdjustSpeed(tonumber(args[2]) or 3)
-			cons.add("bang", RunService.Stepped, function()
-				pcall(function()
-					GetRoot().CFrame = GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 0, 1.1)
-				end)
-			end)
-			cons.add("bang2", humanoid.Died, function()
-				ExecuteCommand("unbang")
-			end)
 			env[1] = function()
-				cons.remove({"bang", "bang2"})
 				if anim then anim:Stop() end
 				if id then id:Destroy() end
 			end
+			consadd(env, RunService.Stepped, function() pcall(function() GetRoot().CFrame = GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 0, 1.1) end) end)
+			consadd(env, humanoid.Died, function() ExecuteCommand("unbang") end)
 		end
 	end
 end)
@@ -3564,28 +3504,15 @@ AddCommand("unloopgoto", "unloopgoto", "Disables loopgoto.", {}, {"Utility"}, 2,
 end)
 
 AddCommand("hidename", "hidename", "Removes billboards from your character.", {"nobillboardgui"}, {"Utility"}, 2, function()
-	for _, v in next, GetCharacter():GetDescendants() do
-		if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
-			v:Destroy()
-		end
-	end
+	for _, v in next, GetCharacter():GetDescendants() do if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end
 end)
 
 AddCommand("loophidename", "loophidename", "Constantly removes billboards from your character.", {"loopnobillboardgui"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unloophidename")
 	local character = GetCharacter()
 	if character then
-		for _, v in next, character:GetDescendants() do
-			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
-				v:Destroy()
-			end
-		end
-		cons.add("loop hide name", character.DescendantAdded, function(v)
-			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
-				v:Destroy()
-			end
-		end)
-		env[1] = function() cons.remove("loop hide name") end
+		for _, v in next, character:GetDescendants() do if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end
+		consadd(env, character.DescendantAdded, function(v) if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end)
 	end
 end)
 
@@ -3599,9 +3526,7 @@ end)
 
 AddCommand("mousetp", "mousetp", "Teleports your character to your mouse. This is recommended as a keybind.", {}, {"Utility"}, 2, function()
 	local root, pos = GetRoot(), Mouse.Hit
-	if root and pos then
-		root.CFrame = pos + Vector3.new(3, 1, 0)
-	end
+	if root and pos then root.CFrame = pos + Vector3.new(3, 1, 0) end
 end)
 
 AddCommand("light", "light [radius] [brightness]", "Gives your character dynamic light. [radius] and [brightness] are optional arguments.", {}, {"Utility"}, 2, function(args, _, env)
@@ -3619,9 +3544,7 @@ end)
 
 AddCommand("hipheight", "hipheight [number]", "Changes your character's hip height to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
 	local humanoid = GetHumanoid()
-	if humanoid then
-		humanoid.HipHeight = humanoid.RigType == Enum.HumanoidRigType.R15 and (tonumber(args[1]) or 2.1) or (tonumber(args[1]) or 0)
-	end
+	if humanoid then humanoid.HipHeight = humanoid.RigType == Enum.HumanoidRigType.R15 and (tonumber(args[1]) or 2.1) or (tonumber(args[1]) or 0) end
 end)
 
 AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketPropulsion) to make your character follow [player].", {}, {"Fun", 1}, 2, function(args, speaker, env)
@@ -3631,12 +3554,9 @@ AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketProp
 		humanoid.Sit = true
 		local rocket = NewInstance("RocketPropulsion", {Name = RandomString(), CartoonFactor = 1, MaxThrust = 5000, MaxSpeed = 100, ThrustP = 5000, Target = GetRoot(GetCharacter(target)), Parent = root})
 		rocket:Fire()
-		cons.add("rocketconnect", humanoid.Died, function() ExecuteCommand("unrocketconnect") end)
-		cons.add("rocketconnect2", humanoid.Seated, function(value) if not value then ExecuteCommand("unrocketconnect") end end)
-		env[1] = function()
-			cons.remove({"rocketconnect", "rocketconnect2"})
-			if rocket then rocket:Destroy() end
-		end
+		env[1] = function() if rocket then rocket:Destroy() end end
+		consadd(env, humanoid.Died, function() ExecuteCommand("unrocketconnect") end)
+		consadd(env, humanoid.Seated, function(value) if not value then ExecuteCommand("unrocketconnect") end end)
 	end
 end)
 
@@ -3649,20 +3569,15 @@ AddCommand("orbit", "orbit [player] [speed] [distance]", "Makes your character o
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
 		local rotation, speed, distance = 0, (tonumber(args[2]) or 0.2), (tonumber(args[3]) or 6)
-		cons.add("orbit", heartbeat, function()
+		consadd(env, heartbeat, function()
 			pcall(function()
 				rotation = rotation + speed
 				root.CFrame = CFrame.new(GetRoot(GetCharacter(target)).Position) * CFrame.Angles(0, math.rad(rotation), 0) * CFrame.new(distance, 0, 0)
 			end)
 		end)
-		cons.add("orbit2", RunService.RenderStepped, function()
-			pcall(function()
-				root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position)
-			end)
-		end)
-		cons.add("orbit3", humanoid.Died, function() ExecuteCommand("unorbit") end)
-		cons.add("orbit4", humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
-		env[1] = function() cons.remove({"orbit", "orbit2", "orbit3", "orbit4"}) end
+		consadd(env, RunService.RenderStepped, function() pcall(function() root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position) end) end)
+		consadd(env, humanoid.Died, function() ExecuteCommand("unorbit") end)
+		consadd(env, humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
 	end
 end)
 
@@ -3674,14 +3589,9 @@ AddCommand("stareat", "stareat [player]", "Makes your character stare at [player
 	ExecuteCommand("unstareat")
 	local target, root, humanoid = Players[getPlayer(args[1], speaker)[1]], GetRoot(), GetHumanoid()
 	if target and GetCharacter(target) and GetRoot(GetCharacter(target)) and root and humanoid then
-		cons.add("stareat", RunService.RenderStepped, function()
-			pcall(function()
-				root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position)
-			end)
-		end)
-		cons.add("stareat2", humanoid.Died, function() ExecuteCommand("unorbit") end)
-		cons.add("stareat3", humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
-		env[1] = function() cons.remove({"stareat", "stareat2", "stareat3"}) end
+		consadd(env, RunService.RenderStepped, function() pcall(function() root.CFrame = CFrame.new(root.Position, GetRoot(GetCharacter(target)).Position) end) end)
+		consadd(env, humanoid.Died, function() ExecuteCommand("unorbit") end)
+		consadd(env, humanoid.Seated, function(value) if value then ExecuteCommand("unorbit") end end)
 	end
 end)
 
@@ -3693,7 +3603,7 @@ AddCommand("wallteleport", "wallteleport", "Makes your character stare at [playe
 	ExecuteCommand("unwallteleport")
 	local root, humanoid = GetRoot(), GetHumanoid()
 	if root and humanoid then
-		cons.add("walltp", root.Touched, function(hit)
+		consadd(env, root.Touched, function(hit)
 			root, humanoid = GetRoot(), GetHumanoid()
 			if root and humanoid and hit:IsA("BasePart") and hit.Position.Y > root.Position.Y - humanoid.HipHeight then
 				local hitRoot = GetRoot(hit.Parent)
@@ -3704,8 +3614,7 @@ AddCommand("wallteleport", "wallteleport", "Makes your character stare at [playe
 				end
 			end
 		end)
-		cons.add("walltp2", humanoid.Died, function() ExecuteCommand("unwallteleport") end)
-		env[1] = function() cons.remove({"walltp", "walltp2"}) end
+		consadd(env, humanoid.Died, function() ExecuteCommand("unwallteleport") end)
 	end
 end)
 
@@ -3733,11 +3642,7 @@ AddCommand("grabtools", "grabtools", "Gives yourself tools that are in workspace
 	local humanoid = GetHumanoid()
 	if humanoid then
 		humanoid:UnequipTools()
-		for _, v in next, workspace:GetDescendants() do
-			if v:IsA("Tool") and v:FindFirstChild("Handle") then
-				humanoid:EquipTool(v)
-			end
-		end
+		for _, v in next, workspace:GetDescendants() do if v:IsA("Tool") and v:FindFirstChild("Handle") then humanoid:EquipTool(v) end end
 		wait(0.25)
 		humanoid:UnequipTools()
 	end
@@ -3748,12 +3653,9 @@ AddCommand("listento", "listento [player]", "\"Listens to the area around the pl
 	local target = Players[getPlayer(args[1], speaker)[1]]
 	local root = GetRoot(GetCharacter(target))
 	if root then
-		env[1] = function()
-			cons.remove("listento")
-			Services.SoundService:SetListener(Enum.ListenerType.Camera)
-		end
+		env[1] = function() Services.SoundService:SetListener(Enum.ListenerType.Camera) end
 		Services.SoundService:SetListener(Enum.ListenerType.ObjectPosition, root)
-		cons.add("listento", target.CharacterRemoving, function() Services.SoundService:SetListener(Enum.ListenerType.Camera) end)
+		consadd(env, target.CharacterRemoving, function() Services.SoundService:SetListener(Enum.ListenerType.Camera) end)
 	end
 end)
 
@@ -3766,9 +3668,9 @@ AddCommand("ignore", "ignore [player]", "Ignores [player] by putting them in Lig
 		local target = Players[available]
 		if target then
 			local tracker = format("ignore-%s", target.Name)
-			cons.remove(tracker)
+			consremove(tracker)
 			target.Character.Parent = Lighting
-			cons.add(tracker, target.CharacterAdded, function() target.Character.Parent = Lighting end)
+			consadd(tracker, target.CharacterAdded, function() target.Character.Parent = Lighting end)
 			Notify("i forgor 💀")
 		end
 	end
@@ -3778,7 +3680,7 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 	for _, available in next, getPlayer(args[1], speaker) do
 		local target = Players[available]
 		if target then
-			cons.remove(format("ignore-%s", target.Name))
+			consremove(format("ignore-%s", target.Name))
 			target.Character.Parent = workspace
 			Notify("i rember!!! 😄 💡")
 		end
