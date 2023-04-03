@@ -2464,10 +2464,9 @@ AddCommand("reach", "reach [number]", "Changes the distance your tool can reach 
 		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
-			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
-			insert(env, {Tool = tool, Handle = handle, Size = handle.Size, Box = box})
-			handle.Size = Vector3.new(handle.Size.X, handle.Size.Y, distance)
-			handle.Massless = true
+			local box, old = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle}), handle.Size
+			insert(env, function() if tool and handle then handle.Size = old end if box then box:Destroy() end end)
+			handle.Size, handle.Massless = Vector3.new(handle.Size.X, handle.Size.Y, distance), true
 		end
 	end
 end)
@@ -2478,28 +2477,15 @@ AddCommand("boxreach", "boxreach [number]", "Changes the distance your tool can 
 		local tool = GetTool(LocalPlayer, true)
 		local handle = tool.Handle
 		if tool and handle then
-			local box = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle})
-			insert(env, {Tool = tool, Handle = handle, Size = handle.Size, Box = box})
-			handle.Size = Vector3.new(distance, distance, distance)
-			handle.Massless = true
+			local box, old = NewInstance("SelectionBox", {Name = RandomString(), Parent = handle, Adornee = handle}), handle.Size
+			insert(env, function() if tool and handle then handle.Size = old end if box then box:Destroy() end end)
+			handle.Size, handle.Massless = Vector3.new(distance, distance, distance), true
 		end
 	end
 end)
 
 AddCommand("unreach", "unreach", "Disables reach.", {"unboxreach"}, {"Utility"}, 2, function()
-	local reach, boxreach = FindCommand("reach"), FindCommand("boxreach")
-	if reach and boxreach then
-		local modified = merge(reach.Env, boxreach.Env)
-		for _, data in next, modified do
-			if data.Tool and data.Handle then
-				data.Handle.Size = data.Size
-			end
-			if data.Box then
-				data.Box:Destroy()
-			end
-		end
-		reach.Env, boxreach.Env = {}, {}
-	end
+	RunCommandFunctions({"reach", "boxreach"})
 end)
 
 AddCommand("teleporttool", "teleporttool", "Gives you a tool that teleports your character where you click.", {"tweenteleporttool", "tptool", "tweentptool", "clicktp"}, {"Utility"}, 2, function()
