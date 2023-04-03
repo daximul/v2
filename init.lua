@@ -2446,16 +2446,12 @@ end)
 
 AddCommand("copyusername", "copyusername [player]", "Copies the full username of [player].", {"copyname"}, {"Utility", 1}, 2, function(args, speaker)
 	local target = Players[getPlayer(args[1], speaker)[1]]
-	if target then
-		toexecutorclipboard(tostring(target.Name))
-	end
+	if target then toexecutorclipboard(tostring(target.Name)) end
 end)
 
 AddCommand("copyuserid", "copyuserid [player]", "Copies the user id of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
 	local target = Players[getPlayer(args[1], speaker)[1]]
-	if target then
-		toexecutorclipboard(tostring(target.UserId))
-	end
+	if target then toexecutorclipboard(tostring(target.UserId)) end
 end)
 
 AddCommand("reach", "reach [number]", "Changes the distance your tool can reach to [number].", {}, {"Utility", 1}, 2, function(args, speaker, env)
@@ -2494,24 +2490,18 @@ AddCommand("teleporttool", "teleporttool", "Gives you a tool that teleports your
 		local tool = NewInstance("Tool", {Name = "Click TP", RequiresHandle = false, Parent = backpack})
 		consadd(tool.Activated, function()
 			local root, pos = GetRoot(), Mouse.Hit
-			if root and pos then
-				root.CFrame = pos + Vector3.new(3, 1, 0)
-			end
+			if root and pos then root.CFrame = pos + Vector3.new(3, 1, 0) end
 		end)
 		local tool2 = NewInstance("Tool", {Name = "Click TweenTP", RequiresHandle = false, Parent = backpack})
 		consadd(tool2.Activated, function()
 			local root, pos = GetRoot(), Mouse.Hit
-			if root and pos then
-				TweenObj(root, "Sine", "Out", 0.5, {CFrame = pos + Vector3.new(3, 1, 0)})
-			end
+			if root and pos then TweenObj(root, "Sine", "Out", 0.5, {CFrame = pos + Vector3.new(3, 1, 0)}) end
 		end)
 	end
 end)
 
 AddCommand("attach", "attach [player]", "Attach yourself to [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
-	for _, available in next, getPlayer(args[1], speaker) do
-		Attach(Players[available])
-	end
+	for _, available in next, getPlayer(args[1], speaker) do Attach(Players[available]) end
 end)
 
 AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
@@ -2524,11 +2514,7 @@ AddCommand("kill", "kill [player]", "Kill [player].", {}, {"Utility", "tool", 1}
 				Attach(target)
 				wait(0.2)
 				CheckDistanceAndClear(target)
-				spawn(function()
-					repeat wait()
-						root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999)
-					until not root or not root2
-				end)
+				spawn(function() repeat wait() root.CFrame = CFrame.new(999999, OldFallenPartsDestroyHeight + 5, 999999) until not root or not root2 end)
 				LocalPlayer.CharacterAdded:Wait()
 				wait(0.2)
 				root = GetRoot()
@@ -2583,11 +2569,7 @@ AddCommand("control", "control [player]", "Control [player] for a few seconds.",
 		if target and target.Character then
 			ExecuteCommand("sit")
 			Attach(target)
-			consadd("control", UserInputService.InputBegan, function(input, processed)
-				if not processed and input.KeyCode == Enum.KeyCode.Space then
-					ExecuteCommand("jump")
-				end
-			end)
+			consadd("control", UserInputService.InputBegan, function(input, processed) if not processed and input.KeyCode == Enum.KeyCode.Space then ExecuteCommand("jump") end end)
 			speaker.CharacterAdded:Wait()
 			consremove("control")
 		end
@@ -2623,9 +2605,7 @@ AddCommand("handlekill", "handlekill [player]", "Kill [player] with tool damage.
 					while tool and handle and GetCharacter() and GetCharacter(target) and tool.Parent == GetCharacter() do
 						local humanoid = GetHumanoid(GetCharacter(target))
 						if not humanoid or humanoid.Health <= 0 then break end
-						for _, obj in next, GetCharacter(target):GetChildren() do
-							obj = ((obj:IsA("BasePart") and firerbxtouch(handle, obj, 1, (renderstepped:Wait() and nil) or firerbxtouch(handle, obj, 0)) and nil) or obj) or obj
-						end
+						for _, obj in next, GetCharacter(target):GetChildren() do obj = ((obj:IsA("BasePart") and firerbxtouch(handle, obj, 1, (renderstepped:Wait() and nil) or firerbxtouch(handle, obj, 0)) and nil) or obj) or obj end
 					end
 					Notify(format("%s has either died or left, or you unequipped the tool", GetLongUsername(target)))
 				end)
@@ -2661,16 +2641,11 @@ AddCommand("invisible", "invisible", "Become invisible to other players.", {"inv
 		end
 		env[1] = function()
 			if weld then
-				weld.Part0 = nil
-				weld.Part1 = nil
+				weld.Part0, weld.Part1 = nil, nil
 				weld:Destroy()
 			end
 			if seat then seat:Destroy() end
-			for _, v in next, modified do
-				if v.Object and v.Transparency then
-					v.Object.Transparency = v.Transparency
-				end
-			end
+			for _, v in next, modified do if v.Object and v.Transparency then v.Object.Transparency = v.Transparency end end
 		end
 	end
 end)
@@ -2682,10 +2657,8 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		local oldpos = root.CFrame
 		root.CFrame = CFrame.new(9e9, 9e9, 9e9)
 		wait(0.2)
-		consadd("tool invisible", heartbeat, function()
-			if not character or not character:FindFirstChild("Head") or not root then
-				ExecuteCommand("uninvisible")
-			end
+		consadd(env, heartbeat, function()
+			if not character or not character:FindFirstChild("Head") or not root then ExecuteCommand("uninvisible") end
 			local old = character.Head.Size
 			character.Head.Size = Vector3.new(0, 0, 0)
 			RunService.RenderStepped:Wait()
@@ -2694,7 +2667,6 @@ AddCommand("toolinvisible", "toolinvisible", "Become invisible to other players 
 		wait(0.2)
 		root.CFrame = oldpos
 	end
-	env[1] = function() consremove("tool invisible") end
 end)
 
 AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "visible", "vis", "untoolinvisible", "untoolinvis", "untinvis"}, {"Utility"}, 2, function()
@@ -2740,24 +2712,17 @@ AddCommand("swim", "swim", "Makes your character able to swim while not being in
 		workspace.Gravity = 0
 		local enums, v3, v0 = Enum.HumanoidStateType:GetEnumItems(), Vector3.new, Vector3.zero
 		remove(enums, tfind(enums, Enum.HumanoidStateType.None))
-		for _, state in next, enums do
-			humanoid:SetStateEnabled(state, false)
-		end
+		for _, state in next, enums do humanoid:SetStateEnabled(state, false) end
 		humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-		consadd("swim", heartbeat, function()
+		consadd(env, heartbeat, function()
 			local rootvelo, moving = root.Velocity, humanoid.MoveDirection ~= v3()
 			local vertical = (IsKeyDown.Space and 50) or (IsKeyDown.LeftControl and -50)
 			root.Velocity = ((moving or IsKeyDown.Space or IsKeyDown.LeftControl) and v3(moving and rootvelo.X or 0, vertical or rootvelo.Y, moving and rootvelo.Z or 0) or v0)
 		end)
-		env[1] = function()
-			consremove("swim")
+		env[#env + 1] = function()
 			workspace.Gravity = OldGravity
 			humanoid = GetHumanoid()
-			if humanoid then
-				for _, state in next, enums do
-					humanoid:SetStateEnabled(state, true)
-				end
-			end
+			if humanoid then for _, state in next, enums do humanoid:SetStateEnabled(state, true) end end
 		end
 		speaker.CharacterAdded:Wait()
 		heartbeat:Wait()
@@ -2777,35 +2742,22 @@ end)
 
 AddCommand("notifyposition", "notifyposition", "Notify yourself your character's current position (x, y, z).", {"notifypos"}, {"Utility"}, 2, function()
 	local root = GetRoot()
-	if root then
-		local pos = root.Position
-		Notify(format("%s, %s, %s", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
-	end
+	if root then Notify(format("%s, %s, %s", tostring(round(root.Position.X)), tostring(round(root.Position.Y)), tostring(round(root.Position.Z)))) end
 end)
 
 AddCommand("copyposition", "copyposition", "Copy your character's current position (x, y, z).", {"copypos"}, {"Utility"}, 2, function()
 	local root = GetRoot()
-	if root then
-		local pos = root.Position
-		toexecutorclipboard(format("%s, %s, %s", tostring(round(pos.X)), tostring(round(pos.Y)), tostring(round(pos.Z))))
-	end
+	if root then toexecutorclipboard(format("%s, %s, %s", tostring(round(root.Position.X)), tostring(round(root.Position.Y)), tostring(round(root.Position.Z)))) end
 end)
 
 AddCommand("serverhop", "serverhop [min / max]", "Join a different server. Optional arguments of min or max, max is the default.", {"shop"}, {"Utility", {"min", "max"}}, 2, function(args)
 	local opt = lower(tostring(args[1]))
 	opt = (opt == "min" and "Asc") or (opt == "max" and "Desc") or "Desc"
-	local servers = {}
 	local list = HttpService:JSONDecode(httprequest({Url = format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100", game.PlaceId, opt)}).Body)
-	if list and list.data then
-		for _, server in next, list.data do
-			if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and server.maxPlayers > server.playing and server.id ~= game.JobId then
-				insert(servers, {current = server.playing, limit = server.maxPlayers, id = server.id})
-			end
-		end
-	end
+	local servers = filter(list and list.data or {}, function(_, v) return type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.maxPlayers > v.playing and v.id ~= game.JobId end)
 	if #servers ~= 0 then
 		local server = servers[math.random(1, #servers)]
-		Notify(format("joining server (%d/%d players)", server.current, server.limit))
+		Notify(format("joining server (%d/%d players)", server.playing, server.maxPlayers))
 		TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
 	else
 		Notify("no servers available")
@@ -2861,20 +2813,12 @@ end)
 
 AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1}, 2, function(args)
 	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
-	if opt == "reset" then
-		Services.StarterGui:SetCore("ResetButtonCallback", true)
-	elseif coretypes[opt] then
-		Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], true)
-	end
+	if opt == "reset" then Services.StarterGui:SetCore("ResetButtonCallback", true) elseif coretypes[opt] then Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], true) end
 end)
 
 AddCommand("disable", "disable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Disable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1}, 2, function(args)
 	local opt, coretypes = lower(tostring(args[1])), {inventory = Enum.CoreGuiType.Backpack, backpack = Enum.CoreGuiType.Backpack, playerlist = Enum.CoreGuiType.PlayerList, leaderboard = Enum.CoreGuiType.PlayerList, emotes = Enum.CoreGuiType.EmotesMenu, chat = Enum.CoreGuiType.Chat, all = Enum.CoreGuiType.All}
-	if opt == "reset" then
-		Services.StarterGui:SetCore("ResetButtonCallback", false)
-	elseif coretypes[opt] then
-		Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], false)
-	end
+	if opt == "reset" then Services.StarterGui:SetCore("ResetButtonCallback", false) elseif coretypes[opt] then Services.StarterGui:SetCoreGuiEnabled(coretypes[opt], false) end
 end)
 
 AddCommand("invisiblecamera", "invisiblecamera", "Makes it so you can put your camera through walls.", {"inviscamera", "inviscam"}, {"Utility"}, 2, function(_, _, env)
@@ -2889,9 +2833,7 @@ AddCommand("uninvisiblecamera", "uninvisiblecamera", "Disables invisiblecamera."
 end)
 
 AddCommand("volume", "volume [number]", "Set your volume to [number].", {}, {1}, 2, function(args)
-	if tonumber(args[1]) then
-		UserSettings():GetService("UserGameSettings").MasterVolume = tonumber(args[1])
-	end
+	if tonumber(args[1]) then UserSettings():GetService("UserGameSettings").MasterVolume = tonumber(args[1]) end
 end)
 
 AddCommand("age", "age [player]", "Checks the account age of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2920,28 +2862,15 @@ AddCommand("float", "float", "Creates a floating platform beneath you. Hold [E] 
 	local character, root, humanoid = GetCharacter(), GetRoot(), GetHumanoid()
 	if character and root then
 		local obj = NewInstance("Part", {Name = RandomString(), CFrame = CFrame.new(0, -6942, 0), Parent = character, Transparency = 1, Size = Vector3.new(2, 0.2, 1.5), Anchored = true})
+		env[1] = function() if obj then obj:Destroy() end end
 		cwrap(function()
-			consadd("float", heartbeat, function()
-				if not obj or not GetCharacter() or not GetRoot() then
-					ExecuteCommand("unfloat")
-				end
-				if IsKeyDown.E then
-					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, 0.025, 0)
-				elseif IsKeyDown.Q then
-					GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, -0.025, 0)
-				end
+			consadd(env, heartbeat, function()
+				if not obj or not GetCharacter() or not GetRoot() then ExecuteCommand("unfloat") end
+				if IsKeyDown.E then GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, 0.025, 0) elseif IsKeyDown.Q then GetRoot().CFrame = GetRoot().CFrame * CFrame.new(0, -0.025, 0) end
 				obj.CFrame = GetRoot().CFrame * CFrame.new(0, -3.1, 0)
 			end)
 		end)()
-		if humanoid then
-			consadd("float2", humanoid.Died, function()
-				ExecuteCommand("unfloat")
-			end)
-		end
-		env[1] = function()
-			consremove({"float", "float2"})
-			if obj then obj:Destroy() end
-		end
+		if humanoid then consadd(env, humanoid.Died, function() ExecuteCommand("unfloat") end) end
 	end
 end)
 
@@ -2957,9 +2886,7 @@ end)
 
 AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
 	local root, x, y, z = GetRoot(), tonumber(args[1]), tonumber(args[2]), tonumber(args[3])
-	if root and x and y and z then
-		root.CFrame = CFrame.new(x, y, z)
-	end
+	if root and x and y and z then root.CFrame = CFrame.new(x, y, z) end
 end)
 
 AddCommand("spin", "spin [speed]", "Spins your character with a speed of [speed]. [speed] is an optional argument.", {}, {"Utility"}, 2, function(args, _, env)
