@@ -2577,19 +2577,17 @@ AddCommand("control", "control [player]", "Control [player] for a few seconds.",
 end)
 
 AddCommand("skydive", "skydive [player]", "Teleport yourself into and the sky and bring [player].", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
-	for _, available in next, getPlayer(args[1], speaker) do
-		local target, root = Players[available], GetRoot()
-		if target and GetCharacter(target) and root then
-			local oldpos = root.CFrame
-			root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
-			wait(0.2)
-			Attach(target)
-			CheckDistanceAndClear(target)
-			speaker.CharacterAdded:Wait()
-			wait(0.2)
-			root = GetRoot()
-			if root then root.CFrame = oldpos end
-		end
+	local target, root = Players[getPlayer(args[1], speaker)[1]], GetRoot()
+	if target and GetCharacter(target) and root then
+		local oldpos = root.CFrame
+		root.CFrame = CFrame.new(Vector3.new(0, 694200, 0))
+		wait(0.33)
+		Attach(target)
+		CheckDistanceAndClear(target)
+		speaker.CharacterAdded:Wait()
+		wait(0.33)
+		root = GetRoot()
+		if root then root.CFrame = oldpos end
 	end
 end)
 
