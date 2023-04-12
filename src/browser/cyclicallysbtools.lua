@@ -14,7 +14,7 @@ return {
                         local Identify = NewInstance("Tool", {Name = "Identify", CanBeDropped = false, RequiresHandle = false, Parent = backpack})
                         local movedetect, movingpart, movetransparency = false, nil, 0
                         local editedparts, parentfix, positionfix = {}, {}, {}
-                        cons.add(Move.Activated, function()
+                        consadd(Move.Activated, function()
                             movingpart = Mouse.Target
                             movedetect = true
                             movingpart.CanCollide = false
@@ -30,26 +30,26 @@ return {
                                 movingpart.CFrame = CFrame.new(Mouse.Hit.p)
                             until movedetect == false
                         end)
-                        cons.add(Move.Deactivated, function()
+                        consadd(Move.Deactivated, function()
                             movingpart.CanCollide = true
                             movedetect = false
                             Mouse.TargetFilter = nil
                             movingpart.Transparency = movetransparency
                         end)
-                        cons.add(Delete.Activated, function()
+                        consadd(Delete.Activated, function()
                             insert(editedparts, Mouse.Target)
                             insert(parentfix, Mouse.Target.Parent)
                             insert(positionfix, Mouse.Target.CFrame)
                             Mouse.Target.Parent = nil
                         end)
-                        cons.add(Undo.Activated, function()
+                        consadd(Undo.Activated, function()
                             editedparts[#editedparts].Parent = parentfix[#parentfix]
                             editedparts[#editedparts].CFrame = positionfix[#positionfix]
                             remove(positionfix, #positionfix)
                             remove(editedparts, #editedparts)
                             remove(parentfix, #parentfix)
                         end)
-                        cons.add(Identify.Activated, function()
+                        consadd(Identify.Activated, function()
                             Notify(format("Identify Tool\nInstance: %s\nName: %s\nPath: %s", Mouse.Target.ClassName, Mouse.Target.Name, Mouse.Target:GetFullName()))
                         end)
                     end
