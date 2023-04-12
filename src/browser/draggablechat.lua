@@ -8,7 +8,7 @@ return {
             Category = "Utility",
             Function = function()
                 local ChatSettings = require(Services.Chat.ClientChatModules.ChatSettings)
-                local ChatFrame = Players.LocalPlayer:FindFirstChildWhichIsA("PlayerGui").Chat.Frame
+                local ChatFrame = LocalPlayer:FindFirstChildWhichIsA("PlayerGui").Chat.Frame
                 ChatSettings.WindowResizable = true
                 ChatSettings.WindowDraggable = true
                 ChatFrame.ChatChannelParentFrame.Visible = true
