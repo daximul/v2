@@ -253,7 +253,7 @@ end
 
 GetUsername = function(player)
 	player = player or LocalPlayer
-	return player.DisplayName and player.DisplayName or player.Name
+	return player.DisplayName or player.Name
 end
 
 GetLongUsername = function(player)
@@ -279,9 +279,7 @@ end
 WhitelistInfo = function(player)
 	player = player or LocalPlayer
 	local data = Admin.Whitelisted[tostring(player.UserId)]
-	if data and type(data) == "table" then
-		return data
-	end
+	if data and type(data) == "table" then return data end
 	return {Player = player, Value = false}
 end
 
@@ -289,8 +287,7 @@ ReplaceHumanoid = function()
 	local humanoid = GetHumanoid()
 	if humanoid then
 		local new = humanoid:Clone()
-		new.Parent = humanoid.Parent
-		new.Name = humanoid.Name
+		new.Parent, new.Name = humanoid.Parent, humanoid.Name
 		humanoid:Destroy()
 	end
 end
@@ -343,32 +340,13 @@ GetEnvironment = function(cmd)
 end
 
 RunCommandFunctions = function(name, ignore)
-	if type(name) == "table" then
-		for _, x in next, name do
-			local command = FindCommand(x)
-			command.Env = command.Env or {}
-			for i, v in next, command.Env do
-				if v and type(v) == "function" then
-					command.Env[i] = nil
-					if ignore then
-						spawn(pcall, v)
-					else
-						v()
-					end
-				end
-			end
-		end
-	else
+	for _, name in next, (type(name) == "table" and name or {name}) do
 		local command = FindCommand(name)
 		command.Env = command.Env or {}
 		for i, v in next, command.Env do
-			if v and type(v) == "function" then
+			if type(v) == "function" then
 				command.Env[i] = nil
-				if ignore then
-					spawn(pcall, v)
-				else
-					v()
-				end
+				if ignore then spawn(pcall, v) else v() end
 			end
 		end
 	end
@@ -1288,7 +1266,7 @@ AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {
 	cons.wipe()
 	Gui.BaseObject:Destroy()
 	getgenv().dxrkj = nil
-	for _, command in next, Admin.Commands do RunCommandFunctions(command.Name, true) end
+	RunCommandFunctions(map(Admin.Commands, function(_, v) return v.Name end), true)
 end)
 
 AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
@@ -1495,8 +1473,7 @@ AddCommand("commandinfo", "commandinfo [command]", "Opens more information about
 end)
 
 AddCommand("changelogs", "changelogs", "Opens a list of the script changelogs.", {"changelog"}, {"Core"}, 2, function()
-	local success, result = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json") end)
-	if success then Gui.DisplayTable("Changelog", HttpService:JSONDecode(result)) end
+	Gui.DisplayTable("Changelog", HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/daximul/v2/main/src/changelog.json")))
 end)
 
 AddCommand("editpermissions", "editpermissions [command] [number]", "Changes the permission index of [command] to [number].", {"editperms"}, {"Core", 2}, 2, function(args)
@@ -1580,7 +1557,7 @@ AddCommand("savechatlogs", "savechatlogs", "If you don't want to scroll up in th
 end)
 
 AddCommand("clearchatlogs", "clearchatlogs", "Clears the chatlogs.", {}, {"Core"}, 2, function()
-	for i, _ in next, ChatHistory do ChatHistory[i] = nil end
+	for log in next, ChatHistory do ChatHistory[log] = nil end
 	local Loaded = GetEnvironment("chatlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
 		Loaded.Container.Close()
@@ -1623,7 +1600,7 @@ AddCommand("savejoinlogs", "savejoinlogs", "If you don't want to scroll up in th
 end)
 
 AddCommand("clearjoinlogs", "clearjoinlogs", "Clears the joinlogs.", {}, {"Core"}, 2, function()
-	for i, _ in next, JoinHistory do JoinHistory[i] = nil end
+	for log in next, JoinHistory do JoinHistory[log] = nil end
 	local Loaded = GetEnvironment("joinlogs")[1]
 	if Loaded and Loaded.Container and Loaded.Section then
 		Loaded.Container.Close()
@@ -1678,26 +1655,22 @@ AddCommand("pluginlist", "pluginlist", "Opens a list of your plugins.", {"plugin
 	end
 	Section:AddItem("Text", {Text = "Enabled Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	if #LoadedPlugins > 0 then
-		for _, v in next, LoadedPlugins do
-			Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end})
-		end
+		for _, v in next, LoadedPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end}) end
 	else
 		Section:AddItem("Text", {Text = "None"})
 	end
 	Section:AddItem("Text", {Text = "Disabled Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	if #Config.DisabledPlugins > 0 then
-		for _, v in next, Config.DisabledPlugins do
-			Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end})
-		end
+		for _, v in next, Config.DisabledPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end}) end
 	else
 		Section:AddItem("Text", {Text = "None"})
 	end
 end)
 
-AddCommand("addalias", "addalias [command] [alias]", "Makes [alias] an alias of [command].", {}, {"Core", 2}, 2, function(args)
-	local command, alias = FindCommand(args[1]), lower(tostring(args[2]))
-	if command and alias then
-		insert(MiscConfig.CustomAlias, {Name = command.Name, Alias = alias})
+AddCommand("addalias", "addalias [alias] [command]", "Makes [alias] an alias of [command].", {}, {"Core", 2}, 2, function(args)
+	local alias, command = lower(tostring(args[1])), FindCommand(args[2])
+	if alias and command then
+		insert(MiscConfig.CustomAlias, {Alias = alias, Name = command.Name})
 		UpdateMiscConfig()
 		Notify(format("added alias (%s) to command (%s)", alias, command.Name))
 	else
@@ -2123,19 +2096,16 @@ end)
 
 AddCommand("noclip", "noclip", "Makes your character able to walk through walls.", {}, {"Utility", "spawned"}, 2, function(_, _, env)
 	ExecuteCommand("unnoclip")
-	consadd("noclip", RunService.Stepped, function()
-		local character = GetCharacter()
-		if character then
-			for _, v in next, character:GetChildren() do
+	consadd(env, RunService.Stepped, function()
+		pcall(function()
+			for _, v in next, GetCharacter():GetChildren() do
 				if v:IsA("BasePart") and v.CanCollide then
 					v.CanCollide = false
 				end
 			end
-		end
+		end)
 	end)
-	local humanoid = GetHumanoid()
-	if humanoid then consadd("noclip2", humanoid.Died, function() ExecuteCommand("unnoclip") end) end
-	env[1] = function() consremove({"noclip", "noclip2"}) end
+	consadd(env, GetHumanoid().Died, function() ExecuteCommand("unnoclip") end)
 end)
 
 AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2, function()
