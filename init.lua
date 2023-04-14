@@ -393,52 +393,6 @@ SplitString = function(str, delim)
 	return broken
 end
 
--- not worth being undetectable with like 10 fps because of basic hooking
---[[
-do -- Prote
-	local getrawmetatable = getrawmetatable or function() return setmetatable({}, {}) end
-	local getnamecallmethod = getnamecallmethod or function() return "" end
-	local checkcaller = checkcaller or function() return false end
-	local newcclosure = newcclosure or function(f) return f end
-	local meta = getrawmetatable(game)
-	local oldmeta = {}
-	setreadonly(meta, false)
-	for i, v in next, meta do oldmeta[i] = v end
-	local _fd = {ws = 16, jp = 50}
-	meta.__index = newcclosure(function(self, property, ...)
-		print(tostring(self), tostring(property), typeof(self), type(property))
-		if typeof(self) == "Instance" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
-			if property == "WalkSpeed" then return _fd.ws end
-			if property == "JumpPower" then return _fd.jp end
-		end
-		return oldmeta.__index(self, property, ...)
-	end)
-	meta.__newindex = newcclosure(function(...)
-		local newindex = oldmeta.__newindex
-		local original = oldmeta.__index
-		local self, index, val = ...
-		if checkcaller() then return newindex(...) end
-		local property = index
-		if typeof(self) == "Instance" and type(index) == "string" then
-			if select(2, gsub(index, "%z", "")) > 255 then return original(...) end
-			property = gsub(sub(index, 0, 100), "%z.*", "")
-		end
-		if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
-			if property == "WalkSpeed" then
-				_fd.ws = val
-				return _fd.ws
-			end
-			if property == "JumpPower" then
-				_fd.jp = val
-				return _fd.jp
-			end
-		end
-		return newindex(...)
-	end)
-	setreadonly(meta, true)
-end
-]]
-
 SpecialPlayerCases = {
 	all = function(speaker) return Players:GetPlayers() end,
 	others = function(speaker)
