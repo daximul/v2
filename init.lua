@@ -100,7 +100,7 @@ consadd, consremove = cons.add, cons.remove
 
 NewInstance = function(class, properties)
 	local new = creatingInstance(class)
-	for property, value in next, properties do new[property] = value end
+	for property, value in next, (properties or {}) do new[property] = value end
 	return new
 end
 
@@ -392,6 +392,60 @@ SplitString = function(str, delim)
 	for w in gmatch(str, "[^" .. delim .. "]+") do insert(broken, w) end
 	return broken
 end
+
+-- not worth being undetectable with like 10 fps because of basic hooking
+--[[
+do -- Prote
+	local getrawmetatable = getrawmetatable or function() return setmetatable({}, {}) end
+	local getnamecallmethod = getnamecallmethod or function() return "" end
+	local checkcaller = checkcaller or function() return false end
+	local newcclosure = newcclosure or function(f) return f end
+	local hookfunction = hookfunction or function(func, new, apply)
+		if replaceclosure then
+			replaceclosure(func, new)
+			return func
+		end
+		return (apply and newcclosure) or new
+	end
+	local hookmetamethod = hookmetamethod or function(meta, method, func)
+		setreadonly(meta, false)
+		local o = hookfunction(meta[method], func, true)
+		setreadonly(meta, true)
+		return o
+	end
+	local meta = getrawmetatable(game)
+	local oldmeta = {}
+	setreadonly(meta, false)
+	for i, v in next, meta do oldmeta[i] = v end
+	setreadonly(meta, true)
+	local _FakeData = {HSpeed = 16}
+	oldmeta.__index = hookmetamethod(game, "__index", function(...)
+		local oldindex = oldmeta.__index
+		local original = oldindex(...)
+		if checkcaller() then return oldindex(...) end
+		local self, index = ...
+		local sanitised = ((typeof(self) == "Instance" and type(index) == "string") and gsub(sub(index, 0, 100), "%z.*", "")) or index
+		if sanitised == "WalkSpeed" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then return _FakeData.HSpeed end
+		return original
+	end)
+	oldmeta.__newindex = hookmetamethod(game, "__newindex", function(...)
+		local newindex = oldmeta.__newindex
+		local original = oldmeta.__index
+		local self, index, val = ...
+		if checkcaller() then return newindex(...) end
+		local sanitised = index
+		if typeof(self) == "Instance" and type(index) == "string" then
+			if select(2, gsub(index, "%z", "")) > 255 then return original(...) end
+			sanitised = gsub(sub(index, 0, 100), "%z.*", "")
+		end
+		if sanitised == "WalkSpeed" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+			_FakeData.HSpeed = val
+			return _FakeData.HSpeed
+		end
+		return newindex(...)
+	end)
+end
+]]
 
 SpecialPlayerCases = {
 	all = function(speaker) return Players:GetPlayers() end,
