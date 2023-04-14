@@ -418,14 +418,17 @@ do -- Prote
 	setreadonly(meta, false)
 	for i, v in next, meta do oldmeta[i] = v end
 	setreadonly(meta, true)
-	local _FakeData = {HSpeed = 16}
+	local _fd = {ws = 16, jp = 50}
 	oldmeta.__index = hookmetamethod(game, "__index", function(...)
 		local oldindex = oldmeta.__index
 		local original = oldindex(...)
 		if checkcaller() then return oldindex(...) end
 		local self, index = ...
-		local sanitised = ((typeof(self) == "Instance" and type(index) == "string") and gsub(sub(index, 0, 100), "%z.*", "")) or index
-		if sanitised == "WalkSpeed" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then return _FakeData.HSpeed end
+		local property = ((typeof(self) == "Instance" and type(index) == "string") and gsub(sub(index, 0, 100), "%z.*", "")) or index
+		if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+			if property == "WalkSpeed" then return _fd.ws end
+			if property == "JumpPower" then return _fd.jp end
+		end
 		return original
 	end)
 	oldmeta.__newindex = hookmetamethod(game, "__newindex", function(...)
@@ -433,14 +436,20 @@ do -- Prote
 		local original = oldmeta.__index
 		local self, index, val = ...
 		if checkcaller() then return newindex(...) end
-		local sanitised = index
+		local property = index
 		if typeof(self) == "Instance" and type(index) == "string" then
 			if select(2, gsub(index, "%z", "")) > 255 then return original(...) end
-			sanitised = gsub(sub(index, 0, 100), "%z.*", "")
+			property = gsub(sub(index, 0, 100), "%z.*", "")
 		end
-		if sanitised == "WalkSpeed" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
-			_FakeData.HSpeed = val
-			return _FakeData.HSpeed
+		if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+			if property == "WalkSpeed" then
+				_fd.ws = val
+				return _fd.ws
+			end
+			if property == "JumpPower" then
+				_fd.jp = val
+				return _fd.jp
+			end
 		end
 		return newindex(...)
 	end)
