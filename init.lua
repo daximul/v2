@@ -400,38 +400,20 @@ do -- Prote
 	local getnamecallmethod = getnamecallmethod or function() return "" end
 	local checkcaller = checkcaller or function() return false end
 	local newcclosure = newcclosure or function(f) return f end
-	local hookfunction = hookfunction or function(func, new, apply)
-		if replaceclosure then
-			replaceclosure(func, new)
-			return func
-		end
-		return (apply and newcclosure) or new
-	end
-	local hookmetamethod = hookmetamethod or function(meta, method, func)
-		setreadonly(meta, false)
-		local o = hookfunction(meta[method], func, true)
-		setreadonly(meta, true)
-		return o
-	end
 	local meta = getrawmetatable(game)
 	local oldmeta = {}
 	setreadonly(meta, false)
 	for i, v in next, meta do oldmeta[i] = v end
-	setreadonly(meta, true)
 	local _fd = {ws = 16, jp = 50}
-	oldmeta.__index = hookmetamethod(game, "__index", function(...)
-		local oldindex = oldmeta.__index
-		local original = oldindex(...)
-		if checkcaller() then return oldindex(...) end
-		local self, index = ...
-		local property = ((typeof(self) == "Instance" and type(index) == "string") and gsub(sub(index, 0, 100), "%z.*", "")) or index
-		if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+	meta.__index = newcclosure(function(self, property, ...)
+		print(tostring(self), tostring(property), typeof(self), type(property))
+		if typeof(self) == "Instance" and self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
 			if property == "WalkSpeed" then return _fd.ws end
 			if property == "JumpPower" then return _fd.jp end
 		end
-		return original
+		return oldmeta.__index(self, property, ...)
 	end)
-	oldmeta.__newindex = hookmetamethod(game, "__newindex", function(...)
+	meta.__newindex = newcclosure(function(...)
 		local newindex = oldmeta.__newindex
 		local original = oldmeta.__index
 		local self, index, val = ...
@@ -453,6 +435,7 @@ do -- Prote
 		end
 		return newindex(...)
 	end)
+	setreadonly(meta, true)
 end
 ]]
 
