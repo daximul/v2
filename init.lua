@@ -1260,6 +1260,7 @@ end)
 -- Commands
 AddCommand("debug", "debug", "Toggles the script's debug mode for commands.", {}, {"Core"}, 2, function(args, speaker)
 	Admin.Debug = not Admin.Debug
+	Notify(format("debug %s", Admin.Debug and "enabled" or "disabled"))
 end)
 
 AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {"Core"}, 2, function(args, speaker)
@@ -3104,13 +3105,13 @@ AddCommand("xray", "xray", "Allows you to see through walls.", {}, {"Utility"}, 
 			v.Transparency = 0.3
 		end
 	end
-	env[1] = function()
+	insert(env, function()
 		for _, v in next, modified do
 			if v.Part and v.Transparency then
 				v.Part.Transparency = v.Transparency
 			end
 		end
-	end
+	end)
 end)
 
 AddCommand("noxray", "noxray", "Disables xray.", {"unxray"}, {"Utility"}, 2, function()
@@ -3124,9 +3125,7 @@ AddCommand("togglexray", "togglexray", "Toggles xray.", {}, {"Toggle"}, 2, funct
 end)
 
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
-	for name, property in next, OldLightingProperties do
-		Lighting[name] = property
-	end
+	for name, property in next, OldLightingProperties do Lighting[name] = property end
 end)
 
 AddCommand("bring", "bring [player]", "Brings [player] to you.", {}, {"Utility", "tool", 1}, 2, function(args, speaker)
@@ -3187,16 +3186,24 @@ AddCommand("lastcommand", "lastcommand", "Runs the previous command.", {}, {}, 2
 	if recent then ExecuteCommand(lower(tostring(recent))) end
 end)
 
-AddCommand("noclickdetectorlimits", "noclickdetectorlimits", "Removes the distance limit on all click detectors.", {"nocdlimits"}, {"Utility"}, 2, function(_, _, v)
+AddCommand("noclickdetectorlimits", "noclickdetectorlimits", "Removes the distance limit on all click detectors.", {"nocdlimits"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("clickdetectorlimits")
-	local modified = {}
+	local modify = function(v)
+		local old = v.MaxActivationDistance
+		insert(env, function() if v and v.MaxActivationDistance then v.MaxActivationDistance = old end end)
+	end
 	for _, v in next, workspace:GetDescendants() do
 		if v:IsA("ClickDetector") and v.MaxActivationDistance ~= math.huge then
-			insert(modified, {Object = v, Distance = v.MaxActivationDistance})
+			modify(v)
 			v.MaxActivationDistance = math.huge
 		end
 	end
-	env[1] = function() for _, v in next, modified do if v.Object and v.Distance then v.Object.MaxActivationDistance = v.Distance end end end
+	consadd(env, workspace.DescendantAdded, function(v)
+		if v:IsA("ClickDetector") and v.MaxActivationDistance ~= math.huge then
+			modify(v)
+			v.MaxActivationDistance = math.huge
+		end
+	end)
 end)
 
 AddCommand("clickdetectorlimits", "clickdetectorlimits", "Adds back the distance limit to all click detectors affected by the noclickdetectorlimits command.", {"cdlimits"}, {"Utility"}, 2, function()
@@ -3220,16 +3227,24 @@ AddCommand("firetouchinterests", "firetouchinterests", "Activates all touch inte
 	end
 end)
 
-AddCommand("noproximitypromptlimits", "noproximitypromptlimits", "Removes the distance limit on all proximity prompts.", {"nopplimits"}, {"Utility"}, 2, function(_, _, v)
+AddCommand("noproximitypromptlimits", "noproximitypromptlimits", "Removes the distance limit on all proximity prompts.", {"nopplimits"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("proximitypromptlimits")
-	local modified = {}
+	local modify = function(v)
+		local old = v.MaxActivationDistance
+		insert(env, function() if v and v.MaxActivationDistance then v.MaxActivationDistance = old end end)
+	end
 	for _, v in next, workspace:GetDescendants() do
 		if v:IsA("ProximityPrompt") and v.MaxActivationDistance ~= math.huge then
-			insert(modified, {Object = v, Distance = v.MaxActivationDistance})
+			modify(v)
 			v.MaxActivationDistance = math.huge
 		end
 	end
-	env[1] = function() for _, v in next, modified do if v.Object and v.Distance then v.Object.MaxActivationDistance = v.Distance end end end
+	consadd(env, workspace.DescendantAdded, function(v)
+		if v:IsA("ProximityPrompt") and v.MaxActivationDistance ~= math.huge then
+			modify(v)
+			v.MaxActivationDistance = math.huge
+		end
+	end)
 end)
 
 AddCommand("proximitypromptlimits", "proximitypromptlimits", "Adds back the distance limit to all proximity prompts affected by the noproximitypromptlimits command.", {"pplimits"}, {"Utility"}, 2, function()
@@ -3251,14 +3266,14 @@ end)
 
 AddCommand("clientantikick", "clientantikick", "Prevents any LocalScripts from kicking you.", {"antikick"}, {"Utility"}, 2, function(_, _, env)
 	RunCommandFunctions("clientantikick")
-	env[1] = function() end
+	insert(env, function() end)
 	local old, old2, getnamecallmethod = nil, nil, getnamecallmethod or get_namecall_method or function() return "" end
 	old = hookmetamethod(game, "__index", function(self, method)
-		if env[1] and self == LocalPlayer and lower(method) == "kick" then return error("Expected ':' not '.' calling member function Kick", 2) end
+		if next(GetEnvironment("clientantikick")) and self == LocalPlayer and lower(method) == "kick" then return error("Expected ':' not '.' calling member function Kick", 2) end
 		return old(self, method)
 	end)
 	old2 = hookmetamethod(game, "__namecall", function(self, ...)
-		if env[1] and self == LocalPlayer and lower(getnamecallmethod()) == "kick" then return end
+		if next(GetEnvironment("clientantikick")) and self == LocalPlayer and lower(getnamecallmethod()) == "kick" then return end
 		return old2(self, ...)
 	end)
 end)
@@ -3276,11 +3291,11 @@ AddCommand("breadcrumbs", "breadcrumbs", "Leaves a trail behind you.", {}, {}, 2
 	local attachment = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, 0.07 - 2.7, 0)})
 	local attachment2 = NewInstance("Attachment", {Name = RandomString(), Position = Vector3.new(0, -0.07 - 2.7, 0)})
 	local trail = NewInstance("Trail", {Name = RandomString(), Attachment0 = attachment, Attachment1 = attachment2, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1), Color3.new(1, 1, 1)), FaceCamera = true, Lifetime = math.huge, Enabled = true})
-	env[1] = function()
+	insert(env, function()
 		if attachment then attachment:Destroy() end
 		if attachment2 then attachment2:Destroy() end
 		if trail then trail:Destroy() end
-	end
+	end)
 	consadd(env, heartbeat, function()
 		local root, camera = GetRoot(), workspace.CurrentCamera
 		if root and camera then
@@ -3298,7 +3313,7 @@ AddCommand("crosshair", "crosshair", "Enables and changes your mouse icon.", {},
 	ExecuteCommand("nocrosshair")
 	local OldMouseIconEnabled, Icon, u2 = UserInputService.MouseIconEnabled, Gui.BaseObject.Crosshair, UDim2.new
 	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	env[1] = function() UserInputService.MouseIconEnabled, Icon.Visible = OldMouseIconEnabled, false end
+	insert(env, function() UserInputService.MouseIconEnabled, Icon.Visible = OldMouseIconEnabled, false end)
 	consadd(env, heartbeat, function() UserInputService.MouseIconEnabled, Icon.Position, Icon.Visible = false, u2(0, Mouse.X, 0, Mouse.Y), true end)
 end)
 
@@ -3319,31 +3334,25 @@ AddCommand("trip", "trip", "Makes your character fall over.", {}, {}, 2, functio
 end)
 
 AddCommand("strengthen", "strengthen [number]", "Makes your character more dense by setting CustomPhysicalProperties to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
-	if GetCharacter() then
-		for _, v in next, GetCharacter():GetDescendants() do
-			if v:IsA("Part") then
-				v.CustomPhysicalProperties = PhysicalProperties.new(tonumber(args[1]) or 100, 0.3, 0.5)
-			end
+	for _, v in next, GetCharacter():GetDescendants() do
+		if v:IsA("Part") then
+			v.CustomPhysicalProperties = PhysicalProperties.new(tonumber(args[1]) or 100, 0.3, 0.5)
 		end
 	end
 end)
 
 AddCommand("weaken", "weaken [number]", "Makes your character less dense by setting CustomPhysicalProperties to [number]. [number] is an optional argument.", {}, {"Utility"}, 2, function(args)
-	if GetCharacter() then
-		for _, v in next, GetCharacter():GetDescendants() do
-			if v:IsA("Part") then
-				v.CustomPhysicalProperties = PhysicalProperties.new(-tonumber(args[1]) or 0, 0.3, 0.5)
-			end
+	for _, v in next, GetCharacter():GetDescendants() do
+		if v:IsA("Part") then
+			v.CustomPhysicalProperties = PhysicalProperties.new(-tonumber(args[1]) or 0, 0.3, 0.5)
 		end
 	end
 end)
 
 AddCommand("unstrengthen", "unstrengthen", "description.", {"unweaken"}, {"Utility"}, 2, function()
-	if GetCharacter() then
-		for _, v in next, GetCharacter():GetDescendants() do
-			if v:IsA("Part") then
-				v.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
-			end
+	for _, v in next, GetCharacter():GetDescendants() do
+		if v:IsA("Part") then
+			v.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
 		end
 	end
 end)
@@ -3358,10 +3367,10 @@ AddCommand("bang", "bang [player] [speed]", "Bangs [player] with a speed of [spe
 			local anim = humanoid:LoadAnimation(id)
 			anim:Play(0.1, 1, 1)
 			anim:AdjustSpeed(tonumber(args[2]) or 3)
-			env[1] = function()
+			insert(env, function()
 				if anim then anim:Stop() end
 				if id then id:Destroy() end
-			end
+			end)
 			consadd(env, RunService.Stepped, function() pcall(function() GetRoot().CFrame = GetRoot(GetCharacter(target)).CFrame * CFrame.new(0, 0, 1.1) end) end)
 			consadd(env, humanoid.Died, function() ExecuteCommand("unbang") end)
 		end
@@ -3374,10 +3383,10 @@ end)
 
 AddCommand("loopgoto", "loopgoto [player] [distance]", "Loop goto [player]. [distance] is an optional argument.", {}, {"Utility", "spawned", 1}, 2, function(args, _, env)
 	ExecuteCommand("unloopgoto")
-	env[1] = function() end
+	insert(env, function() end)
 	repeat heartbeat:Wait()
 		ExecuteCommand(format("goto %s %d", args[1], tonumber(args[2]) or 5.8))
-	until not env[1]
+	until not next(GetEnvironment("loopgoto"))
 end)
 
 AddCommand("unloopgoto", "unloopgoto", "Disables loopgoto.", {}, {"Utility"}, 2, function()
@@ -3391,10 +3400,8 @@ end)
 AddCommand("loophidename", "loophidename", "Constantly removes billboards from your character.", {"loopnobillboardgui"}, {"Utility"}, 2, function(_, _, env)
 	ExecuteCommand("unloophidename")
 	local character = GetCharacter()
-	if character then
-		for _, v in next, character:GetDescendants() do if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end
-		consadd(env, character.DescendantAdded, function(v) if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end)
-	end
+	for _, v in next, character:GetDescendants() do if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end
+	consadd(env, character.DescendantAdded, function(v) if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then v:Destroy() end end)
 end)
 
 AddCommand("unloophidename", "unloophidename", "Disables loophidename.", {"unloopnobillboardgui"}, {"Utility"}, 2, function()
@@ -3415,7 +3422,7 @@ AddCommand("light", "light [radius] [brightness]", "Gives your character dynamic
 	local root = GetRoot()
 	if root then
 		local light = NewInstance("PointLight", {Name = RandomString(), Range = tonumber(args[1]) or 30, Brightness = tonumber(args[2]) or 5, Parent = root})
-		env[1] = function() if light then light:Destroy() end end
+		insert(env, function() if light then light:Destroy() end end)
 	end
 end)
 
@@ -3435,7 +3442,7 @@ AddCommand("rocketconnect", "rocketconnect [player]", "Uses a rocket (RocketProp
 		humanoid.Sit = true
 		local rocket = NewInstance("RocketPropulsion", {Name = RandomString(), CartoonFactor = 1, MaxThrust = 5000, MaxSpeed = 100, ThrustP = 5000, Target = GetRoot(GetCharacter(target)), Parent = root})
 		rocket:Fire()
-		env[1] = function() if rocket then rocket:Destroy() end end
+		insert(env, function() if rocket then rocket:Destroy() end end)
 		consadd(env, humanoid.Died, function() ExecuteCommand("unrocketconnect") end)
 		consadd(env, humanoid.Seated, function(value) if not value then ExecuteCommand("unrocketconnect") end end)
 	end
@@ -3572,11 +3579,7 @@ end)
 getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
 -- inaccurate loading time because funny
 if Config.StartupNotification then Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10) end
-if listfiles and type(listfiles) == "function" then
-	local Plugins = {}
-	for _, v in next, listfiles("dark-admin/plugins") do if FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) then insert(Plugins, tostring(split(v, "\\")[2])) end end
-	for _, v in next, Plugins do if not FindInTable(Config.DisabledPlugins, v) then InstallPlugin(v, true) end end
-end
+if listfiles and type(listfiles) == "function" then for _, v in next, filter(map(filter(listfiles("dark-admin/plugins"), function(_, v) return FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) end), function(_, v) return tostring(split(v, "\\")[2]) end), function(_, v) return not FindInTable(Config.DisabledPlugins, v) end) do InstallPlugin(v, true) end end
 for name, permission in next, MiscConfig.Permissions do
 	local command = FindCommand(name)
 	if command then if command.PermissionIndex == permission then MiscConfig.Permissions[name] = nil else command.PermissionIndex = permission end end
