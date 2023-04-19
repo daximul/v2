@@ -393,6 +393,68 @@ SplitString = function(str, delim)
 	return broken
 end
 
+--[[
+do -- Prote
+	local getrawmetatable = getrawmetatable or function() return setmetatable({}, {}) end
+	local getnamecallmethod = getnamecallmethod or function() return "" end
+	local checkcaller = checkcaller or function() return false end
+	local newcclosure = newcclosure or function(f) return f end
+	local hookfunction = hookfunction or function(func, new, apply)
+		if replaceclosure then
+			replaceclosure(func, new)
+			return func
+		end
+		return (apply and newcclosure) or new
+	end
+	local hookmetamethod = hookmetamethod or function(meta, method, func)
+		setreadonly(meta, false)
+		local o = hookfunction(meta[method], func, true)
+		setreadonly(meta, true)
+		return o
+	end
+	local meta = getrawmetatable(game)
+	local oldmeta = {}
+	setreadonly(meta, false)
+	for i, v in next, meta do oldmeta[i] = v end
+	setreadonly(meta, true)
+	local _fd = {ws = 16, jp = 50}
+	oldmeta.__index = hookmetamethod(game, "__index", function(...)
+		local oldindex = oldmeta.__index
+		local original = oldindex(...)
+		if checkcaller() then return oldindex(...) end
+		local self, index = ...
+		if typeof(self) == "Instance" and type(index) == "string" then
+			local property = gsub(index, "\0", "")
+			if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+				if property == "WalkSpeed" then return _fd.ws end
+				if property == "JumpPower" then return _fd.jp end
+			end
+		end
+		return original
+	end)
+	oldmeta.__newindex = hookmetamethod(game, "__newindex", function(...)
+		local newindex = oldmeta.__newindex
+		local original = oldmeta.__index
+		local self, index, val = ...
+		if checkcaller() then return newindex(...) end
+		if typeof(self) == "Instance" and type(index) == "string" then
+			local property = gsub(index, "\0", "")
+			if self:IsA("Humanoid") and self:IsDescendantOf(GetCharacter()) then
+				if property == "WalkSpeed" then
+					_fd.ws = val
+					return _fd.ws
+				end
+				if property == "JumpPower" then
+					_fd.jp = val
+					return _fd.jp
+				end
+			end
+		end
+		return newindex(...)
+	end)
+end
+]]
+
 SpecialPlayerCases = {
 	all = function(speaker) return Players:GetPlayers() end,
 	others = function(speaker)
