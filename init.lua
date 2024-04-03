@@ -1,5 +1,5 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
-if getgenv().dxrkj and type(getgenv().dxrkj) == "function" then return getgenv().dxrkj() end
+if dxrkj and type(dxrkj) == "function" then return dxrkj() end
 local LoadingTick = tick()
 
 Admin = {
@@ -25,15 +25,21 @@ Config = {
 	StartupNotification = true,
 	Widebar = false,
 }
-MiscConfig = {Permissions = {}, CustomAlias = {}, Keybinds = {}, Events = {}}
 
-clonerefs = getgenv().cloneref or function(...) return ... end
+MiscConfig = {
+    Permissions = {},
+    CustomAlias = {},
+    Keybinds = {},
+    Events = {}
+}
+
+cloneref = cloneref or function(...) return ... end
 Services = {}
 setmetatable(Services, {
 	__index = function(tbl, prop)
 		local success, service = pcall(function() return game:GetService(prop) end)
 		if success then
-			Services[prop] = clonerefs(service)
+			Services[prop] = cloneref(service)
 			return Services[prop]
 		end
 		return nil
@@ -96,6 +102,7 @@ cons.wipe = function()
 	end
 	cons.loaded = false
 end
+-- i know
 consadd, consremove = cons.add, cons.remove
 
 NewInstance = function(class, properties)
@@ -239,7 +246,7 @@ GetTool = function(player, requiresHandle)
 end
 
 local touchinterest = {}
-firerbxtouch = getgenv().firetouchinterest or function(part, part2, value)
+firerbxtouch = firetouchinterest or function(part, part2, value)
 	if part and part2 then
 		if value == 0 then
 			touchinterest[1] = part.CFrame
@@ -3575,15 +3582,26 @@ AddCommand("unignore", "unignore [player]", "Stops ignoring [player].", {"rememb
 	end
 end)
 
--- Load
-getgenv().dxrkj = function() Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10) end
+-- load toast
+pcall(function()
+    getgenv().dxrkj = function()
+        Notify(format("script already loaded\nyour prefix is %s (%s)\nrun 'killscript' to kill the script", Config.CommandBarPrefix, Admin.Prefix), 10)
+    end
+end)
+
 -- inaccurate loading time because funny
-if Config.StartupNotification then Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10) end
+if Config.StartupNotification then
+    Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10)
+end
+
+-- i forgot how to space this out
 if listfiles and type(listfiles) == "function" then for _, v in next, filter(map(filter(listfiles("dark-admin/plugins"), function(_, v) return FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) end), function(_, v) return tostring(split(v, "\\")[2]) end), function(_, v) return not FindInTable(Config.DisabledPlugins, v) end) do InstallPlugin(v, true) end end
+
 for name, permission in next, MiscConfig.Permissions do
 	local command = FindCommand(name)
 	if command then if command.PermissionIndex == permission then MiscConfig.Permissions[name] = nil else command.PermissionIndex = permission end end
 end
+
 UpdateMiscConfig()
 Events.Load()
 Events.Fire("OnExecute")
