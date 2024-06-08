@@ -1,6 +1,10 @@
 [
     "Month / Day / Year",
     [
+        "Update 6/8/24",
+        "+ OnLeave event bind"
+    ],
+    [
         "Update 3/30/23",
         "+ loopwalkspeed [number], unloopwalkspeed, loopjumppower [number], unloopjumppower"
     ],
