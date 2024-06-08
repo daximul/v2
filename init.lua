@@ -58,6 +58,7 @@ RunService = Services.RunService
 TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 Lighting = Services.Lighting
+TextChatService = Services.TextChatService
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, cwrap, wait, spawn = table.remove, string.gmatch, string.match, table.find, coroutine.wrap, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
@@ -355,14 +356,17 @@ RunCommandFunctions = function(name, ignore)
 	end
 end
 
-SendChatMessage = function(str, channel)
-	if ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") and ReplicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRequest") then
-		ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(str, channel or "All")
-	end
+SendChatMessage = function(message)
+    message = tostring(message)
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        TextChatService.TextChannels.RBXGeneral:SendAsync(message)
+    else
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+    end
 end
 
 CleanSpecials = function(...)
-	return gsub(..., "[*\\?:<>|']+", "")
+    return gsub(..., "[*\\?:<>|']+", "")
 end
 
 ChatHistory = {}
