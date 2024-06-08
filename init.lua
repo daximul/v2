@@ -79,19 +79,12 @@ cons.add = function(name, con, func)
 	return cons.connections[cname]
 end
 cons.remove = function(name)
-	if type(name) == "table" then
-		for _, connection in next, name do
-			if cons.connections[connection] then
-				cons.connections[connection]:Disconnect()
-				cons.connections[connection] = nil
-			end
-		end
-	else
-		if cons.connections[name] then
-			cons.connections[name]:Disconnect()
-			cons.connections[name] = nil
-		end
-	end
+    for _, connection in next, (type(name) == "table" and name or {name}) do
+        if cons.connections[connection] then
+            cons.connections[connection]:Disconnect()
+            cons.connections[connection] = nil
+        end
+    end
 end
 cons.wipe = function()
 	for i, v in next, cons.connections do
