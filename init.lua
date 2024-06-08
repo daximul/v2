@@ -344,7 +344,7 @@ RemoveCommand = function(cmd)
 end
 
 GetEnvironment = function(cmd)
-	local command = FindCommand(lower(tostring(cmd)))
+	local command = FindCommand(cmd)
 	return command and command.Env or {}
 end
 
@@ -1276,10 +1276,10 @@ AddCommand("debug", "debug", "Toggles the script's debug mode for commands.", {}
 end)
 
 AddCommand("killscript", "killscript", "Completely uninjects the script.", {}, {"Core"}, 2, function(args, speaker)
-	cons.wipe()
-	Gui.BaseObject:Destroy()
-	getgenv().dxrkj = nil
-	RunCommandFunctions(map(Admin.Commands, function(_, v) return v.Name end), true)
+    cons.wipe()
+    Gui.BaseObject:Destroy()
+    RunCommandFunctions(map(Admin.Commands, function(_, v) return v.Name end), true)
+    getgenv().dxrkj = nil
 end)
 
 AddCommand("reloadscript", "reloadscript", "Completely uninjects the script and re-executes it.", {}, {"Core"}, 2, function(args, speaker)
@@ -1460,13 +1460,18 @@ AddCommand("removeplugin", "removeplugin [name]", "Removes a plugin. A plugin is
 end)
 
 AddCommand("commands", "commands", "Opens the command list.", {"cmds"}, {"Core"}, 2, function()
-	local new = {}
-	for _, command in next, Admin.Commands do
-		local category = command.Category or "Misc"
-		if not new[category] then new[category] = {} end
-		new[category][command.Name] = {Name = lower(tostring(command.Usage)), Function = function() ExecuteCommand(format("commandinfo %s", lower(tostring(command.Name)))) end}
-	end
-	Gui.DisplayTable("Commands", new)
+    local list = {}
+    for _, command in next, Admin.Commands do
+        local category = command.Category or "Misc"
+        if not list[category] then list[category] = {} end
+        list[category][command.Name] = {
+            Name = lower(tostring(command.Usage)),
+            Function = function()
+                ExecuteCommand(format("commandinfo %s", lower(tostring(command.Name))))
+            end
+        }
+    end
+    Gui.DisplayTable("Commands", list)
 end)
 
 AddCommand("commandinfo", "commandinfo [command]", "Opens more information about [command].", {"cmdinfo", "cinfo"}, {"Core", 1}, 2, function(args)
@@ -1654,7 +1659,7 @@ end)
 AddCommand("pluginlist", "pluginlist", "Opens a list of your plugins.", {"plugins"}, {"Core"}, 2, function()
 	local Container = Gui.New("Plugins")
 	local Section = Container:AddSection("Section")
-	local Open = function(name)
+	local View = function(name)
 		Container.Close()
 		Container = Gui.New("Plugin Info")
 		Section = Container:AddSection("Section")
@@ -1668,13 +1673,13 @@ AddCommand("pluginlist", "pluginlist", "Opens a list of your plugins.", {"plugin
 	end
 	Section:AddItem("Text", {Text = "Enabled Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	if #LoadedPlugins > 0 then
-		for _, v in next, LoadedPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end}) end
+		for _, v in next, LoadedPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() View(v) end}) end
 	else
 		Section:AddItem("Text", {Text = "None"})
 	end
 	Section:AddItem("Text", {Text = "Disabled Plugins", TextXAlignment = Enum.TextXAlignment.Center, ImageTransparency = 1})
 	if #Config.DisabledPlugins > 0 then
-		for _, v in next, Config.DisabledPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() Open(v) end}) end
+		for _, v in next, Config.DisabledPlugins do Section:AddItem("ButtonText", {Text = v, Function = function() View(v) end}) end
 	else
 		Section:AddItem("Text", {Text = "None"})
 	end
@@ -1950,9 +1955,7 @@ Events.Register("OnJoin", {{Type = "Player", Name = "Player Filter ($1)", Defaul
 Events.Register("OnLeave", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
 
 AddCommand("toggle", "toggle [command 1] [command 2]", "Runs [command 1]. When ran again, runs [command 2]. Recommended that command 1 is something like fly and command 2 is like unfly.", {}, {"Toggle", 2}, 2, function(args)
-	local command = {args[1], args[2]}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment(args[1]) == 0 and args[1] or args[2])
 end)
 
 AddCommand("viewtools", "viewtools [player]", "Views the tools of [player].", {}, {"Utility", 1}, 2, function(args, speaker)
@@ -2018,9 +2021,7 @@ AddCommand("unfly", "unfly", "Disable fly.", {}, {"Utility"}, 2, function()
 end)
 
 AddCommand("togglefly", "togglefly", "Toggles fly.", {}, {"Toggle"}, 2, function()
-	local command = {"fly", "unfly"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("fly") == 0 and "fly" or "unfly")
 end)
 
 AddCommand("flyspeed", "flyspeed [number]", "Changes your fly speed to [number].", {}, {"Utility", 1}, 2, function(args)
@@ -2127,9 +2128,7 @@ AddCommand("unnoclip", "unnoclip", "Disables noclip.", {"clip"}, {"Utility"}, 2,
 end)
 
 AddCommand("togglenoclip", "togglenoclip", "Toggles noclip.", {}, {"Toggle"}, 2, function()
-	local command = {"noclip", "unnoclip"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("noclip") == 0 and "noclip" or "unnoclip")
 end)
 
 AddCommand("goto", "goto [player] [distance]", "Teleports your character to [player]. [distance] is an optional argument.", {"to"}, {"Utility", 1}, 2, function(args, speaker)
@@ -2656,9 +2655,7 @@ AddCommand("uninvisible", "uninvisible", "Stop being invisible.", {"uninvis", "v
 end)
 
 AddCommand("toggleinvisible", "toggleinvisible", "Toggles invisible.", {}, {"Toggle"}, 2, function()
-	local command = {"invisible", "uninvisible"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("invisible") == 0 and "invisible" or "uninvisible")
 end)
 
 AddCommand("teleportwalk", "teleportwalk [speed]", "Teleport to your move direction. [speed] is optional.", {"tpwalk"}, {"Utility"}, 2, function(args, _, env)
@@ -2717,9 +2714,7 @@ AddCommand("unswim", "unswim", "Stop swimming.", {}, {"Utility"}, 2, function()
 end)
 
 AddCommand("toggleswim", "toggleswim", "Toggles swim.", {}, {"Toggle"}, 2, function()
-	local command = {"swim", "unswim"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("swim") == 0 and "swim" or "unswim")
 end)
 
 AddCommand("notifyposition", "notifyposition", "Notify yourself your character's current position (x, y, z).", {"notifypos"}, {"Utility"}, 2, function()
@@ -2788,9 +2783,7 @@ AddCommand("unfullbright", "unfullbright", "Disables fullbright.", {"unfb"}, {"U
 end)
 
 AddCommand("togglefullbright", "togglefullbright", "Toggles fullbright.", {}, {"Toggle"}, 2, function()
-	local command = {"fullbright", "unfullbright"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("fullbright") == 0 and "fullbright" or "unfullbright")
 end)
 
 AddCommand("enable", "enable [inventory / backpack / playerlist / leaderboard / chat / reset / emotes / all]", "Enable the visibility of CoreGui items. Arguments needed are listed in usage.", {}, {"Utility", 1}, 2, function(args)
@@ -2861,9 +2854,7 @@ AddCommand("unfloat", "unfloat", "Disables float.", {}, {"Utility"}, 2, function
 end)
 
 AddCommand("togglefloat", "togglefloat", "Toggles float.", {}, {"Toggle"}, 2, function()
-	local command = {"float", "unfloat"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("float") == 0 and "float" or "unfloat")
 end)
 
 AddCommand("teleportposition", "teleportposition [x, y, z]", "Teleports you to the provided coordinates.", {"tpposition", "tppos"}, {"Utility", 3}, 2, function(args)
@@ -3132,9 +3123,7 @@ AddCommand("noxray", "noxray", "Disables xray.", {"unxray"}, {"Utility"}, 2, fun
 end)
 
 AddCommand("togglexray", "togglexray", "Toggles xray.", {}, {"Toggle"}, 2, function()
-	local command = {"xray", "noxray"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("xray") == 0 and "xray" or "noxray")
 end)
 
 AddCommand("restorelighting", "restorelighting", "Restores Lighting's original properties.", {}, {"Utility"}, 2, function()
@@ -3524,9 +3513,7 @@ AddCommand("unwallteleport", "unwallteleport", "Disables wallteleport.", {"unwal
 end)
 
 AddCommand("togglewallteleport", "togglewallteleport", "Toggles wallteleport.", {"togglewalltp"}, {"Toggle"}, 2, function()
-	local command = {"wallteleport", "unwallteleport"}
-	local content = #GetEnvironment(command[1])
-	ExecuteCommand(content == 0 and command[1] or command[2])
+	ExecuteCommand(#GetEnvironment("wallteleport") == 0 and "wallteleport" or "unwallteleport")
 end)
 
 AddCommand("offset", "offset [x, y, z]", "Offsets you by the provided coordinates.", {}, {"Utility", 3}, 2, function(args)
@@ -3600,8 +3587,18 @@ if Config.StartupNotification then
     Notify(format("prefix is %s (%s)\nloaded in %.3f seconds\nrun 'help' for help", Config.CommandBarPrefix, Admin.Prefix, tick() - LoadingTick), 10)
 end
 
--- i forgot how to space this out
-if listfiles and type(listfiles) == "function" then for _, v in next, filter(map(filter(listfiles("dark-admin/plugins"), function(_, v) return FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")])) end), function(_, v) return tostring(split(v, "\\")[2]) end), function(_, v) return not FindInTable(Config.DisabledPlugins, v) end) do InstallPlugin(v, true) end end
+if listfiles and type(listfiles) == "function" then
+    for _, v in next, filter(map(filter(listfiles("dark-admin/plugins"), function(_, v)
+        return FindInTable(PluginExtensions, "." .. lower(split(v, ".")[#split(v, ".")]))
+    end), function(_, v)
+        return tostring(split(v, "\\")[2])
+    end),
+    function(_, v)
+        return not FindInTable(Config.DisabledPlugins, v)
+    end) do
+        InstallPlugin(v, true)
+    end
+end
 
 for name, permission in next, MiscConfig.Permissions do
 	local command = FindCommand(name)
