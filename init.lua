@@ -836,7 +836,10 @@ consadd(Players.PlayerAdded, function(player)
 	LogJoinMessage(player, "has joined the game")
 end)
 
-consadd(Players.PlayerRemoving, function(player) LogJoinMessage(player, "has left the game") end)
+consadd(Players.PlayerRemoving, function(player)
+    LogJoinMessage(player, "has left the game")
+    Events.Fire("OnLeave", player.Name)
+end)
 
 Admin.CommandRequirements = {
 	spawned = function() return {"you need to be spawned for this command", GetCharacter() ~= nil} end,
@@ -1937,11 +1940,12 @@ Events = (function()
 end)()
 Events.Register("OnExecute")
 Events.Register("OnChatted", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}, {Type = "String", Name = "Message Filter ($2)"}})
-Events.Register("OnJoin", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
 Events.Register("OnSpawn", {{Type = "Player", Name = "Player Filter ($1)"}})
 Events.Register("OnDied", {{Type = "Player", Name = "Player Filter ($1)"}})
 Events.Register("OnDamage", {{Type = "Player", Name = "Player Filter ($1)"}, {Type = "Number", Name = "Below Health ($2)"}})
 Events.Register("OnKilled", {{Type = "Player", Name = "Victim Player ($1)"}, {Type = "String", Name = "Killer Player ($2)", Default = 1}})
+Events.Register("OnJoin", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
+Events.Register("OnLeave", {{Type = "Player", Name = "Player Filter ($1)", Default = 1}})
 
 AddCommand("toggle", "toggle [command 1] [command 2]", "Runs [command 1]. When ran again, runs [command 2]. Recommended that command 1 is something like fly and command 2 is like unfly.", {}, {"Toggle", 2}, 2, function(args)
 	local command = {args[1], args[2]}
