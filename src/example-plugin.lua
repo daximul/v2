@@ -1,14 +1,14 @@
 return {
-    Name = "Testing Purposes",
+    Name = "Example Plugin",
     Description = "Self explanatory",
-    Author = "Admin",
+    Author = "Me",
     Commands = {
         {
             Name = "findexecutecommand",
-            Description = "Prints if the ExecuteCommand function is available.",
+            Description = "Prints if ExecuteCommand is available.",
             Aliases = {},
             Requirements = {},
-            Category = "Test",
+            Category = "Testing",
             Function = function()
                 print("ExecuteCommand is -", ExecuteCommand)
             end
