@@ -1722,7 +1722,7 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 		list = HttpService:JSONDecode(list)
 		local Container = Gui.New("Plugin Browser")
 		local Section = Container:AddSection("Section")
-		local View = function(name, description, url)
+		local View = function(name, description, ext)
 			Container.Close()
 			Container = Gui.New("Plugin Info")
 			Section = Container:AddSection("Section")
@@ -1737,7 +1737,7 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 				if exists then
 					InstallPlugin(file, false)
 				else
-					writefile(format("dark-admin/plugins/%s", file), format("return loadstring(game:HttpGet(\"https://raw.githubusercontent.com/daximul/v2/main/src/browser/%s\"))()", url))
+					writefile(format("dark-admin/plugins/%s", file), format("return loadstring(game:HttpGet(\"https://raw.githubusercontent.com/daximul/v2/main/src/browser/%s\"))()", ext))
 					wait(0.1)
 					InstallPlugin(file, false)
 				end
@@ -1761,7 +1761,7 @@ AddCommand("browser", "browser", "Opens the pre-provided plugin browser.", {}, {
 		end
 		for _, v in next, list do
 			Section:AddItem("ButtonText", {Text = v.Name, Function = function()
-				View(v.Name, v.Description, v.Url)
+				View(v.Name, v.Description, v.Ext)
 			end})
 		end
 	end
