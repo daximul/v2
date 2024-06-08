@@ -104,6 +104,8 @@ cons.wipe = function()
 end
 -- i know
 consadd, consremove = cons.add, cons.remove
+-- ok hear me out
+-- im keeping the bad code above ONLY for plugin compatibility
 
 NewInstance = function(class, properties)
 	local new = creatingInstance(class)
