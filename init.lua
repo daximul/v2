@@ -926,7 +926,7 @@ local fakeRequire = (function()
 			return cache[module]
 		end
 		local func = loadstring(module.source)
-		local env = setmetatable({}, {__index = getgenv()})
+		local env = setmetatable({}, {__index = getgenv and getgenv() or _G})
 		env.script = module
 		env.require = load
 		setfenv(func, env)
@@ -939,7 +939,7 @@ end)()
 
 -- Filesystem
 local UpdateConfig, UpdateMiscConfig = function() end, function() end
-do
+if writefile and readfile and isfolder and makefolder then
 	if not isfolder("dark-admin") then
 		makefolder("dark-admin")
 	end
@@ -1323,7 +1323,7 @@ AddCommand("ui", "ui", "Quick access to most things.", {}, {"Core"}, 2, function
 	})
 	Section:AddItem("Button", {Text = "Commands", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("commands") end})
 	Section:AddItem("Button", {Text = "Plugins", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("pluginlist") end})
-	Section:AddItem("Button", {Text = "Browser", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("browser") end})
+	Section:AddItem("Button", {Text = "Plugin Browser", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("browser") end})
 	Section:AddItem("Button", {Text = "Keybinds", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("keybinds") end})
 	Section:AddItem("Button", {Text = "Event Binds", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("eventeditor") end})
 	Section:AddItem("Button", {Text = "Chatlogs", TextXAlignment = Enum.TextXAlignment.Center, Function = function() ExecuteCommand("chatlogs") end})
