@@ -1,10 +1,10 @@
-local urls = {
+local Hubs = {
     {"sirius", "Shlex", "https://raw.githubusercontent.com/shlexware/Sirius/request/source"},
     {"darkhub", "RandomAdam", "https://raw.githubusercontent.com/RandomAdamYT/DarkHub_V4/main/init"},
     {"psyhub", "Unknown", "https://pastebin.com/raw/yqTJ402H"},
     {"vxpe", "Alteral", "https://raw.githubusercontent.com/Alteral323/v/main/init.lua"},
     {"ezhub", "debug420", function()
-        _G["DISABLEEXELOG"] = true
+        _G.DISABLEEXELOG = true
         loadstring(game:HttpGet("https://raw.githubusercontent.com/debug420/Ez-Industries-Launcher-Data/master/Launcher.lua"))()
     end},
     {"eclipse", "Ethanoj1", function()
@@ -15,7 +15,7 @@ local urls = {
 
 local Plugin = {Name = "Hub Loader", Commands = {}}
 
-for _, v in next, urls do
+for _, v in next, Hubs do
     insert(Plugin.Commands, {Name = v[1], Description = format("Loads the script by %s.", v[2]), Function = function()
         if type(v[3]) == "function" then
             v[3]()
