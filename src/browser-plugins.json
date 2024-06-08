@@ -1,27 +1,27 @@
 [
     {
         "Name": "Shader Mod",
-        "Description": "Adds shaders to your game (best with max graphics). The command is toggleshader.",
-        "Url": "shadermod.lua"
+        "Ext": "shadermod.lua",
+        "Description": "Adds shaders to your game (best with max graphics). The command is toggleshader."
     },
     {
         "Name": "Cyclically's Btools",
-        "Description": "Better btools with Undo & Identify. The command is cycbtools.",
-        "Url": "cyclicallysbtools.lua"
+        "Ext": "cyclicallysbtools.lua",
+        "Description": "Better btools with Undo & Identify. The command is cycbtools."
     },
     {
         "Name": "Hub Loader",
-        "Description": "Load specific hubs because why not?",
-        "Url": "hubloader.lua"
+        "Ext": "hubloader.lua",
+        "Description": "Load specific hubs because why not?"
     },
     {
         "Name": "Draggable Chat",
-        "Description": "Adds a command to make chat draggable and resizable. The command is draggablechat.",
-        "Url": "draggablechat.lua"
+        "Ext": "draggablechat.lua",
+        "Description": "Adds a command to make chat draggable and resizable. The command is draggablechat."
     },
     {
         "Name": "Rizzler",
-        "Description": "Adds a command to open a gui to pick chat lines that help you pick up virtual women. The command is rizz.",
-        "Url": "rizzler.lua"
+        "Ext": "rizzler.lua",
+        "Description": "Adds a command to open a gui to pick chat lines that help you pick up virtual women. The command is rizz."
     }
 ]
