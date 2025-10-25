@@ -33,23 +33,35 @@ MiscConfig = {
     Events = {}
 }
 
-cloneref = cloneref or function(...) return ... end
-Services = {}
-setmetatable(Services, {
-	__index = function(tbl, prop)
-		local success, service = pcall(function() return game:GetService(prop) end)
-		if success then
-			Services[prop] = cloneref(service)
-			return Services[prop]
-		end
-		return nil
-	end,
-	__mode = "v"
+function missing(t, f, fallback)
+    if type(f) == t then return f end
+    return fallback
+end
+
+cloneref = missing("function", cloneref, function(...) return ... end)
+getconnections = missing("function", getconnections or get_signal_cons)
+httprequest = missing("function", request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request))
+queue_on_teleport = missing("function", queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport))
+setclipboard = missing("function", setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set))
+firetouchinterest = missing("function", firetouchinterest)
+
+Services = setmetatable({}, {
+    __index = function(self, name)
+        local success, cache = pcall(function()
+            return cloneref(game:GetService(name))
+        end)
+        if success then
+            rawset(self, name, cache)
+            return cache
+        else
+            error("Invalid Roblox Service: " .. tostring(name))
+        end
+    end
 })
 
 Players = Services.Players
 LocalPlayer = Players.LocalPlayer
-Mouse = LocalPlayer:GetMouse()
+Mouse = cloneref(LocalPlayer:GetMouse())
 HttpService = Services.HttpService
 ReplicatedStorage = Services.ReplicatedStorage
 CoreGui = Services.CoreGui
@@ -59,17 +71,17 @@ TweenService = Services.TweenService
 TeleportService = Services.TeleportService
 Lighting = Services.Lighting
 TextChatService = Services.TextChatService
+
 lower, gsub, len, sub, find, random, insert = string.lower, string.gsub, string.len, string.sub, string.find, math.random, table.insert
 remove, gmatch, match, tfind, cwrap, wait, spawn = table.remove, string.gmatch, string.match, table.find, coroutine.wrap, task.wait, task.spawn
 split, format, upper, clamp, round, heartbeat, renderstepped = string.split, string.format, string.upper, math.clamp, math.round, RunService.Heartbeat, RunService.RenderStepped
-local getconnections = getconnections or get_signal_cons
-local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
-local queue_on_teleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 local creatingInstance = Instance.new
 local OldGravity, OldFallenPartsDestroyHeight = workspace.Gravity, workspace.FallenPartsDestroyHeight
 local OldLightingProperties = {Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, FogStart = Lighting.FogStart, FogEnd = Lighting.FogEnd, GlobalShadows = Lighting.GlobalShadows}
 
-RandomString = function() return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30)) end
+function RandomString()
+    return sub(gsub(HttpService:GenerateGUID(false), "-", ""), 1, random(25, 30))
+end
 
 cons = {connections = {}, loaded = true}
 cons.add = function(name, con, func)
@@ -96,11 +108,9 @@ cons.wipe = function()
 	end
 	cons.loaded = false
 end
--- i know
 consadd, consremove = cons.add, cons.remove
--- ok hear me out
--- im keeping the bad code above ONLY for plugin compatibility
 AddConnection, RemoveConnection = cons.add, cons.remove
+-- im keeping the bad code above ONLY for plugin compatibility
 
 NewInstance = function(class, properties)
 	local new = creatingInstance(class)
@@ -269,10 +279,9 @@ GetLongUsername = function(player)
 	end
 end
 
-local clipboardfunc = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
 toexecutorclipboard = function(...)
-	if clipboardfunc then
-		clipboardfunc(...)
+	if setclipboard then
+		setclipboard(...)
 		Notify("copied to clipboard")
 	else
 		print("[Clipboard]", ...)
@@ -357,16 +366,15 @@ RunCommandFunctions = function(name, ignore)
 end
 
 SendChatMessage = function(message)
-    message = tostring(message)
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-        TextChatService.TextChannels.RBXGeneral:SendAsync(message)
+        TextChatService.TextChannels.RBXGeneral:SendAsync(tostring(message))
     else
-        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(tostring(message), "All")
     end
 end
 
-CleanSpecials = function(...)
-    return gsub(..., "[*\\?:<>|']+", "")
+CleanSpecials = function(text)
+    return gsub(text, "[*\\?:<>|']+", "")
 end
 
 ChatHistory = {}
@@ -1113,13 +1121,11 @@ local MatchSearch = function(str1, str2)
 end
 
 local StringFind = function(tbl, str)
-	if type(tbl) == "table" then
-		for _, v in ipairs(tbl) do
-			if MatchSearch(str, v) then
-				return v
-			end
-		end
-	end
+    for _, v in ipairs(tbl) do
+        if MatchSearch(str, v) then
+            return v
+        end
+    end
 end
 
 local PlayerArgs = function(argument)
@@ -1127,7 +1133,9 @@ local PlayerArgs = function(argument)
 	return StringFind(Admin.PredictionCases, argument) or (function()
 		for _, v in ipairs(Players:GetPlayers()) do
 			local name = lower(tostring(v.Name))
+            local displayName = lower(tostring(v.DisplayName))
 			if MatchSearch(argument, name) then return name end
+            if MatchSearch(argument, displayName) then return displayName end
 		end
 	end)()
 end
@@ -2679,7 +2687,7 @@ AddCommand("unteleportwalk", "unteleportwalk", "Stop teleport walk.", {"untpwalk
 end)
 
 AddCommand("f3x", "f3x", "Most known clientsided funny building tool yessir.", {}, {"Fun"}, 2, function()
-	loadstring(Services.InsertService:LoadLocalAsset("rbxassetid://6695644299"):Clone().Source)()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/f3x.lua"))()
 end)
 
 AddCommand("swim", "swim", "Makes your character able to swim while not being in water. Tap [Space] to go up. Tap [LeftControl] to go down.", {}, {"Utility"}, 2, function(_, speaker, env)
